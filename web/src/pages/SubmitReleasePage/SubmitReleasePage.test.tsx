@@ -1,14 +1,14 @@
 import { render } from '@redwoodjs/testing/web'
 
-import CreateNewReleasePage from './CreateNewReleasePage'
+import SubmitReleasePage from './SubmitReleasePage'
 
 //   Improve this test with help from the Redwood Testing Doc:
 //   https://redwoodjs.com/docs/testing#testing-pages-layouts
 
-describe('CreateNewReleasePage', () => {
+describe('SubmitReleasePage', () => {
   it('renders successfully', () => {
     expect(() => {
-      render(<CreateNewReleasePage />)
+      render(<SubmitReleasePage />)
     }).not.toThrow()
   })
 })
