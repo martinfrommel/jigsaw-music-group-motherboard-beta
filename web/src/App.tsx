@@ -7,6 +7,7 @@ import * as theme from 'config/chakra.config'
 import FatalErrorPage from 'src/pages/FatalErrorPage'
 import Routes from 'src/Routes'
 
+import './scaffold.css'
 import { AuthProvider, useAuth } from './auth'
 
 import './index.css'

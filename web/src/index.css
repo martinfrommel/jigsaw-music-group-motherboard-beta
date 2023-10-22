@@ -1,0 +1,4 @@
+.nav-link-active:hover {
+  transition: all 1s;
+  text-decoration: underline;
+}
