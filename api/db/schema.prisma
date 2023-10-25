@@ -11,16 +11,36 @@ generator client {
 // Defined User Model
 
 model User {
-  id             Int @id @default(autoincrement())
-  firstName String
-  lastName String
-  email          String  @unique
-  hashedPassword      String  
-  salt                String    
-  resetToken          String?   
+  id             Int       @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  email          String    @unique
+  hashedPassword String  
+  salt           String    
+  resetToken     String?   
   resetTokenExpiresAt DateTime?
+  roles String @default("user")
+  releases       Release[] // This establishes a one-to-many relationship with Release
 }
 
+model Release {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      // Foreign key to establish relationship with User
+  songMasterReference String   // Link/reference to the uploaded file on Supabase or similar service
+  songTitle           String
+  productTitle        String?  // Optional field
+  artist              String
+  featuredArtist      String?  // Optional field
+  releaseDate         DateTime
+  previouslyReleased  Boolean
+  language            String   // Assuming language is stored as a string, you can adjust as needed
+  primaryGenre        String   // Assuming genre is stored as a string, you can adjust as needed
+  secondaryGenre      String?  // Optional field
+  explicitLyrics      Boolean
+  isicUpcCode         String
+  pLine               String?  // Optional field
+  cLine               String?  // Optional field
+  length              Int      // Assuming length is stored in seconds as an integer
 
-
-
+  user                User     @relation(fields: [userId], references: [id]) // This establishes the relationship with User
+}

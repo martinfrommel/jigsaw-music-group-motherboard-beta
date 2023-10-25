@@ -219,7 +219,7 @@ const LoginPage = ({ type }) => {
       if (webAuthn.isEnabled()) {
         return (
           <div className="rw-login-link">
-            <span>or login with </span>{' '}
+            <span>or login with </span>
             <a href="?type=password" className="rw-link">
               your email and password
             </a>
@@ -229,9 +229,10 @@ const LoginPage = ({ type }) => {
     } else {
       return (
         <div className="rw-login-link">
-          <span>Don&apos;t have an account?</span>{' '}
-          <Link to={routes.signup()} className="rw-link">
-            Sign up!
+          <span>Don&apos;t have an account?</span>
+          <br />
+          <Link to="mailto:admin@jigsawmusicgroup.com">
+            Contact the admin for an account!
           </Link>
         </div>
       )

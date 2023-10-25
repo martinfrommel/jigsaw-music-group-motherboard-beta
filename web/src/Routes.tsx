@@ -7,7 +7,9 @@
 // 'src/pages/HomePage/HomePage.js'         -> HomePage
 // 'src/pages/Admin/BooksPage/BooksPage.js' -> AdminBooksPage
 
-import { Router, Route, Set } from '@redwoodjs/router'
+import { Router, Route, Set, Private } from '@redwoodjs/router'
+
+import ScaffoldLayout from 'src/layouts/ScaffoldLayout'
 import MainLayout from './layouts/MainLayout/MainLayout'
 import AuthLayout from './layouts/AuthLayout/AuthLayout'
 import { useAuth } from './auth'
@@ -15,17 +17,25 @@ import { useAuth } from './auth'
 const Routes = () => {
   return (
     <Router useAuth={useAuth}>
-      <Set wrap={AuthLayout}>
+      <Set wrap={MainLayout}>
+        <Route path="/" page={HomePage} name="home" />
+        <Private unauthenticated="login">
+          <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
+          <Route path="/my-releases" page={MyReleasesPage} name="myReleases" />
+        </Private>
         <Route path="/login" page={LoginPage} name="login" />
-        <Route path="/signup" page={SignupPage} name="signup" />
+        {/* <Route path="/signup" page={SignupPage} name="signup" /> */}
         <Route path="/forgot-password" page={ForgotPasswordPage} name="forgotPassword" />
         <Route path="/reset-password" page={ResetPasswordPage} name="resetPassword" />
+        <Route notfound page={NotFoundPage} />
       </Set>
-      <Set wrap={MainLayout}>
-        <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
-        <Route path="/" page={HomePage} name="home" />
+
+      <Set private roles="admin" unauthenticated="login" wrap={ScaffoldLayout} title="Releases" titleTo="releases" buttonLabel="New Release" buttonTo="newRelease">
+        <Route path="/admin/releases/new" page={ReleaseNewReleasePage} name="newRelease" />
+        <Route path="/admin/releases/{id:Int}/edit" page={ReleaseEditReleasePage} name="editRelease" />
+        <Route path="/admin/releases/{id:Int}" page={ReleaseReleasePage} name="release" />
+        <Route path="/admin/releases" page={ReleaseReleasesPage} name="releases" />
       </Set>
-      <Route notfound page={NotFoundPage} />
     </Router>
   )
 }

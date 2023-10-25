@@ -1,4 +1,27 @@
-.nav-link-active:hover {
+:root {
   transition: all 1s;
+}
+
+html {
+  min-width: 100vw;
+  min-height: 100vh;
+}
+
+a:hover {
   text-decoration: underline;
+}
+
+.logo-link:hover {
+  text-decoration: none;
+}
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.nav-link-active {
+  text-decoration: underline;
+}
+
+.menu-item {
+  margin: 0 1rem 0 1rem;
 }

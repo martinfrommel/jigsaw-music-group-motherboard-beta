@@ -56,11 +56,11 @@ export const handler = async (
 
     errors: {
       usernameOrPasswordMissing: 'Both username and password are required',
-      usernameNotFound: 'Username ${username} not found',
+      usernameNotFound: 'Incorrect password or username',
       // For security reasons you may want to make this the same as the
       // usernameNotFound error so that a malicious user can't use the error
       // to narrow down if it's the username or password that's incorrect
-      incorrectPassword: 'Incorrect password for ${username}',
+      incorrectPassword: 'Incorrect password or username',
     },
 
     // How long a user will remain logged in, in seconds
@@ -173,7 +173,9 @@ export const handler = async (
     forgotPassword: forgotPasswordOptions,
     login: loginOptions,
     resetPassword: resetPasswordOptions,
-    signup: signupOptions,
+    signup: {
+      enabled: false,
+    },
 
     // See https://redwoodjs.com/docs/authentication/dbauth#webauthn for options
     webAuthn: {

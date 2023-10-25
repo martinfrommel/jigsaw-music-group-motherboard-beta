@@ -9,9 +9,11 @@ import {
   useDisclosure,
   Button,
 } from '@chakra-ui/react'
+import { useAuth } from 'src/auth'
 
 const UserBubble = () => {
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const { currentUser, logOut } = useAuth()
 
   return (
     <Menu>
@@ -37,12 +39,15 @@ const UserBubble = () => {
         </Center>
         <br />
         <Center>
-          <p>Your Name</p>
+          <p>
+            {currentUser.email}
+            {currentUser.roles.includes('admin') && '(admin)'}
+          </p>
         </Center>
         <br />
         <MenuDivider />
         <MenuItem>Your Releases</MenuItem>
-        <MenuItem>Logout</MenuItem>
+        <MenuItem onClick={logOut}>Logout</MenuItem>
       </MenuList>
     </Menu>
   )
