@@ -1,13 +1,4 @@
-import { Formik, Field, ErrorMessage } from 'formik'
 import {
-  FormControl,
-  FormLabel,
-  Input,
-  Button,
-  Box,
-  Select,
-  FormErrorMessage,
-  Textarea,
   Step,
   StepDescription,
   StepIcon,
@@ -18,29 +9,23 @@ import {
   StepTitle,
   Stepper,
   useSteps,
+  Box,
+  Text,
+  Flex,
+  HStack,
 } from '@chakra-ui/react'
-import * as Yup from 'yup'
-import { useState } from 'react'
+import { Formik, Field, ErrorMessage } from 'formik'
+import {
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  FormErrorMessage,
+} from '@chakra-ui/react'
 
-const ReleaseSchema = Yup.object().shape({
-  songMaster: Yup.string().required('Song Master is required'),
-  metadata: Yup.object().shape({
-    songTitle: Yup.string().required('Song Title is required'),
-    productTitle: Yup.string(),
-    artist: Yup.string().required('Artist is required'),
-    featuredArtist: Yup.string(),
-    releaseDate: Yup.date().required('Release Date is required'),
-    previouslyReleased: Yup.boolean(),
-    language: Yup.string().required('Language is required'),
-    primaryGenre: Yup.string().required('Primary Genre is required'),
-    secondaryGenre: Yup.string(),
-    explicitLyrics: Yup.boolean(),
-    isicUpcCode: Yup.string().required('ISIC/UPC Code is required'),
-    pLine: Yup.string(),
-    cLine: Yup.string(),
-    length: Yup.string(),
-  }),
-})
+import { ReleaseSchema } from '../../lib/releaseSchema'
+import { useState } from 'react'
+import { useDropzone } from 'react-dropzone'
 
 const NewReleaseForm = () => {
   const [audioLength, setAudioLength] = useState('')
@@ -57,6 +42,35 @@ const NewReleaseForm = () => {
   const onSubmit = async (data) => {
     // Handle the form submission logic here
   }
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      'audio/wav': ['.wav'],
+      'audio/quicktime': ['.m4a, .alac'],
+    }, // Add other formats if needed
+    onDrop: (acceptedFiles) => {
+      // Handle the files here
+    },
+  })
+
+  // const releaseSchema = ReleaseSchema
+
+  const steps = [
+    {
+      title: 'Song Master',
+      description: 'Upload your song master',
+    },
+    {
+      title: 'Metadata',
+      description: 'Provide song metadata',
+    },
+    // ... add more steps if needed
+  ]
+
+  const { activeStep, setActiveStep, goToPrevious, goToNext } = useSteps({
+    index: 0,
+    count: steps.length,
+  })
 
   return (
     <>
@@ -85,51 +99,135 @@ const NewReleaseForm = () => {
       >
         {(props) => (
           <form onSubmit={props.handleSubmit}>
-            <Stepper index={0}>
-              <Step key="Song Master">
-                <Box display="flex" flexDirection="column" alignItems="start">
-                  <FormLabel>Song Master</FormLabel>
-                  <Input
-                    type="file"
-                    name="songMaster"
-                    onChange={(event) => {
-                      props.handleChange(event)
-                      handleAudioUpload(event)
-                    }}
-                    accept=".wav,.flac,.alac"
-                  />
-                  <ErrorMessage
-                    name="songMaster"
-                    component={FormErrorMessage}
-                  />
-                </Box>
-              </Step>
+            <Stepper index={activeStep}>
+              {steps.map((step, index) => (
+                <Step key={index}>
+                  <StepIndicator>
+                    <StepStatus
+                      complete={<StepIcon />}
+                      incomplete={<StepNumber />}
+                      active={<StepNumber />}
+                    />
+                  </StepIndicator>
 
-              <Step key="Metadata">
-                <Box display="flex" flexDirection="column" alignItems="start">
+                  <Box flexShrink="0">
+                    <StepTitle>{step.title}</StepTitle>
+                    <StepDescription>{step.description}</StepDescription>
+                  </Box>
+
+                  <StepSeparator />
+                </Step>
+              ))}
+            </Stepper>
+
+            {activeStep === 0 && (
+              <Box
+                {...getRootProps()}
+                p={8}
+                border="2px dashed gray"
+                transition={'all 0.5s'}
+                mt={4}
+              >
+                <input name={'songMaster'} {...getInputProps()} />
+                <Text>
+                  Drag & drop your song master here, or click to select one
+                </Text>
+              </Box>
+            )}
+
+            {activeStep === 1 && (
+              <>
+                <FormControl mt={4}>
                   <FormLabel>Song Title</FormLabel>
+                  <Input type="text" name="metadata.songTitle" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Product Title (optional)</FormLabel>
+                  <Input type="text" name="metadata.productTitle" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Artist</FormLabel>
+                  <Input type="text" name="metadata.artist" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Featured Artist (optional)</FormLabel>
+                  <Input type="text" name="metadata.featuredArtist" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Release Date</FormLabel>
+                  <Input type="date" name="metadata.releaseDate" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Previously Released?</FormLabel>
+                  <Field type="checkbox" name="metadata.previouslyReleased" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Language</FormLabel>
+                  <Input type="text" name="metadata.language" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Primary Genre</FormLabel>
+                  <Input type="text" name="metadata.primaryGenre" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Secondary Genre</FormLabel>
+                  <Input type="text" name="metadata.secondaryGenre" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Explicit Lyrics</FormLabel>
+                  <Field type="checkbox" name="metadata.explicitLyrics" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>ISIC/UPC Code</FormLabel>
+                  <Input type="text" name="metadata.isicUpcCode" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>P Line</FormLabel>
+                  <Input type="text" name="metadata.pLine" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>C Line</FormLabel>
+                  <Input type="text" name="metadata.cLine" />
+                </FormControl>
+
+                <FormControl mt={4}>
+                  <FormLabel>Length</FormLabel>
                   <Input
                     type="text"
-                    name="metadata.songTitle"
-                    onChange={props.handleChange}
-                    value={props.values.metadata.songTitle}
+                    name="metadata.length"
+                    value={audioLength}
+                    readOnly
                   />
-                  <ErrorMessage
-                    name="metadata.songTitle"
-                    component={FormErrorMessage}
-                  />
-                  {/* ... Add other metadata fields similarly */}
-                </Box>
-              </Step>
+                </FormControl>
+              </>
+            )}
 
-              {/* Add more steps if needed */}
-
-              <Box mt={4}>
-                <Button type="submit" isLoading={props.isSubmitting}>
-                  Submit Release
+            <Flex justifyContent={'space-between'} alignItems={'center'} mt={6}>
+              {activeStep > 0 && (
+                <Button type="button" onClick={goToPrevious}>
+                  Previous step
                 </Button>
-              </Box>
-            </Stepper>
+              )}
+              {activeStep < steps.length - 1 ? (
+                <Button type="button" onClick={goToNext}>
+                  Next step
+                </Button>
+              ) : (
+                <Button type="submit">Submit</Button>
+              )}
+            </Flex>
           </form>
         )}
       </Formik>
