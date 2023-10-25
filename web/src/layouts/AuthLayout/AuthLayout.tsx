@@ -1,4 +1,4 @@
-import Header from 'src/components/Header/Header'
+import Header from 'src/components/HeaderComponents/Header/Header'
 
 type AuthLayoutProps = {
   children?: React.ReactNode

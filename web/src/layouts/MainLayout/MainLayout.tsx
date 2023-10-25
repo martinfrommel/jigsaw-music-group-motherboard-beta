@@ -1,5 +1,6 @@
 import { Flex } from '@chakra-ui/react'
-import Header from 'src/components/Header/Header'
+import { Toaster } from '@redwoodjs/web/dist/toast'
+import Header from 'src/components/HeaderComponents/Header/Header'
 
 type MainLayoutProps = {
   children?: React.ReactNode
@@ -8,6 +9,7 @@ type MainLayoutProps = {
 const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <>
+      <Toaster />
       <Header />
       <Flex
         as="main"

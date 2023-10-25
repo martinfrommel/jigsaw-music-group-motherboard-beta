@@ -8,25 +8,12 @@ import {
   Select,
   FormErrorMessage,
 } from '@chakra-ui/react'
-import * as Yup from 'yup'
 import { useAuth } from 'src/auth'
 import { toast, Toaster } from '@redwoodjs/web/toast'
 import { useState } from 'react'
 
-const SignupSchema = Yup.object().shape({
-  yourEmail: Yup.string().email('Invalid email').required('Required'),
-  password: Yup.string()
-    .min(8, 'Password must be at least 8 characters')
-    .required('Required'),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required('Confirm Password is required'),
-  firstName: Yup.string().required('First name is required'),
-  lastName: Yup.string().required('Last name is equired'),
-  role: Yup.string()
-    .oneOf(['user', 'moderator', 'admin'], 'Invalid role')
-    .required('Required'),
-})
+import { SignupSchema } from 'src/lib/signUpSchema'
+import PasswordMeter from '../PasswordMeter/PasswordMeter'
 
 const CreateUserForm = () => {
   const { signUp } = useAuth()
@@ -59,7 +46,6 @@ const CreateUserForm = () => {
 
   return (
     <>
-      <Toaster />
       <Formik
         initialValues={{
           yourEmail: '',
@@ -83,74 +69,89 @@ const CreateUserForm = () => {
                 name="yourEmail"
                 onChange={props.handleChange}
                 value={props.values.yourEmail}
+                isInvalid={
+                  !!(props.errors.yourEmail && props.touched.yourEmail)
+                }
               />
-              <FormErrorMessage>
-                <ErrorMessage name="yourEmail" />
-              </FormErrorMessage>
-            </FormControl>
+              <ErrorMessage name="yourEmail" component={FormErrorMessage} />
 
-            <FormControl mt={4}>
-              <FormLabel>Password</FormLabel>
+              <FormLabel mt={4}>Password</FormLabel>
               <Input
                 type="password"
                 name="password"
                 onChange={props.handleChange}
                 value={props.values.password}
+                isInvalid={!!(props.errors.password && props.touched.password)}
               />
-              <FormErrorMessage>
-                <ErrorMessage name="password" />
-              </FormErrorMessage>
-            </FormControl>
-            <FormControl mt={4}>
-              <FormLabel>Confirm Password</FormLabel>
+              <ErrorMessage name="password" component={FormErrorMessage} />
+
+              <FormLabel mt={4}>Confirm Password</FormLabel>
               <Input
                 type="password"
                 name="confirmPassword"
                 onChange={props.handleChange}
                 value={props.values.confirmPassword}
+                isInvalid={
+                  !!(
+                    props.errors.confirmPassword &&
+                    props.touched.confirmPassword
+                  )
+                }
               />
-              <FormErrorMessage>
-                <ErrorMessage name="confirmPassword" />
-              </FormErrorMessage>
-            </FormControl>
-            <FormControl mt={4}>
-              <FormLabel>First Name</FormLabel>
+              <ErrorMessage
+                name="confirmPassword"
+                component={FormErrorMessage}
+              />
+
+              <PasswordMeter
+                password={props.values.password}
+                confirmPassword={props.values.confirmPassword}
+              />
+
+              <FormLabel mt={4}>First Name</FormLabel>
               <Input
                 type="text"
                 name="firstName"
                 onChange={props.handleChange}
+                onBlur={props.handleBlur}
                 value={props.values.firstName}
+                isInvalid={
+                  !!(props.errors.firstName && props.touched.firstName)
+                }
               />
-            </FormControl>
+              <ErrorMessage name="firstName" component={FormErrorMessage} />
 
-            <FormControl mt={4}>
-              <FormLabel>Last Name</FormLabel>
+              <FormLabel mt={4}>Last Name</FormLabel>
               <Input
                 type="text"
                 name="lastName"
                 onChange={props.handleChange}
+                onBlur={props.handleBlur}
                 value={props.values.lastName}
+                isInvalid={!!(props.errors.lastName && props.touched.lastName)}
               />
-            </FormControl>
+              <ErrorMessage name="lastName" component={FormErrorMessage} />
 
-            <FormControl mt={4}>
-              <FormLabel>Role</FormLabel>
+              <FormLabel mt={4}>Role</FormLabel>
               <Select
                 name="role"
                 onChange={props.handleChange}
+                onBlur={props.handleBlur}
                 value={props.values.role}
+                isInvalid={!!(props.errors.role && props.touched.role)}
               >
                 <option value="user">User</option>
                 <option value="moderator">Moderator</option>
                 <option value="admin">Admin</option>
               </Select>
-            </FormControl>
+              <ErrorMessage name="role" component={FormErrorMessage} />
 
-            <Box mt={4}>
-              <Button type="submit" isLoading={props.isSubmitting}>
-                Create a user
-              </Button>
-            </Box>
+              <Box mt={4}>
+                <Button type="submit" isLoading={props.isSubmitting}>
+                  Create a user
+                </Button>
+              </Box>
+            </FormControl>
           </form>
         )}
       </Formik>

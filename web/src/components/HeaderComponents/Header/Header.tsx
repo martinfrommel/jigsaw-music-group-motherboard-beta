@@ -1,6 +1,6 @@
 import { Box, Center, Flex, Stack, useColorModeValue } from '@chakra-ui/react'
 import { NavLink, routes, Link } from '@redwoodjs/router'
-import DarkModeToggle from '../DarkModeToggle/DarkModeToggle'
+import DarkModeToggle from '../../DarkModeToggle/DarkModeToggle'
 import IsUserLoggedIn from '../IsUserLoggedIn/IsUserLoggedIn'
 interface Props {
   showNavLinks?: boolean

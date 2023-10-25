@@ -1,5 +1,5 @@
 import { useAuth } from 'src/auth'
-import UserBubble from '../HeaderComponents/UserBubble/UserBubble'
+import UserBubble from '../UserBubble/UserBubble'
 import { Spinner } from '@chakra-ui/react'
 import { NavLink, routes } from '@redwoodjs/router'
 const IsUserLoggedIn = () => {
