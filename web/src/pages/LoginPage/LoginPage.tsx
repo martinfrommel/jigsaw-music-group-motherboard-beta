@@ -1,19 +1,18 @@
-import { useRef, useState } from 'react'
-import { useEffect } from 'react'
-
-import {
-  Form,
-  Label,
-  TextField,
-  PasswordField,
-  Submit,
-  FieldError,
-} from '@redwoodjs/forms'
+import { useRef, useState, useEffect } from 'react'
 import { Link, navigate, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
 import { toast, Toaster } from '@redwoodjs/web/toast'
-
 import { useAuth } from 'src/auth'
+import {
+  Box,
+  Button,
+  Container,
+  FormControl,
+  FormLabel,
+  Input,
+  Text,
+} from '@chakra-ui/react'
+import { Formik, Form, Field, ErrorMessage } from 'formik'
 
 const WELCOME_MESSAGE = 'Welcome back!'
 const REDIRECT = routes.submitRelease()
@@ -144,62 +143,33 @@ const LoginPage = ({ type }) => {
   )
 
   const PasswordForm = () => (
-    <Form onSubmit={onSubmit} className="rw-form-wrapper">
-      <Label
-        name="yourEmail"
-        className="rw-label"
-        errorClassName="rw-label rw-label-error"
-      >
-        Your Email
-      </Label>
-      <TextField
-        name="yourEmail"
-        className="rw-input"
-        errorClassName="rw-input rw-input-error"
-        ref={yourEmailRef}
-        autoFocus
-        validation={{
-          required: {
-            value: true,
-            message: 'Your Email is required',
-          },
-        }}
-      />
+    <Formik
+      initialValues={{ yourEmail: '', password: '' }}
+      onSubmit={onSubmit}
+      // Add your validation schema here
+    >
+      {({ isSubmitting }) => (
+        <Form>
+          <FormControl>
+            <FormLabel>Your Email</FormLabel>
+            <Field as={Input} type="email" name="yourEmail" />
+            <ErrorMessage name="yourEmail" component={Text} />
+          </FormControl>
 
-      <FieldError name="yourEmail" className="rw-field-error" />
+          <FormControl mt={4}>
+            <FormLabel>Password</FormLabel>
+            <Field as={Input} type="password" name="password" />
+            <ErrorMessage name="password" component={Text} />
+          </FormControl>
 
-      <Label
-        name="password"
-        className="rw-label"
-        errorClassName="rw-label rw-label-error"
-      >
-        Password
-      </Label>
-      <PasswordField
-        name="password"
-        className="rw-input"
-        errorClassName="rw-input rw-input-error"
-        autoComplete="current-password"
-        validation={{
-          required: {
-            value: true,
-            message: 'Password is required',
-          },
-        }}
-      />
-
-      <div className="rw-forgot-link">
-        <Link to={routes.forgotPassword()} className="rw-forgot-link">
-          Forgot Password?
-        </Link>
-      </div>
-
-      <FieldError name="password" className="rw-field-error" />
-
-      <div className="rw-button-group">
-        <Submit className="rw-button rw-button-blue">Login</Submit>
-      </div>
-    </Form>
+          <Box mt={4}>
+            <Button type="submit" isLoading={isSubmitting}>
+              Login
+            </Button>
+          </Box>
+        </Form>
+      )}
+    </Formik>
   )
 
   const formToRender = () => {
@@ -247,21 +217,14 @@ const LoginPage = ({ type }) => {
     <>
       <MetaTags title="Login" />
 
-      <main className="rw-main">
-        <Toaster toastOptions={{ className: 'rw-toast', duration: 6000 }} />
-        <div className="rw-scaffold rw-login-container">
-          <div className="rw-segment">
-            <header className="rw-segment-header">
-              <h2 className="rw-heading rw-heading-secondary">Login</h2>
-            </header>
+      <Box as="main">
+        <Container>
+          <Text fontSize="3xl">Login</Text>
+          <Box>{formToRender()}</Box>
 
-            <div className="rw-segment-main">
-              <div className="rw-form-wrapper">{formToRender()}</div>
-            </div>
-          </div>
-          {linkToRender()}
-        </div>
-      </main>
+          <Box>{linkToRender()}</Box>
+        </Container>
+      </Box>
     </>
   )
 }

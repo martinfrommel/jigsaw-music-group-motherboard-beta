@@ -106,6 +106,7 @@ const CreateUserForm = () => {
               <PasswordMeter
                 password={props.values.password}
                 confirmPassword={props.values.confirmPassword}
+                mt={4}
               />
 
               <FormLabel mt={4}>First Name</FormLabel>
