@@ -12,7 +12,6 @@ const HomePage = () => {
         You can submit a new release by clicking{' '}
         <Link to={routes.submitRelease()}>here</Link>
       </p>
-      <CreateUserForm />
     </>
   )
 }
