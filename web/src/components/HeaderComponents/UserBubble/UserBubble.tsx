@@ -6,13 +6,13 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
-  useDisclosure,
   Button,
+  Text,
+  VStack,
 } from '@chakra-ui/react'
 import { useAuth } from 'src/auth'
 
 const UserBubble = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure()
   const { currentUser, logOut } = useAuth()
 
   return (
@@ -39,10 +39,12 @@ const UserBubble = () => {
         </Center>
         <br />
         <Center>
-          <p>
-            {currentUser.email}
-            {currentUser.roles.includes('admin') && '(admin)'}
-          </p>
+          <VStack>
+            <Text>
+              {currentUser.firstName} {currentUser.lastName}
+            </Text>
+            <p>{currentUser.email}</p>
+          </VStack>
         </Center>
         <br />
         <MenuDivider />

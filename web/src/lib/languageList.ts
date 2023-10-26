@@ -1,0 +1,23 @@
+export const LanguageList = [
+    "English",
+    "Mandarin Chinese",
+    "Hindi",
+    "Spanish",
+    "French",
+    "Modern Standard Arabic",
+    "Bengali",
+    "Russian",
+    "Portuguese",
+    "Urdu",
+    "German",
+    "Japanese",
+    "Swahili",
+    "Marathi",
+    "Telugu",
+    "Turkish",
+    "Korean",
+    "Tamil",
+    "Italian",
+    "Dutch",
+    // ... add more languages as needed
+];

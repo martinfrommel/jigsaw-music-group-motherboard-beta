@@ -15,7 +15,7 @@ const PasswordMeter: React.FC<PasswordMeterProps> = ({
   const hasUppercase = /[A-Z]/.test(password)
   const hasLowercase = /[a-z]/.test(password)
   const hasNumber = /[0-9]/.test(password)
-  const hasSpecialChar = /[!@#$%^&*]/.test(password)
+  // const hasSpecialChar = /[!@#$%^&*]/.test(password)
   const passwordsMatch = password === confirmPassword
 
   const strength = [
@@ -23,13 +23,13 @@ const PasswordMeter: React.FC<PasswordMeterProps> = ({
     hasUppercase,
     hasLowercase,
     hasNumber,
-    hasSpecialChar,
+    // hasSpecialChar,
   ].filter(Boolean).length
 
   return (
     <Box mt={2} borderRadius={2} {...rest}>
       <Progress
-        value={(strength / 5) * 100}
+        value={(strength / 4) * 100}
         size={'sm'}
         colorScheme={'green'}
         transition={'width 1s'}
@@ -53,11 +53,11 @@ const PasswordMeter: React.FC<PasswordMeterProps> = ({
         <Text fontSize="sm" mt={1}>
           {hasNumber ? '✅ Contains a number' : '⛔️ Contains a number'}
         </Text>
-        <Text fontSize="sm" mt={1}>
+        {/* <Text fontSize="sm" mt={1}>
           {hasSpecialChar
             ? '✅ Contains a special character'
             : '⛔️ Contains a special character'}
-        </Text>
+        </Text> */}
         <Text
           fontSize="sm"
           mt={1}

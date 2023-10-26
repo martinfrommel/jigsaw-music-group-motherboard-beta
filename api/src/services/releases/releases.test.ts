@@ -35,13 +35,13 @@ describe('releases', () => {
         songMasterReference: 'String',
         songTitle: 'String',
         artist: 'String',
-        releaseDate: '2023-10-25T14:54:49.932Z',
+        releaseDate: '2023-10-26T15:25:13.095Z',
         previouslyReleased: true,
         language: 'String',
         primaryGenre: 'String',
         explicitLyrics: true,
         isicUpcCode: 'String',
-        length: 5129980,
+        length: 6711689,
       },
     })
 
@@ -49,13 +49,13 @@ describe('releases', () => {
     expect(result.songMasterReference).toEqual('String')
     expect(result.songTitle).toEqual('String')
     expect(result.artist).toEqual('String')
-    expect(result.releaseDate).toEqual(new Date('2023-10-25T14:54:49.932Z'))
+    expect(result.releaseDate).toEqual(new Date('2023-10-26T15:25:13.095Z'))
     expect(result.previouslyReleased).toEqual(true)
     expect(result.language).toEqual('String')
     expect(result.primaryGenre).toEqual('String')
     expect(result.explicitLyrics).toEqual(true)
     expect(result.isicUpcCode).toEqual('String')
-    expect(result.length).toEqual(5129980)
+    expect(result.length).toEqual(6711689)
   })
 
   scenario('updates a release', async (scenario: StandardScenario) => {

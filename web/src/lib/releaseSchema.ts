@@ -1,7 +1,7 @@
 import * as Yup from 'yup'
 
 export const ReleaseSchema = Yup.object().shape({
-  songMaster: Yup.string().required('Song Master is required'),
+  songMaster: Yup.string(),
   metadata: Yup.object().shape({
     songTitle: Yup.string().required('Song Title is required'),
     productTitle: Yup.string(),

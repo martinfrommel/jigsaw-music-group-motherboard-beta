@@ -27,6 +27,7 @@ model User {
   resetTokenExpiresAt DateTime?
   roles String @default("user")
   releases       Release[] // This establishes a one-to-many relationship with Release
+  picture  String?
 }
 
 model Release {

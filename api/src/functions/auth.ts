@@ -113,6 +113,8 @@ export const handler = async (
           email: username,
           hashedPassword: hashedPassword,
           salt: salt,
+          firstName: userAttributes.firstName,
+          lastName: userAttributes.lastName,
           // name: userAttributes.name
         },
       })
@@ -135,6 +137,8 @@ export const handler = async (
   const authHandler = new DbAuthHandler(event, context, {
     // Provide prisma db client
     db: db,
+
+    signup: signupOptions,
 
     // The name of the property you'd call on `db` to access your user table.
     // ie. if your Prisma model is named `User` this value would be `user`, as in `db.user`
@@ -173,13 +177,10 @@ export const handler = async (
     forgotPassword: forgotPasswordOptions,
     login: loginOptions,
     resetPassword: resetPasswordOptions,
-    signup: {
-      enabled: false,
-    },
 
     // See https://redwoodjs.com/docs/authentication/dbauth#webauthn for options
     webAuthn: {
-      enabled: true,
+      enabled: false,
       // How long to allow re-auth via WebAuthn in seconds (default is 10 years).
       // The `login.expires` time denotes how many seconds before a user will be
       // logged out, and this value is how long they'll be to continue to use a

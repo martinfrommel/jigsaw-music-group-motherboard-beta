@@ -7,25 +7,36 @@ import {
   Box,
   Select,
   FormErrorMessage,
+  Skeleton,
 } from '@chakra-ui/react'
 import { useAuth } from 'src/auth'
-import { toast, Toaster } from '@redwoodjs/web/toast'
-import { useState } from 'react'
+import { toast } from '@redwoodjs/web/toast'
+import { useEffect, useRef, useState } from 'react'
 
 import { SignupSchema } from 'src/lib/signUpSchema'
 import PasswordMeter from '../PasswordMeter/PasswordMeter'
+import { isAdmin } from 'src/lib/isAdmin'
 
-const CreateUserForm = () => {
-  const { signUp } = useAuth()
+const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
+  const { isAuthenticated, hasRole, signUp } = useAuth()
 
-  const onSubmit = async (data, { setSubmitting, setErrors }) => {
-    if (!SignupSchema.isValid(data)) {
+  // focus on your email box on page load
+  const yourEmailRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    yourEmailRef.current?.focus()
+  }, [])
+
+  const onSubmit = async (
+    data: Record<string, string>,
+    { setSubmitting, setErrors }
+  ) => {
+    if (!!SignupSchema.isValid(data)) {
       toast.error('Some fields are required')
       return
     }
 
     try {
-      const response = await signUp({
+      await signUp({
         username: data.yourEmail,
         password: data.password,
         firstName: data.firstName,
@@ -69,11 +80,9 @@ const CreateUserForm = () => {
                 name="yourEmail"
                 onChange={props.handleChange}
                 value={props.values.yourEmail}
-                isInvalid={
-                  !!(props.errors.yourEmail && props.touched.yourEmail)
-                }
+                isInvalid={props.errors.yourEmail && props.touched.yourEmail}
               />
-              <ErrorMessage name="yourEmail" component={FormErrorMessage} />
+              <FormErrorMessage>{props.errors.yourEmail}</FormErrorMessage>
 
               <FormLabel mt={4}>Password</FormLabel>
               <Input
@@ -133,22 +142,33 @@ const CreateUserForm = () => {
               />
               <ErrorMessage name="lastName" component={FormErrorMessage} />
 
-              <FormLabel mt={4}>Role</FormLabel>
-              <Select
-                name="role"
-                onChange={props.handleChange}
-                onBlur={props.handleBlur}
-                value={props.values.role}
-                isInvalid={!!(props.errors.role && props.touched.role)}
-              >
-                <option value="user">User</option>
-                <option value="moderator">Moderator</option>
-                <option value="admin">Admin</option>
-              </Select>
+              {showRoleSelection && isAdmin && (
+                <>
+                  <FormLabel mt={4}>Role</FormLabel>
+                  <Select
+                    name="role"
+                    onChange={props.handleChange}
+                    onBlur={props.handleBlur}
+                    value={props.values.role}
+                    isInvalid={!!(props.errors.role && props.touched.role)}
+                  >
+                    <option value="user">User</option>
+                    <option value="moderator">Moderator</option>
+                    <option value="admin">Admin</option>
+                  </Select>
+                </>
+              )}
+
               <ErrorMessage name="role" component={FormErrorMessage} />
 
               <Box mt={4}>
-                <Button type="submit" isLoading={props.isSubmitting}>
+                <Button
+                  type="submit"
+                  isLoading={props.isSubmitting}
+                  colorScheme="blue"
+                  loadingText="Creating new user"
+                  spinnerPlacement="start"
+                >
                   Create a user
                 </Button>
               </Box>
