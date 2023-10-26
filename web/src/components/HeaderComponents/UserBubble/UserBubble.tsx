@@ -10,11 +10,13 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react'
+import { NavLink, routes } from '@redwoodjs/router'
 import { useAuth } from 'src/auth'
+import { capitalizeFirstLetter } from 'src/lib/capitalizeFirstLetter'
 
 const UserBubble = () => {
   const { currentUser, logOut } = useAuth()
-
+  const userRole = currentUser.roles
   return (
     <Menu>
       <MenuButton
@@ -40,15 +42,20 @@ const UserBubble = () => {
         <br />
         <Center>
           <VStack>
-            <Text>
+            <Text fontWeight={'bold'}>
               {currentUser.firstName} {currentUser.lastName}
             </Text>
-            <p>{currentUser.email}</p>
+            <Text fontWeight={'light'}>{currentUser.email}</Text>
+            <Text fontWeight={'light'}>
+              Role: {capitalizeFirstLetter(userRole)}
+            </Text>
           </VStack>
         </Center>
         <br />
         <MenuDivider />
-        <MenuItem>Your Releases</MenuItem>
+        <MenuItem as={NavLink} to={routes.myReleases()}>
+          Your Releases
+        </MenuItem>
         <MenuItem onClick={logOut}>Logout</MenuItem>
       </MenuList>
     </Menu>

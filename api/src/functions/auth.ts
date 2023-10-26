@@ -115,6 +115,7 @@ export const handler = async (
           salt: salt,
           firstName: userAttributes.firstName,
           lastName: userAttributes.lastName,
+          roles: userAttributes.role,
           // name: userAttributes.name
         },
       })

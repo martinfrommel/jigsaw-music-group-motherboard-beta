@@ -15,10 +15,12 @@ import { useEffect, useRef, useState } from 'react'
 
 import { SignupSchema } from 'src/lib/signUpSchema'
 import PasswordMeter from '../PasswordMeter/PasswordMeter'
-import { isAdmin } from 'src/lib/isAdmin'
+import { useIsAdmin } from 'src/lib/isAdmin'
 
 const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
   const { isAuthenticated, hasRole, signUp } = useAuth()
+
+  const isAdmin = useIsAdmin()
 
   // focus on your email box on page load
   const yourEmailRef = useRef<HTMLInputElement>(null)
@@ -30,7 +32,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
     data: Record<string, string>,
     { setSubmitting, setErrors }
   ) => {
-    if (!!SignupSchema.isValid(data)) {
+    if (!SignupSchema.isValid(data)) {
       toast.error('Some fields are required')
       return
     }
@@ -61,6 +63,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
         initialValues={{
           yourEmail: '',
           password: '',
+          confirmPassword: '',
           firstName: '',
           lastName: '',
           role: 'user', // default to 'user'
@@ -69,7 +72,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
         validationSchema={SignupSchema}
         validateOnBlur={true}
         validateOnChange={true}
-        isInitialValid={false}
+        validateOnMount={false}
       >
         {(props) => (
           <form onSubmit={props.handleSubmit}>
@@ -79,7 +82,6 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
                 type="email"
                 name="yourEmail"
                 onChange={props.handleChange}
-                value={props.values.yourEmail}
                 isInvalid={props.errors.yourEmail && props.touched.yourEmail}
               />
               <FormErrorMessage>{props.errors.yourEmail}</FormErrorMessage>
@@ -90,7 +92,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
                 name="password"
                 onChange={props.handleChange}
                 value={props.values.password}
-                isInvalid={!!(props.errors.password && props.touched.password)}
+                isInvalid={props.errors.password && props.touched.password}
               />
               <ErrorMessage name="password" component={FormErrorMessage} />
 
@@ -101,10 +103,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
                 onChange={props.handleChange}
                 value={props.values.confirmPassword}
                 isInvalid={
-                  !!(
-                    props.errors.confirmPassword &&
-                    props.touched.confirmPassword
-                  )
+                  props.errors.confirmPassword && props.touched.confirmPassword
                 }
               />
               <ErrorMessage
@@ -125,9 +124,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
                 onChange={props.handleChange}
                 onBlur={props.handleBlur}
                 value={props.values.firstName}
-                isInvalid={
-                  !!(props.errors.firstName && props.touched.firstName)
-                }
+                isInvalid={props.errors.firstName && props.touched.firstName}
               />
               <ErrorMessage name="firstName" component={FormErrorMessage} />
 
@@ -138,7 +135,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
                 onChange={props.handleChange}
                 onBlur={props.handleBlur}
                 value={props.values.lastName}
-                isInvalid={!!(props.errors.lastName && props.touched.lastName)}
+                isInvalid={props.errors.lastName && props.touched.lastName}
               />
               <ErrorMessage name="lastName" component={FormErrorMessage} />
 
@@ -150,7 +147,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
                     onChange={props.handleChange}
                     onBlur={props.handleBlur}
                     value={props.values.role}
-                    isInvalid={!!(props.errors.role && props.touched.role)}
+                    isInvalid={props.errors.role && props.touched.role}
                   >
                     <option value="user">User</option>
                     <option value="moderator">Moderator</option>
