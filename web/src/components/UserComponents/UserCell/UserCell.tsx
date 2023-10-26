@@ -3,6 +3,7 @@ import type { CellSuccessProps, CellFailureProps } from '@redwoodjs/web'
 import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import EmptyCellAlert from 'src/components/DataFetching/EmptyCellAlert/EmptyCellAlert'
 import { Spinner } from '@chakra-ui/react'
+import UserCard from 'src/components/UserComponents/UserCard/UserCard'
 
 export const beforeQuery = (props) => {
   return { variables: { id: parseInt(props.id, 10) } }
@@ -16,6 +17,7 @@ export const QUERY = gql`
       firstName
       lastName
       email
+      picture
     }
   }
 `
@@ -34,12 +36,10 @@ export const Success = ({
   user,
 }: CellSuccessProps<FindUserQuery, FindUserQueryVariables>) => {
   return (
-    <div>
-      <h1>
-        {user.firstName} {user.lastName}
-      </h1>
-      <p>Email: {user.email}</p>
-      {/* Render other fields... */}
-    </div>
+    <UserCard
+      userEmail={user.email}
+      userName={`${user.firstName} ${user.lastName}`}
+      userPicture={user.picture}
+    />
   )
 }

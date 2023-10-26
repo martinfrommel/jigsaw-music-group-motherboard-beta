@@ -10,6 +10,7 @@ export const schema = gql`
     resetTokenExpiresAt: DateTime
     roles: String!
     releases: [Release]!
+    picture: String!
   }
 
   type Query {
@@ -27,6 +28,7 @@ export const schema = gql`
     resetToken: String
     resetTokenExpiresAt: DateTime
     roles: String!
+    picture: String
   }
 
   input UpdateUserInput {
@@ -38,6 +40,7 @@ export const schema = gql`
     resetToken: String
     resetTokenExpiresAt: DateTime
     roles: String
+    picture: String
   }
 
   input UpdatePasswordInput {

@@ -47,10 +47,13 @@ const UserBubble = () => {
         </Center>
         <br />
         <MenuDivider />
-        <MenuItem as={NavLink} to={routes.user({ id: currentUser.id })}>
-          My Account
+        <MenuItem
+          as={NavLink}
+          to={routes.changePassword({ id: currentUser.id })}
+        >
+          Change password{' '}
         </MenuItem>
-        <MenuItem as={NavLink} to={routes.myReleases()}>
+        <MenuItem as={NavLink} to={routes.myReleases({ id: currentUser.id })}>
           My Releases
         </MenuItem>
         <MenuItem onClick={logOut}>Logout</MenuItem>
