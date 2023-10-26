@@ -21,13 +21,16 @@ model User {
   firstName      String
   lastName       String
   email          String    @unique
+  picture        String? @default("https://avatars.dicebear.com/api/male/username.svg")
   hashedPassword String  
   salt           String    
   resetToken     String?   
   resetTokenExpiresAt DateTime?
+  signUpToken String? @unique
+  signUpTokenExpiresAt DateTime?
   roles String @default("user")
   releases       Release[] // This establishes a one-to-many relationship with Release
-  picture  String?
+
 }
 
 model Release {
@@ -48,6 +51,5 @@ model Release {
   pLine               String?  // Optional field
   cLine               String?  // Optional field
   length              Int      // Assuming length is stored in seconds as an integer
-
   user                User     @relation(fields: [userId], references: [id]) // This establishes the relationship with User
 }

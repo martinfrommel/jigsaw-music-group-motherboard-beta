@@ -23,6 +23,7 @@ const Routes = () => {
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
         <Route path="/" page={HomePage} name="home" />
         <Private unauthenticated="login">
+          <Route path="/user/{name}" page={UserPage} name="user" />
           <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
           <Route path="/my-releases" page={MyReleasesPage} name="myReleases" />
         </Private>

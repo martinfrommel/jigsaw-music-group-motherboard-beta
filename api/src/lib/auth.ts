@@ -33,6 +33,7 @@ export const getCurrentUser = async (session: Decoded) => {
       firstName: true,
       lastName: true,
       roles: true,
+      picture: true,
     },
   })
 }

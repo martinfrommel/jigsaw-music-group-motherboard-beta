@@ -26,18 +26,12 @@ const UserBubble = () => {
         cursor={'pointer'}
         minW={0}
       >
-        <Avatar
-          size={'sm'}
-          src={'https://avatars.dicebear.com/api/male/username.svg'}
-        />
+        <Avatar size={'sm'} src={currentUser.picture} />
       </MenuButton>
       <MenuList alignItems={'center'}>
         <br />
         <Center>
-          <Avatar
-            size={'2xl'}
-            src={'https://avatars.dicebear.com/api/male/username.svg'}
-          />
+          <Avatar size={'2xl'} src={currentUser.picture} />
         </Center>
         <br />
         <Center>
@@ -53,8 +47,11 @@ const UserBubble = () => {
         </Center>
         <br />
         <MenuDivider />
+        <MenuItem as={NavLink} to={routes.user()}>
+          My Account
+        </MenuItem>
         <MenuItem as={NavLink} to={routes.myReleases()}>
-          Your Releases
+          My Releases
         </MenuItem>
         <MenuItem onClick={logOut}>Logout</MenuItem>
       </MenuList>
