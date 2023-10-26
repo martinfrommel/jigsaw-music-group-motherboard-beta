@@ -1,17 +1,20 @@
 import { Link, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
-import UserCell from '../../components/UserCell'
+import UserCell from '../../components/UserComponents/UserCell'
 
 export const beforePageLoad = ({ params }) => {
-  const names = params.name.split('-')
-  return { props: { firstName: names[0], lastName: names[1] } }
+  const { id } = params
+  return { props: { id } }
 }
 
-const UserPage = ({ firstName, lastName }) => {
+const UserPage = ({ id }) => {
   return (
-    <div>
-      <UserCell firstName={firstName} lastName={lastName} />
-    </div>
+    <>
+      <MetaTags title="SubmitRelease" description="SubmitRelease page" />
+      <div>
+        <UserCell id={id} />
+      </div>
+    </>
   )
 }
 

@@ -1,13 +1,17 @@
 import type { FindUserQuery, FindUserQueryVariables } from 'types/graphql'
 import type { CellSuccessProps, CellFailureProps } from '@redwoodjs/web'
+import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
+import EmptyCellAlert from 'src/components/DataFetching/EmptyCellAlert/EmptyCellAlert'
+import { Spinner } from '@chakra-ui/react'
 
 export const beforeQuery = (props) => {
-  return { variables: { firstName: props.firstName, lastName: props.lastName } }
+  return { variables: { id: parseInt(props.id, 10) } }
 }
+
 // UserCell.js
 export const QUERY = gql`
-  query FindUserQuery($firstName: String!, $lastName: String!) {
-    user: userByName(firstName: $firstName, lastName: $lastName) {
+  query FindUserQuery($id: Int!) {
+    user: user(id: $id) {
       id
       firstName
       lastName
@@ -16,14 +20,14 @@ export const QUERY = gql`
   }
 `
 
-export const Loading = () => <div>Loading...</div>
+export const Loading = () => <Spinner />
 
-export const Empty = () => <div>Empty</div>
+export const Empty = () => <EmptyCellAlert />
 
 export const Failure = ({
   error,
 }: CellFailureProps<FindUserQueryVariables>) => (
-  <div style={{ color: 'red' }}>Error: {error?.message}</div>
+  <FailedToFetchData>{error?.message}</FailedToFetchData>
 )
 
 export const Success = ({

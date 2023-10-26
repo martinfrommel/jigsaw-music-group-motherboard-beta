@@ -47,7 +47,7 @@ const UserBubble = () => {
         </Center>
         <br />
         <MenuDivider />
-        <MenuItem as={NavLink} to={routes.user()}>
+        <MenuItem as={NavLink} to={routes.user({ id: currentUser.id })}>
           My Account
         </MenuItem>
         <MenuItem as={NavLink} to={routes.myReleases()}>

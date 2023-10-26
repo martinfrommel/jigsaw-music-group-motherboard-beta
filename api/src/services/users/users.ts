@@ -13,6 +13,13 @@ export const users: QueryResolvers['users'] = () => {
 }
 
 export const user: QueryResolvers['user'] = ({ id }) => {
+  const currentUser = context.currentUser
+
+  // If the requested user is not the logged-in user and the logged-in user is not an admin
+  if (id !== currentUser.id && currentUser.roles !== 'admin') {
+    throw new Error('You do not have the privileges to access this data.')
+  }
+
   return db.user.findUnique({
     where: { id },
   })
@@ -44,24 +51,24 @@ export const User: UserRelationResolvers = {
 }
 
 export const updateUserPassword = async ({ id, input }) => {
-  const { oldPassword, newPassword } = input;
+  const { oldPassword, newPassword } = input
 
   // Fetch the user's current hashed password and salt from the database
-  const user = await db.user.findUnique({ where: { id } });
+  const user = await db.user.findUnique({ where: { id } })
   if (!user) {
-    throw new Error('User not found');
+    throw new Error('User not found')
   }
 
   // Re-hash the old password with the stored salt
-  const [rehashedOldPassword] = hashPassword(oldPassword, user.salt);
+  const [rehashedOldPassword] = hashPassword(oldPassword, user.salt)
 
   // Verify the old password by comparing the re-hashed old password to the stored hashed password
   if (rehashedOldPassword !== user.hashedPassword) {
-    throw new Error('Incorrect old password');
+    throw new Error('Incorrect old password')
   }
 
   // Hash the new password
-  const [hashedPassword, salt] = hashPassword(newPassword);
+  const [hashedPassword, salt] = hashPassword(newPassword)
 
   // Update the user's password in the database
   return db.user.update({
@@ -70,5 +77,5 @@ export const updateUserPassword = async ({ id, input }) => {
       salt,
     },
     where: { id },
-  });
+  })
 }

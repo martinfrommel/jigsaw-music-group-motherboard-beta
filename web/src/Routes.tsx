@@ -23,7 +23,7 @@ const Routes = () => {
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
         <Route path="/" page={HomePage} name="home" />
         <Private unauthenticated="login">
-          <Route path="/user/{name}" page={UserPage} name="user" />
+          <Route path="/user/{id:Int}" page={UserPage} name="user" />
           <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
           <Route path="/my-releases" page={MyReleasesPage} name="myReleases" />
         </Private>
@@ -35,6 +35,7 @@ const Routes = () => {
       </Set>
 
       <Set private roles="admin" unauthenticated="login" wrap={AdminLayout}>
+        <Route path="/admin" page={AdminPage} name="admin" />
         <Route path="/admin/create-a-user" page={CreateNewUserPage} name="createNewUser" />
       </Set>
     </Router>
