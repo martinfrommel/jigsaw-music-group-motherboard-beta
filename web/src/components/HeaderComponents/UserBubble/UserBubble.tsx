@@ -53,7 +53,7 @@ const UserBubble = () => {
         >
           Change password{' '}
         </MenuItem>
-        <MenuItem as={NavLink} to={routes.myReleases({ id: currentUser.id })}>
+        <MenuItem as={NavLink} to={routes.releases({ id: currentUser.id })}>
           My Releases
         </MenuItem>
         <MenuItem onClick={logOut}>Logout</MenuItem>

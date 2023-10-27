@@ -20,12 +20,13 @@ const Routes = () => {
   const isAdmin = useIsAdmin()
   return (
     <Router useAuth={useAuth}>
+      <Route path="/releases" page={ReleasesPage} name="releases" />
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
         <Route path="/" page={HomePage} name="home" />
         <Private unauthenticated="login">
           <Route path="/user/{id:Int}" page={UserPage} name="user" />
           <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
-          <Route path="/user/{id}/my-releases" page={MyReleasesPage} name="myReleases" />
+          <Route path="/user/{id}/releases" page={ReleasesPage} name="releases" />
           <Route path="/user/{id}/change-password" page={ChangePasswordPage} name="changePassword" />
         </Private>
         <Route path="/login" page={LoginPage} name="login" />
