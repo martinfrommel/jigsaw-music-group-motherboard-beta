@@ -1,4 +1,5 @@
-import { Formik, Field, ErrorMessage } from 'formik'
+import { useEffect, useRef } from 'react'
+
 import {
   FormControl,
   FormLabel,
@@ -7,18 +8,18 @@ import {
   Box,
   Select,
   FormErrorMessage,
-  Skeleton,
 } from '@chakra-ui/react'
-import { useAuth } from 'src/auth'
+import { Formik, ErrorMessage } from 'formik'
+
 import { toast } from '@redwoodjs/web/toast'
-import { useEffect, useRef, useState } from 'react'
 
-import { SignupSchema } from 'src/lib/signUpSchema'
-import PasswordMeter from '../PasswordMeter/PasswordMeter'
+import { useAuth } from 'src/auth'
+import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
 import { useIsAdmin } from 'src/lib/isAdmin'
+import { SignupSchema } from 'src/lib/signUpSchema'
 
-const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
-  const { isAuthenticated, hasRole, signUp } = useAuth()
+const CreateUserForm = ({ showRoleSelection = false }) => {
+  const { signUp } = useAuth()
 
   const isAdmin = useIsAdmin()
 
@@ -77,7 +78,7 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
         {(props) => (
           <form onSubmit={props.handleSubmit}>
             <FormControl>
-              <FormLabel>User's email</FormLabel>
+              <FormLabel>{"User's email"}</FormLabel>
               <Input
                 type="email"
                 name="yourEmail"
@@ -86,35 +87,24 @@ const CreateUserForm = ({ showRoleSelection = false, ...props }) => {
               />
               <FormErrorMessage>{props.errors.yourEmail}</FormErrorMessage>
 
-              <FormLabel mt={4}>Password</FormLabel>
-              <Input
-                type="password"
-                name="password"
-                onChange={props.handleChange}
-                value={props.values.password}
-                isInvalid={props.errors.password && props.touched.password}
-              />
-              <ErrorMessage name="password" component={FormErrorMessage} />
-
-              <FormLabel mt={4}>Confirm Password</FormLabel>
-              <Input
-                type="password"
-                name="confirmPassword"
-                onChange={props.handleChange}
-                value={props.values.confirmPassword}
-                isInvalid={
-                  props.errors.confirmPassword && props.touched.confirmPassword
-                }
-              />
-              <ErrorMessage
-                name="confirmPassword"
-                component={FormErrorMessage}
-              />
-
-              <PasswordMeter
-                password={props.values.password}
-                confirmPassword={props.values.confirmPassword}
-                mt={4}
+              <PasswordConfirmationField
+                passwordMeterProps={{
+                  password: props.values.password,
+                  confirmPassword: props.values.confirmPassword,
+                }}
+                passwordProps={{
+                  fieldtext: 'Password',
+                  fieldname: 'password',
+                  isInvalid: props.errors.password && props.touched.password,
+                  onChange: props.handleChange,
+                }}
+                confirmPasswordProps={{
+                  fieldname: 'confirmPassword',
+                  isInvalid:
+                    props.errors.confirmPassword &&
+                    props.touched.confirmPassword,
+                  onChange: props.handleChange,
+                }}
               />
 
               <FormLabel mt={4}>First Name</FormLabel>

@@ -10,7 +10,9 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react'
+
 import { NavLink, routes } from '@redwoodjs/router'
+
 import { useAuth } from 'src/auth'
 import { capitalizeFirstLetter } from 'src/lib/capitalizeFirstLetter'
 
@@ -49,11 +51,14 @@ const UserBubble = () => {
         <MenuDivider />
         <MenuItem
           as={NavLink}
-          to={routes.changePassword({ id: currentUser.id })}
+          to={routes.changePassword({ id: currentUser.id.toString() })}
         >
           Change password{' '}
         </MenuItem>
-        <MenuItem as={NavLink} to={routes.releases({ id: currentUser.id })}>
+        <MenuItem
+          as={NavLink}
+          to={routes.releases({ id: currentUser.id.toString() })}
+        >
           My Releases
         </MenuItem>
         <MenuItem onClick={logOut}>Logout</MenuItem>

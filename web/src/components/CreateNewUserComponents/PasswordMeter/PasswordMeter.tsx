@@ -1,5 +1,6 @@
-import { Box, Text, BoxProps, VStack, Progress } from '@chakra-ui/react'
 import React from 'react'
+
+import { Box, Text, BoxProps, VStack, Progress } from '@chakra-ui/react'
 
 interface PasswordMeterProps extends BoxProps {
   password: string

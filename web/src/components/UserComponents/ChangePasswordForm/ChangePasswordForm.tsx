@@ -1,5 +1,5 @@
 // src/components/ChangePasswordForm/ChangePasswordForm.tsx
-import { Formik, Field, ErrorMessage, FormikHelpers } from 'formik'
+import { gql } from '@apollo/client'
 import {
   FormControl,
   FormLabel,
@@ -7,11 +7,16 @@ import {
   Button,
   Box,
   FormErrorMessage,
+  Spinner,
 } from '@chakra-ui/react'
-import { toast } from '@redwoodjs/web/toast'
-import { ChangePasswordSchema } from 'src/lib/changePasswordSchema'
+import { Formik, Field, ErrorMessage, FormikHelpers } from 'formik'
+
 import { useMutation } from '@redwoodjs/web'
-import { gql } from '@apollo/client'
+import { toast } from '@redwoodjs/web/toast'
+
+import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
+import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
+import { ChangePasswordSchema } from 'src/lib/changePasswordSchema'
 
 const UPDATE_USER_PASSWORD_MUTATION = gql`
   mutation UpdateUserPasswordMutation(
@@ -38,7 +43,6 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
   const [updateUserPassword, { loading, error }] = useMutation(
     UPDATE_USER_PASSWORD_MUTATION
   )
-
   const onSubmit = async (
     values: FormValues,
     { setSubmitting, setFieldError }: FormikHelpers<FormValues>
@@ -58,6 +62,9 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
       setSubmitting(false)
     }
   }
+
+  if (loading) return <Spinner />
+  if (error) return <FailedToFetchData>{error?.message}</FailedToFetchData>
 
   return (
     <Formik
@@ -79,23 +86,24 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
               isInvalid={props.errors.oldPassword && props.touched.oldPassword}
             />
             <ErrorMessage name="oldPassword" component={FormErrorMessage} />
-            <FormLabel mt={4}>New Password</FormLabel>
-            <Field
-              as={Input}
-              type="password"
-              name="newPassword"
-              isInvalid={props.errors.newPassword && props.touched.newPassword}
-            />
-            <ErrorMessage name="newPassword" component={FormErrorMessage} />
-
-            <FormLabel mt={4}>Confirm New Password</FormLabel>
-            <Field
-              as={Input}
-              type="password"
-              name="confirmPassword"
-              isInvalid={
-                props.errors.confirmPassword && props.touched.confirmPassword
-              }
+            <PasswordConfirmationField
+              passwordMeterProps={{
+                password: props.values.newPassword,
+                confirmPassword: props.values.confirmPassword,
+              }}
+              passwordProps={{
+                fieldname: 'newPassword',
+                fieldtext: 'New Password',
+                isInvalid:
+                  props.errors.newPassword && props.touched.newPassword,
+                onChange: props.handleChange,
+              }}
+              confirmPasswordProps={{
+                fieldname: 'confirmPassword',
+                isInvalid:
+                  props.errors.confirmPassword && props.touched.confirmPassword,
+                onChange: props.handleChange,
+              }}
             />
             <ErrorMessage name="confirmPassword" component={FormErrorMessage} />
 

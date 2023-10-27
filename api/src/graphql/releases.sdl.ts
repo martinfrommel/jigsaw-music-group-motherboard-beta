@@ -23,6 +23,7 @@ export const schema = gql`
   type Query {
     releases: [Release!]! @requireAuth
     release(id: Int!): Release @requireAuth
+    releasesPerUser(id: Int!, userId: Int!): Release @requireAuth
   }
 
   input CreateReleaseInput {

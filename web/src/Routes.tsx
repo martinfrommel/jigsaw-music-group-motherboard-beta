@@ -9,25 +9,21 @@
 
 import { Router, Route, Set, Private } from '@redwoodjs/router'
 
-import ScaffoldLayout from 'src/layouts/ScaffoldLayout'
-import MainLayout from './layouts/MainLayout/MainLayout'
-import AuthLayout from './layouts/AuthLayout/AuthLayout'
 import { useAuth } from './auth'
 import AdminLayout from './layouts/AdminLayout/AdminLayout'
+import MainLayout from './layouts/MainLayout/MainLayout'
 import { useIsAdmin } from './lib/isAdmin'
 
 const Routes = () => {
   const isAdmin = useIsAdmin()
   return (
     <Router useAuth={useAuth}>
-      <Route path="/releases" page={ReleasesPage} name="releases" />
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
         <Route path="/" page={HomePage} name="home" />
         <Private unauthenticated="login">
-          <Route path="/user/{id:Int}" page={UserPage} name="user" />
           <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
-          <Route path="/user/{id}/releases" page={ReleasesPage} name="releases" />
-          <Route path="/user/{id}/change-password" page={ChangePasswordPage} name="changePassword" />
+          <Route path="/user/{id:Int}/releases" page={ReleasesPage} name="releases" />
+          <Route path="/user/{id:Int}/change-password" page={ChangePasswordPage} name="changePassword" />
         </Private>
         <Route path="/login" page={LoginPage} name="login" />
         <Route path="/signup" page={SignupPage} name="signup" />
