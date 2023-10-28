@@ -70,3 +70,4 @@ export const schema = gql`
     deleteRelease(id: Int!): Release! @requireAuth
   }
 `
+

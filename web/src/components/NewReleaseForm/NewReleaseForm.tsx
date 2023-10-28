@@ -18,6 +18,9 @@
  * @returns JSX.Element
  */
 
+import { useState } from 'react'
+
+import { useMutation } from '@apollo/client'
 import {
   Step,
   StepDescription,
@@ -41,8 +44,8 @@ import {
   Fade,
   ScaleFade,
   BoxProps,
+  ButtonGroup,
 } from '@chakra-ui/react'
-import { Formik, Field, ErrorMessage } from 'formik'
 import {
   FormControl,
   FormLabel,
@@ -50,17 +53,18 @@ import {
   Button,
   FormErrorMessage,
 } from '@chakra-ui/react'
-
-import { ReleaseSchema } from '../../lib/releaseSchema'
-import { useState } from 'react'
+import { Formik, Field, ErrorMessage, FormikHelpers } from 'formik'
 import { useDropzone } from 'react-dropzone'
-import { toast } from '@redwoodjs/web/dist/toast'
-import { navigate, routes } from '@redwoodjs/router'
+import * as Yup from 'yup'
 
-import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
+import { navigate, routes } from '@redwoodjs/router'
+import { toast } from '@redwoodjs/web/dist/toast'
+
+import { useAuth } from 'src/auth'
 import { LanguageList } from 'src/lib/languageList'
 
-import * as Yup from 'yup'
+import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
+import { ReleaseSchema } from '../../lib/releaseSchema'
 interface FormValues {
   songMaster: string
   metadata: {
@@ -81,7 +85,21 @@ interface FormValues {
   }
 }
 
+const CREATE_RELEASE_MUTATION = gql`
+  mutation CreateRelease($input: CreateReleaseInput!) {
+    createRelease(input: $input) {
+      id
+      songTitle
+      artist
+    }
+  }
+`
+
 const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
+  const [createRelease, { loading, error }] = useMutation(
+    CREATE_RELEASE_MUTATION
+  )
+  const { currentUser } = useAuth()
   // State to store the length of the uploaded audio file
   const [audioLength, setAudioLength] = useState('')
 
@@ -115,24 +133,24 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
    */
 
   const onSubmit = async (data, { setSubmitting }) => {
-    try {
-      // Continue with your submission logic...
-      alert(JSON.stringify(data, null, 2))
-
-      // Display a success toast after successful submission
-      toast.success('Your release info was submitted successfully!')
-
-      // Uncomment and adjust as needed:
-      // setTimeout(() => {
-      //   navigate(routes.home());
-      // }, 5000);
-    } catch (error) {
-      // Handle errors, e.g., from an API call or other unexpected errors
-      toast.error('Error submitting the release! Please try again.')
-    } finally {
-      // Set isSubmitting to false to indicate submission is complete
-      setSubmitting(false)
-    }
+    // The createRelease mutation returns a promise, so we can pass it directly to toast.promise
+    toast
+      .promise(createRelease({ variables: { input: data } }), {
+        loading: 'Submitting your release...',
+        success: 'Your release info was submitted successfully!',
+        error: 'Error submitting the release. Please try again.',
+      })
+      .then(() => {
+        // Navigate after the mutation completes (either success or error)
+        setTimeout(() => {
+          navigate(routes.releases({ id: currentUser.id }))
+        }, 5000)
+      })
+      .finally(() => {
+        // Set isSubmitting to false to indicate submission is complete
+        setSubmitting(false)
+        console.log(error?.message)
+      })
   }
 
   // Configuration for the drag and drop file upload
@@ -142,7 +160,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
       'audio/quicktime': ['.m4a, .alac'],
     }, // Add other formats if needed
     onDrop: (acceptedFiles) => {
-      // Handle the files here
+      handleAudioUpload(acceptedFiles)
     },
   })
 
@@ -183,8 +201,6 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                 <StepTitle>{step.title}</StepTitle>
                 <StepDescription>{step.description}</StepDescription>
               </Box>
-
-              <StepSeparator />
             </Step>
           ))}
         </Stepper>
@@ -215,27 +231,6 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
             validateOnBlur={false}
             validateOnChange={false}
             validateOnMount={false}
-            validate={async (values) => {
-              try {
-                // Validate the form values using the ReleaseSchema
-                await ReleaseSchema.validate(values, { abortEarly: false })
-                return {} // No errors
-              } catch (error) {
-                if (error instanceof Yup.ValidationError) {
-                  // Log the error in console
-                  console.log(error.inner)
-                  // Display a toast error if there are validation errors
-                  toast.error('Some fields are required')
-                  // Return the errors to Formik
-                  return error.inner.reduce((errors, err) => {
-                    errors[err.path] = err.message
-                    return errors
-                  }, {})
-                }
-                // If it's some other error (not from Yup validation)
-                return {}
-              }
-            }}
           >
             {(props) => (
               <>
@@ -257,10 +252,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                             select one
                           </Text>
                         </Box>
-                        <ErrorMessage
-                          name="songMaster"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="songMaster" />
                         <FormLabel hidden mt={4}>
                           Length
                         </FormLabel>
@@ -289,10 +281,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                           isInvalid={!!props.errors.metadata?.songTitle}
                           placeholder="The title of your song"
                         />
-                        <ErrorMessage
-                          name="metadata.songTitle"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.songTitle" />
 
                         {/* <FormLabel mt={4}>Product Title (optional)</FormLabel>
                       <Input
@@ -308,10 +297,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                           )
                         }
                       /> */}
-                        <ErrorMessage
-                          name="metadata.productTitle"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.productTitle" />
                         <FormLabel mt={4}>Artist</FormLabel>
                         <Input
                           type="text"
@@ -321,10 +307,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                           value={props.values.metadata.artist}
                           isInvalid={!!props.errors.metadata?.artist}
                         />
-                        <ErrorMessage
-                          name="metadata.artist"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.artist" />
 
                         <Checkbox
                           mt={4}
@@ -351,10 +334,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                                   !!props.errors.metadata?.featuredArtist
                                 }
                               />
-                              <ErrorMessage
-                                name="metadata.featuredArtist"
-                                component={FormErrorMessage}
-                              />
+                              <ErrorMessage name="metadata.featuredArtist" />
                             </ScaleFade>
                           </>
                         )}
@@ -368,10 +348,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                           value={props.values.metadata.releaseDate}
                           isInvalid={!!props.errors.metadata?.releaseDate}
                         />
-                        <ErrorMessage
-                          name="metadata.releaseDate"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.releaseDate" />
 
                         <FormLabel mt={4}>Language</FormLabel>
                         <Select
@@ -387,10 +364,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                             </option>
                           ))}
                         </Select>
-                        <ErrorMessage
-                          name="metadata.language"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.language" />
                         <Stack>
                           <FormLabel mt={4}>Primary Genre</FormLabel>
                           <Select
@@ -410,10 +384,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                               </option>
                             ))}
                           </Select>
-                          <ErrorMessage
-                            name="metadata.primaryGenre"
-                            component={FormErrorMessage}
-                          />
+                          <ErrorMessage name="metadata.primaryGenre" />
                           {SecondaryGenre[props.values.metadata.primaryGenre]
                             ?.length > 0 && (
                             <>
@@ -435,10 +406,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                                   </option>
                                 ))}
                               </Select>
-                              <ErrorMessage
-                                name="metadata.secondaryGenre"
-                                component={FormErrorMessage}
-                              />
+                              <ErrorMessage name="metadata.secondaryGenre" />
                             </>
                           )}
                         </Stack>
@@ -467,10 +435,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                           value={props.values.metadata.isicUpcCode}
                           isInvalid={!!props.errors.metadata?.isicUpcCode}
                         />
-                        <ErrorMessage
-                          name="metadata.isicUpcCode"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.isicUpcCode" />
 
                         <FormLabel mt={4}>P Line</FormLabel>
                         <Input
@@ -481,10 +446,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                           value={props.values.metadata.pLine}
                           isInvalid={!!props.errors.metadata?.pLine}
                         />
-                        <ErrorMessage
-                          name="metadata.pLine"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.pLine" />
 
                         <FormLabel mt={4}>C Line</FormLabel>
                         <Input
@@ -495,10 +457,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                           value={props.values.metadata.cLine}
                           isInvalid={!!props.errors.metadata?.cLine}
                         />
-                        <ErrorMessage
-                          name="metadata.cLine"
-                          component={FormErrorMessage}
-                        />
+                        <ErrorMessage name="metadata.cLine" />
                       </>
                     )}{' '}
                     <Flex
@@ -506,16 +465,15 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       alignItems={'center'}
                       mt={6}
                     >
-                      {activeStep > 0 && (
+                      <ButtonGroup>
                         <Button type="button" onClick={goToPrevious}>
                           Previous step
                         </Button>
-                      )}
-                      {activeStep < steps.length - 1 ? (
+
                         <Button type="button" onClick={goToNext}>
                           Next step
                         </Button>
-                      ) : (
+
                         <Button
                           type="submit"
                           loadingText="Submitting the release"
@@ -524,7 +482,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                         >
                           Submit
                         </Button>
-                      )}
+                      </ButtonGroup>
                     </Flex>
                   </FormControl>
                 </form>

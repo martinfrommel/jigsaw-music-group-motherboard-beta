@@ -59,7 +59,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
     }
   }
 
-  if (error) toast.error(error.message)
+  if (error) toast.error(error?.message)
   if (loading) return <Spinner />
 
   return (

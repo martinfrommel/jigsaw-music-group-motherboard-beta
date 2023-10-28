@@ -14,6 +14,13 @@ import {
 import { db } from 'src/lib/db'
 
 export const users: QueryResolvers['users'] = () => {
+  const currentUser = context.currentUser
+  // If the requested user is not the logged-in user and the logged-in user is not an admin
+  if (currentUser.roles !== 'admin') {
+    throw new ForbiddenError(
+      'You do not have the privileges to access this data.'
+    )
+  }
   return db.user.findMany()
 }
 
