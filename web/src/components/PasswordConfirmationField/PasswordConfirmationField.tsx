@@ -1,9 +1,4 @@
-import {
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  InputProps,
-} from '@chakra-ui/react'
+import { FormLabel, Input, InputProps } from '@chakra-ui/react'
 import { ErrorMessage } from 'formik'
 
 import PasswordMeter from '../CreateNewUserComponents/PasswordMeter/PasswordMeter'
@@ -41,7 +36,7 @@ const PasswordConfirmationField: React.FC<PasswordConfirmationFieldProps> = ({
         name={passwordProps.fieldname}
         {...passwordProps}
       />
-      <ErrorMessage name="password" component={FormErrorMessage} />
+      <ErrorMessage name={passwordProps.fieldname} />
 
       <FormLabel mt={4}>Confirm Password</FormLabel>
       <Input
@@ -49,7 +44,7 @@ const PasswordConfirmationField: React.FC<PasswordConfirmationFieldProps> = ({
         name={confirmPasswordProps.fieldname}
         {...confirmPasswordProps}
       />
-      <ErrorMessage name="confirmPassword" component={FormErrorMessage} />
+      <ErrorMessage name={confirmPasswordProps.fieldname} />
 
       <PasswordMeter {...passwordMeterProps} mt={4} />
     </>

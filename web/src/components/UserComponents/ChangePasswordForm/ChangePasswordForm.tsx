@@ -6,7 +6,6 @@ import {
   Input,
   Button,
   Box,
-  FormErrorMessage,
   Spinner,
 } from '@chakra-ui/react'
 import { Formik, Field, ErrorMessage, FormikHelpers } from 'formik'
@@ -14,7 +13,6 @@ import { Formik, Field, ErrorMessage, FormikHelpers } from 'formik'
 import { useMutation } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
-import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
 import { ChangePasswordSchema } from 'src/lib/changePasswordSchema'
 
@@ -43,28 +41,26 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
   const [updateUserPassword, { loading, error }] = useMutation(
     UPDATE_USER_PASSWORD_MUTATION
   )
+
   const onSubmit = async (
     values: FormValues,
-    { setSubmitting, setFieldError }: FormikHelpers<FormValues>
+    { setSubmitting }: FormikHelpers<FormValues>
   ) => {
-    try {
-      await updateUserPassword({ variables: { id: userId, input: values } })
-      toast.success('Password changed successfully!')
-    } catch (error) {
-      // Assuming error message is accessible via error.message
-      toast.error(error.message)
+    // Destructure the form values and exclude the confirmPassword field
+    const { confirmPassword, ...inputValues } = values
 
-      // Optionally set field-specific error messages
-      if (error.message.includes('Incorrect old password')) {
-        setFieldError('oldPassword', 'Incorrect old password')
-      }
+    try {
+      await updateUserPassword({
+        variables: { id: String(userId), input: inputValues },
+      })
+      toast.success('Password changed successfully!')
     } finally {
       setSubmitting(false)
     }
   }
 
+  if (error) toast.error(error.message)
   if (loading) return <Spinner />
-  if (error) return <FailedToFetchData>{error?.message}</FailedToFetchData>
 
   return (
     <Formik
@@ -85,7 +81,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
               name="oldPassword"
               isInvalid={props.errors.oldPassword && props.touched.oldPassword}
             />
-            <ErrorMessage name="oldPassword" component={FormErrorMessage} />
+            <ErrorMessage name="oldPassword" />
             <PasswordConfirmationField
               passwordMeterProps={{
                 password: props.values.newPassword,
@@ -105,7 +101,6 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
                 onChange: props.handleChange,
               }}
             />
-            <ErrorMessage name="confirmPassword" component={FormErrorMessage} />
 
             <Box mt={4}>
               <Button
