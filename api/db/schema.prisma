@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -10,11 +10,11 @@ generator client {
 
 // Defined User Model
 
-// enum Role {
-//   User
-//   Admin
-//   Moderator
-// }
+enum Role {
+  user
+  admin
+  moderator
+}
 
 model User {
   id             Int       @id @default(autoincrement())
@@ -22,13 +22,13 @@ model User {
   lastName       String
   email          String    @unique
   picture        String? @default("https://avatars.dicebear.com/api/male/username.svg")
-  hashedPassword String  
-  salt           String    
-  resetToken     String?   
+  hashedPassword String
+  salt           String
+  resetToken     String?
   resetTokenExpiresAt DateTime?
   signUpToken String? @unique
   signUpTokenExpiresAt DateTime?
-  roles String @default("user")
+  roles Role  @default(user)
   releases       Release[] // This establishes a one-to-many relationship with Release
 
 }

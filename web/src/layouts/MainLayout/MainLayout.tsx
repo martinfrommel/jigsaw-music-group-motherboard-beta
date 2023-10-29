@@ -1,4 +1,4 @@
-import { Box, Flex } from '@chakra-ui/react'
+import { Box, Center, Flex } from '@chakra-ui/react'
 
 import { Toaster } from '@redwoodjs/web/dist/toast'
 
@@ -14,7 +14,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <Toaster />
       <Header />
       <Box as="main" className="main-content" p={24} maxW={'100vw'} w={'100vw'}>
-        {children}
+        <Center>
+          <Box>{children}</Box>
+        </Center>
       </Box>
     </>
   )

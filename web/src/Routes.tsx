@@ -22,7 +22,7 @@ const Routes = () => {
         <Route path="/" page={HomePage} name="home" />
         <Private unauthenticated="login">
           <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
-          <Route path="/user/{id:Int}/releases" page={ReleasesPage} name="releases" />
+          {/* <Route path="/user/{id:Int}/releases" page={ReleasesPage} name="releases" /> */}
           <Route path="/user/{id:Int}/change-password" page={ChangePasswordPage} name="changePassword" />
         </Private>
         <Route path="/login" page={LoginPage} name="login" />
