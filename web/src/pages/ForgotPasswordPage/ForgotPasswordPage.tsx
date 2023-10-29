@@ -23,18 +23,29 @@ const ForgotPasswordPage = () => {
 
   const onSubmit = async (data: { yourEmail: string }) => {
     const response = await forgotPassword(data.yourEmail)
+    toast
+      .promise(response, {
+        loading: 'Submitting the request...',
+        error: response.error,
+        success: 'A link to reset yout password was sent to' + response.email,
+      })
+      .finally(() => {
+        setTimeout(() => {
+          navigate(routes.login())
+        }, 2000)
+      })
 
-    if (response.error) {
-      toast.error(response.error)
-    } else {
-      // The function `forgotPassword.handler` in api/src/functions/auth.js has
-      // been invoked, let the user know how to get the link to reset their
-      // password (sent in email, perhaps?)
-      toast.success(
-        'A link to reset your password was sent to ' + response.email
-      )
-      navigate(routes.login())
-    }
+    // if (response.error) {
+    //   toast.error(response.error)
+    // } else {
+    //   // The function `forgotPassword.handler` in api/src/functions/auth.js has
+    //   // been invoked, let the user know how to get the link to reset their
+    //   // password (sent in email, perhaps?)
+    //   toast.success(
+    //     'A link to reset your password was sent to ' + response.email
+    //   )
+    //   navigate(routes.login())
+    // }
   }
 
   return (
@@ -42,7 +53,6 @@ const ForgotPasswordPage = () => {
       <MetaTags title="Forgot Password" />
 
       <main className="rw-main">
-        <Toaster toastOptions={{ className: 'rw-toast', duration: 6000 }} />
         <div className="rw-scaffold rw-login-container">
           <div className="rw-segment">
             <header className="rw-segment-header">

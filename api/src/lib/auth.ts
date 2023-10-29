@@ -1,7 +1,5 @@
 import type { Decoded } from '@redwoodjs/api'
 import { AuthenticationError, ForbiddenError } from '@redwoodjs/graphql-server'
-import { useParams } from '@redwoodjs/router'
-import { navigate, routes } from '@redwoodjs/router'
 
 import { db } from './db'
 

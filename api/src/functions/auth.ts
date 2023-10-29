@@ -147,7 +147,7 @@ export const handler = async (
 
     // The name of the property you'd call on `db` to access your user credentials table.
     // ie. if your Prisma model is named `UserCredential` this value would be `userCredential`, as in `db.userCredential`
-    credentialModelAccessor: 'userCredential',
+    // credentialModelAccessor: 'userCredential',
 
     // A map of what dbAuth calls a field to what your database calls it.
     // `id` is whatever column you use to uniquely identify a user (probably
@@ -180,32 +180,32 @@ export const handler = async (
     resetPassword: resetPasswordOptions,
 
     // See https://redwoodjs.com/docs/authentication/dbauth#webauthn for options
-    webAuthn: {
-      enabled: false,
-      // How long to allow re-auth via WebAuthn in seconds (default is 10 years).
-      // The `login.expires` time denotes how many seconds before a user will be
-      // logged out, and this value is how long they'll be to continue to use a
-      // fingerprint/face scan to log in again. When this one expires they
-      // *must* re-enter username and password to authenticate (WebAuthn will
-      // then be re-enabled for this amount of time).
-      expires: 60 * 60 * 24 * 365 * 10,
-      name: 'Releasify',
-      domain:
-        process.env.NODE_ENV === 'development' ? 'localhost' : 'server.com',
-      origin:
-        process.env.NODE_ENV === 'development'
-          ? 'http://localhost:8910'
-          : 'https://server.com',
-      type: 'platform',
-      timeout: 60000,
-      credentialFields: {
-        id: 'id',
-        userId: 'userId',
-        publicKey: 'publicKey',
-        transports: 'transports',
-        counter: 'counter',
-      },
-    },
+    // webAuthn: {
+    //   enabled: false,
+    //   // How long to allow re-auth via WebAuthn in seconds (default is 10 years).
+    //   // The `login.expires` time denotes how many seconds before a user will be
+    //   // logged out, and this value is how long they'll be to continue to use a
+    //   // fingerprint/face scan to log in again. When this one expires they
+    //   // *must* re-enter username and password to authenticate (WebAuthn will
+    //   // then be re-enabled for this amount of time).
+    //   expires: 60 * 60 * 24 * 365 * 10,
+    //   name: 'Releasify',
+    //   domain:
+    //     process.env.NODE_ENV === 'development' ? 'localhost' : 'server.com',
+    //   origin:
+    //     process.env.NODE_ENV === 'development'
+    //       ? 'http://localhost:8910'
+    //       : 'https://server.com',
+    //   type: 'platform',
+    //   timeout: 60000,
+    //   credentialFields: {
+    //     id: 'id',
+    //     userId: 'userId',
+    //     publicKey: 'publicKey',
+    //     transports: 'transports',
+    //     counter: 'counter',
+    //   },
+    // },
   })
 
   return await authHandler.invoke()
