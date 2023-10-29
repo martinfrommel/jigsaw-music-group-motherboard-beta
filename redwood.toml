@@ -6,7 +6,7 @@
 # https://redwoodjs.com/docs/app-configuration-redwood-toml
 
 [web]
-  title = "Jigsaw Promotions - Releasify"
+  title = "Jigsaw Music Group"
   port = 8910
   apiUrl = "/api" # You can customize graphql and dbauth urls individually too: see https://redwoodjs.com/docs/app-configuration-redwood-toml#api-paths
   includeEnvironmentVariables = [
