@@ -149,6 +149,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
             {'The files will not be accepted! ⛔️'}
           </Highlight>
         )}
+        
         {isDragActive && !isDragAccept && !isDragReject && (
           <Highlight
             query={['Drop it']}

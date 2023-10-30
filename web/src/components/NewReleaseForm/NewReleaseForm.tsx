@@ -145,7 +145,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
           onSubmit={onSubmit}
           validationSchema={ReleaseSchema}
           validateOnBlur={true}
-          validateOnChange={true}
+          validateOnChange={false}
           validateOnMount={false}
         >
           {(props) => (

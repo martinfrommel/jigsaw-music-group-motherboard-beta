@@ -9,6 +9,9 @@ import {
   Select,
   FormErrorMessage,
   Spinner,
+  BoxProps,
+  FormErrorIcon,
+  Flex,
 } from '@chakra-ui/react'
 import { Formik, ErrorMessage } from 'formik'
 
@@ -18,6 +21,7 @@ import { toast } from '@redwoodjs/web/toast'
 import { useAuth } from 'src/auth'
 import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
+import { capitalizeFirstLetter } from 'src/lib/capitalizeFirstLetter'
 import { useIsAdmin } from 'src/lib/isAdmin'
 import { setRandomAvatar } from 'src/lib/setRandomAvatar'
 import { SignupSchema } from 'src/lib/signUpSchema'
@@ -32,7 +36,14 @@ const GET_ROLES = gql`
   }
 `
 
-const CreateUserForm = ({ showRoleSelection = false }) => {
+interface createUserFormProps extends BoxProps {
+  showRoleSelection: boolean
+}
+
+const CreateUserForm = ({
+  showRoleSelection = false,
+  ...rest
+}: createUserFormProps) => {
   const { data, loading, error } = useQuery(GET_ROLES)
 
   const { signUp } = useAuth()
@@ -79,33 +90,119 @@ const CreateUserForm = ({ showRoleSelection = false }) => {
 
   return (
     <>
-      <Formik
-        initialValues={{
-          yourEmail: '',
-          password: '',
-          confirmPassword: '',
-          firstName: '',
-          lastName: '',
-          role: 'user', // default to 'user'
-        }}
-        onSubmit={onSubmit}
-        validationSchema={SignupSchema}
-        validateOnBlur={true}
-        validateOnChange={true}
-        validateOnMount={false}
+      <Box
+        {...rest}
+        minWidth={96}
+        width={'50vw'}
+        transition={'all 1s ease-in-out'}
       >
-        {(props) => (
-          <form onSubmit={props.handleSubmit}>
-            <FormControl>
-              <FormLabel>{"User's email"}</FormLabel>
-              <Input
-                type="email"
-                name="yourEmail"
-                onChange={props.handleChange}
-                isInvalid={props.errors.yourEmail && props.touched.yourEmail}
-              />
-              <FormErrorMessage>{props.errors.yourEmail}</FormErrorMessage>
-
+        <Formik
+          initialValues={{
+            yourEmail: '',
+            password: '',
+            confirmPassword: '',
+            firstName: '',
+            lastName: '',
+            role: 'user', // default to 'user'
+          }}
+          onSubmit={onSubmit}
+          validationSchema={SignupSchema}
+          validateOnBlur={true}
+          validateOnChange={true}
+          validateOnMount={false}
+        >
+          {(props) => (
+            <form onSubmit={props.handleSubmit}>
+              <Flex>
+                <FormControl
+                  flex={1}
+                  isInvalid={props.errors.firstName && props.touched.firstName}
+                  onChange={props.handleChange}
+                  onBlur={props.handleBlur}
+                >
+                  <FormLabel mt={4}>First Name</FormLabel>
+                  <Input
+                    type="text"
+                    name="firstName"
+                    value={props.values.firstName}
+                  />
+                  <FormErrorMessage>
+                    <FormErrorIcon />
+                    {props.errors?.lastName}
+                  </FormErrorMessage>
+                </FormControl>
+                <FormControl
+                  flex={1}
+                  ml={4}
+                  isInvalid={props.errors.lastName && props.touched.lastName}
+                  onChange={props.handleChange}
+                  onBlur={props.handleBlur}
+                >
+                  <FormLabel mt={4}>Last Name</FormLabel>
+                  <Input
+                    type="text"
+                    name="lastName"
+                    value={props.values.lastName}
+                  />
+                  <FormErrorMessage>
+                    <FormErrorIcon />
+                    {props.errors?.lastName}
+                  </FormErrorMessage>
+                </FormControl>
+              </Flex>
+              <Flex mt={4}>
+                <FormControl flex={1}>
+                  <FormLabel>{"User's email"}</FormLabel>
+                  <Input
+                    type="email"
+                    name="yourEmail"
+                    onChange={props.handleChange}
+                    isInvalid={
+                      props.errors.yourEmail && props.touched.yourEmail
+                    }
+                  />
+                  <FormErrorMessage>{props.errors.yourEmail}</FormErrorMessage>
+                </FormControl>
+                {showRoleSelection && isAdmin && (
+                  <>
+                    <FormControl
+                      flex={1}
+                      ml={4}
+                      isInvalid={!!props.errors.role}
+                      onChange={props.handleChange}
+                      onBlur={props.handleBlur}
+                    >
+                      <FormLabel>Role</FormLabel>
+                      {/* If loading, show a spinner */}
+                      {loading && <Spinner />}
+                      {/* If there's an error, show the FailedToFetchData component */}
+                      {error && (
+                        <FailedToFetchData>{error.message}</FailedToFetchData>
+                      )}
+                      {/* If data is available, show the Select component */}
+                      {!loading && !error && (
+                        <>
+                          <Select
+                            name="role"
+                            value={props.values.role}
+                            isInvalid={props.errors.role && props.touched.role}
+                          >
+                            {data?.__type.enumValues.map((role) => (
+                              <option key={role.name} value={role.name}>
+                                {capitalizeFirstLetter(role.name)}
+                              </option>
+                            ))}
+                          </Select>
+                          <FormErrorMessage>
+                            <FormErrorIcon />
+                            {props.errors?.role}
+                          </FormErrorMessage>
+                        </>
+                      )}
+                    </FormControl>
+                  </>
+                )}
+              </Flex>
               <PasswordConfirmationField
                 passwordMeterProps={{
                   password: props.values.password,
@@ -125,77 +222,21 @@ const CreateUserForm = ({ showRoleSelection = false }) => {
                   onChange: props.handleChange,
                 }}
               />
-
-              <FormLabel mt={4}>First Name</FormLabel>
-              <Input
-                type="text"
-                name="firstName"
-                onChange={props.handleChange}
-                onBlur={props.handleBlur}
-                value={props.values.firstName}
-                isInvalid={props.errors.firstName && props.touched.firstName}
-              />
-              <ErrorMessage name="firstName" component={FormErrorMessage} />
-
-              <FormLabel mt={4}>Last Name</FormLabel>
-              <Input
-                type="text"
-                name="lastName"
-                onChange={props.handleChange}
-                onBlur={props.handleBlur}
-                value={props.values.lastName}
-                isInvalid={props.errors.lastName && props.touched.lastName}
-              />
-              <ErrorMessage name="lastName" component={FormErrorMessage} />
-
-              {showRoleSelection && isAdmin && (
-                <>
-                  <FormLabel mt={4}>Role</FormLabel>
-
-                  {/* If loading, show a spinner */}
-                  {loading && <Spinner />}
-
-                  {/* If there's an error, show the FailedToFetchData component */}
-                  {error && (
-                    <FailedToFetchData>{error.message}</FailedToFetchData>
-                  )}
-
-                  {/* If data is available, show the Select component */}
-                  {!loading && !error && (
-                    <Select
-                      name="role"
-                      onChange={props.handleChange}
-                      onBlur={props.handleBlur}
-                      value={props.values.role}
-                      isInvalid={props.errors.role && props.touched.role}
-                    >
-                      {data?.__type.enumValues.map((role) => (
-                        <option key={role.name} value={role.name}>
-                          {role.name}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
-                </>
-              )}
-
-              <ErrorMessage name="role" component={FormErrorMessage} />
-
               <Box mt={4}>
                 <Button
                   type="submit"
                   isLoading={props.isSubmitting}
-                  colorScheme="blue"
+                  colorScheme="green"
                   loadingText="Creating new user"
                   spinnerPlacement="start"
                 >
                   Create a user
                 </Button>
               </Box>
-            </FormControl>
-          </form>
-        )}
-      </Formik>
+            </form>
+          )}
+        </Formik>
+      </Box>
     </>
   )
 }

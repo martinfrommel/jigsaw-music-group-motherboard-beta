@@ -7,6 +7,9 @@ import {
   Button,
   Box,
   Spinner,
+  BoxProps,
+  FormErrorMessage,
+  FormErrorIcon,
 } from '@chakra-ui/react'
 import { Formik, Field, ErrorMessage, FormikHelpers } from 'formik'
 
@@ -27,7 +30,7 @@ const UPDATE_USER_PASSWORD_MUTATION = gql`
   }
 `
 
-interface ChangePasswordFormProps {
+interface ChangePasswordFormProps extends BoxProps {
   userId: number
 }
 
@@ -37,7 +40,10 @@ interface FormValues {
   confirmPassword: string
 }
 
-const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
+const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
+  userId,
+  ...rest
+}) => {
   const [updateUserPassword, { loading, error }] = useMutation(
     UPDATE_USER_PASSWORD_MUTATION
   )
@@ -47,6 +53,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
     { setSubmitting }: FormikHelpers<FormValues>
   ) => {
     // Destructure the form values and exclude the confirmPassword field
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...inputValues } = values
 
     try {
@@ -63,25 +70,36 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
   if (loading) return <Spinner />
 
   return (
-    <Formik
-      initialValues={{ oldPassword: '', newPassword: '', confirmPassword: '' }}
-      onSubmit={onSubmit}
-      validationSchema={ChangePasswordSchema}
-      validateOnBlur={true}
-      validateOnChange={true}
-      validateOnMount={false}
+    <Box
+      {...rest}
+      minWidth={96}
+      width={'50vw'}
+      transition={'all 1s ease-in-out'}
     >
-      {(props) => (
-        <form onSubmit={props.handleSubmit}>
-          <FormControl>
-            <FormLabel>Old Password</FormLabel>
-            <Field
-              as={Input}
-              type="password"
-              name="oldPassword"
+      <Formik
+        initialValues={{
+          oldPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        }}
+        onSubmit={onSubmit}
+        validationSchema={ChangePasswordSchema}
+        validateOnBlur={true}
+        validateOnChange={true}
+        validateOnMount={false}
+      >
+        {(props) => (
+          <form onSubmit={props.handleSubmit}>
+            <FormControl
               isInvalid={props.errors.oldPassword && props.touched.oldPassword}
-            />
-            <ErrorMessage name="oldPassword" />
+            >
+              <FormLabel>Old Password</FormLabel>
+              <Input type="password" name="oldPassword" />{' '}
+              <FormErrorMessage>
+                <FormErrorIcon />
+                {props.errors?.oldPassword}
+              </FormErrorMessage>
+            </FormControl>
             <PasswordConfirmationField
               passwordMeterProps={{
                 password: props.values.newPassword,
@@ -113,10 +131,10 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ userId }) => {
                 Change Password
               </Button>
             </Box>
-          </FormControl>
-        </form>
-      )}
-    </Formik>
+          </form>
+        )}
+      </Formik>
+    </Box>
   )
 }
 

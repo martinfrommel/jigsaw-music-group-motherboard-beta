@@ -26,7 +26,9 @@ export default () => (
         <Button as={Link} to={routes.home()} colorScheme="green" size={'lg'}>
           Go home
         </Button>
-        <Button as={Link} to={routes.login()} size={'lg'}>Log in</Button>
+        <Button as={Link} to={routes.login()} size={'lg'}>
+          Log in
+        </Button>
       </ButtonGroup>
     </Flex>
   </MainLayout>
