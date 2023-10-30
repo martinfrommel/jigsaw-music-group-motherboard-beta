@@ -1,5 +1,7 @@
-import { Box, Center, Flex, Stack, useColorModeValue } from '@chakra-ui/react'
+import { Box, Flex, Text, useColorModeValue } from '@chakra-ui/react'
+
 import { NavLink, routes, Link } from '@redwoodjs/router'
+
 import DarkModeToggle from '../../DarkModeToggle/DarkModeToggle'
 import IsUserLoggedIn from '../IsUserLoggedIn/IsUserLoggedIn'
 interface Props {
@@ -15,10 +17,17 @@ const Header = ({
 }: Props) => {
   return (
     <>
-      <Box bg={useColorModeValue('gray.100', 'gray.900')} px={4}>
+      <Box bg={useColorModeValue('gray.100', 'gray.900')} px={8} py={4}>
         <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
           <Link className="logo-link" to={routes.home()}>
-            <Box>Jigsaw Promotion</Box>
+            <Text
+              fontWeight={'black'}
+              p={4}
+              borderWidth={'2px'}
+              borderRadius={4}
+            >
+              Jigsaw Music Group
+            </Text>
           </Link>
           {showNavLinks && (
             <Flex alignItems={'center'} justifyContent={'space-evenly'}>

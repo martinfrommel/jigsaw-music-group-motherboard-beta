@@ -1,8 +1,11 @@
 import type { APIGatewayProxyEvent, Context } from 'aws-lambda'
+import { Role } from 'types/graphql'
 
 import { DbAuthHandler, DbAuthHandlerOptions } from '@redwoodjs/auth-dbauth-api'
+import { UserInputError } from '@redwoodjs/graphql-server'
 
 import { db } from 'src/lib/db'
+import { sendEmail } from 'src/lib/sendEmail'
 
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -21,19 +24,34 @@ export const handler = async (
     // You could use this return value to, for example, show the email
     // address in a toast message so the user will know it worked and where
     // to look for the email.
-    handler: (user) => {
-      return user
+    handler: async (user) => {
+      if (!user) {
+        throw new UserInputError(user.usernameNotFound)
+      }
+
+      let baseUrl = process.env.WEBSITE_URL
+      if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = 'http://' + baseUrl
+      }
+      const resetUrl = `${baseUrl}/reset-password?resetToken=${user.resetToken}`
+
+      const emailResult = await sendEmail({
+        to: user.email,
+        subject: 'Reset Your Password',
+        text: `Click the link to reset your password: ${resetUrl}`,
+        html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`,
+      })
+
+      if (emailResult.error) {
+        console.error(emailResult.error)
+        return { error: 'Error sending email' }
+      }
+
+      return { success: true, user }
     },
-
-    // How long the resetToken is valid for, in seconds (default is 24 hours)
     expires: 60 * 60 * 24,
-
     errors: {
-      // for security reasons you may want to be vague here rather than expose
-      // the fact that the email address wasn't found (prevents fishing for
-      // valid email addresses)
       usernameNotFound: 'Username not found',
-      // if the user somehow gets around client validation
       usernameRequired: 'Username is required',
     },
   }
@@ -115,7 +133,8 @@ export const handler = async (
           salt: salt,
           firstName: userAttributes.firstName,
           lastName: userAttributes.lastName,
-          roles: userAttributes.role,
+          roles: userAttributes.roles as Role,
+          picture: userAttributes.picture,
           // name: userAttributes.name
         },
       })
@@ -159,7 +178,6 @@ export const handler = async (
       salt: 'salt',
       resetToken: 'resetToken',
       resetTokenExpiresAt: 'resetTokenExpiresAt',
-      challenge: 'webAuthnChallenge',
     },
 
     // Specifies attributes on the cookie that dbAuth sets in order to remember

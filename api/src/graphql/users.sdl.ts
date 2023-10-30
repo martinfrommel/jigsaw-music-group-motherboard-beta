@@ -1,4 +1,10 @@
 export const schema = gql`
+  enum Role {
+    user
+    admin
+    moderator
+  }
+
   type User {
     id: Int!
     firstName: String!
@@ -8,7 +14,7 @@ export const schema = gql`
     salt: String!
     resetToken: String
     resetTokenExpiresAt: DateTime
-    roles: String!
+    roles: Role!
     releases: [Release]!
     picture: String!
   }
@@ -17,6 +23,7 @@ export const schema = gql`
     users: [User!]! @requireAuth
     user(id: Int!): User @requireAuth
     userByName(firstName: String!, lastName: String!): User @requireAuth
+    getRoles(roles: Role): User @requireAuth
   }
 
   input CreateUserInput {
@@ -27,7 +34,7 @@ export const schema = gql`
     salt: String!
     resetToken: String
     resetTokenExpiresAt: DateTime
-    roles: String!
+    roles: Role!
     picture: String
   }
 
@@ -39,7 +46,7 @@ export const schema = gql`
     salt: String
     resetToken: String
     resetTokenExpiresAt: DateTime
-    roles: String
+    roles: Role
     picture: String
   }
 

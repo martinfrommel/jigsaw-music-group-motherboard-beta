@@ -34,7 +34,7 @@ CREATE TABLE "Release" (
     "primaryGenre" TEXT NOT NULL,
     "secondaryGenre" TEXT,
     "explicitLyrics" BOOLEAN NOT NULL,
-    "isicUpcCode" TEXT NOT NULL,
+    "iscUpcCode" TEXT NOT NULL,
     "pLine" TEXT,
     "cLine" TEXT,
     "length" INTEGER NOT NULL,

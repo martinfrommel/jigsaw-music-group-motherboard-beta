@@ -17,7 +17,7 @@ import { toast } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
 
-const REDIRECT = routes.submitRelease()
+const REDIRECT = routes.home()
 const HOME = routes.home()
 
 const LoginPage = () => {

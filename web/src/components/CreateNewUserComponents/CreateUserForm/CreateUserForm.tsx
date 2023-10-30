@@ -8,17 +8,33 @@ import {
   Box,
   Select,
   FormErrorMessage,
+  Spinner,
 } from '@chakra-ui/react'
 import { Formik, ErrorMessage } from 'formik'
 
+import { useQuery } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
+import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
 import { useIsAdmin } from 'src/lib/isAdmin'
+import { setRandomAvatar } from 'src/lib/setRandomAvatar'
 import { SignupSchema } from 'src/lib/signUpSchema'
 
+const GET_ROLES = gql`
+  query getRoles {
+    __type(name: "Role") {
+      enumValues {
+        name
+      }
+    }
+  }
+`
+
 const CreateUserForm = ({ showRoleSelection = false }) => {
+  const { data, loading, error } = useQuery(GET_ROLES)
+
   const { signUp } = useAuth()
 
   const isAdmin = useIsAdmin()
@@ -39,12 +55,14 @@ const CreateUserForm = ({ showRoleSelection = false }) => {
     }
 
     try {
+      const setAvatar = setRandomAvatar()
       await signUp({
         username: data.yourEmail,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
         role: data.role,
+        picture: setAvatar,
       })
 
       // Handle the response here, e.g., navigate to another page or show a success message
@@ -55,6 +73,7 @@ const CreateUserForm = ({ showRoleSelection = false }) => {
       setErrors({ api: error.message }) // This is just an example. Adjust based on the error structure you expect.
     } finally {
       setSubmitting(false)
+      toast.dismiss()
     }
   }
 
@@ -132,17 +151,31 @@ const CreateUserForm = ({ showRoleSelection = false }) => {
               {showRoleSelection && isAdmin && (
                 <>
                   <FormLabel mt={4}>Role</FormLabel>
-                  <Select
-                    name="role"
-                    onChange={props.handleChange}
-                    onBlur={props.handleBlur}
-                    value={props.values.role}
-                    isInvalid={props.errors.role && props.touched.role}
-                  >
-                    <option value="user">User</option>
-                    <option value="moderator">Moderator</option>
-                    <option value="admin">Admin</option>
-                  </Select>
+
+                  {/* If loading, show a spinner */}
+                  {loading && <Spinner />}
+
+                  {/* If there's an error, show the FailedToFetchData component */}
+                  {error && (
+                    <FailedToFetchData>{error.message}</FailedToFetchData>
+                  )}
+
+                  {/* If data is available, show the Select component */}
+                  {!loading && !error && (
+                    <Select
+                      name="role"
+                      onChange={props.handleChange}
+                      onBlur={props.handleBlur}
+                      value={props.values.role}
+                      isInvalid={props.errors.role && props.touched.role}
+                    >
+                      {data?.__type.enumValues.map((role) => (
+                        <option key={role.name} value={role.name}>
+                          {role.name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
                 </>
               )}
 

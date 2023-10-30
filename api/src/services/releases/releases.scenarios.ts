@@ -13,7 +13,7 @@ export const standard = defineScenario<Prisma.ReleaseCreateArgs>({
         language: 'String',
         primaryGenre: 'String',
         explicitLyrics: true,
-        isicUpcCode: 'String',
+        iscUpcCode: 'String',
         length: 7047204,
         user: {
           create: {
@@ -36,7 +36,7 @@ export const standard = defineScenario<Prisma.ReleaseCreateArgs>({
         language: 'String',
         primaryGenre: 'String',
         explicitLyrics: true,
-        isicUpcCode: 'String',
+        iscUpcCode: 'String',
         length: 4244571,
         user: {
           create: {

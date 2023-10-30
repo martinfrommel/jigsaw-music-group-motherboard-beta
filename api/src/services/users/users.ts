@@ -46,6 +46,7 @@ export const createUser: MutationResolvers['createUser'] = ({ input }) => {
   if (currentUser !== 'admin') {
     throw new ForbiddenError('You do not have the privileges to do this .')
   }
+
   return db.user.create({
     data: input,
   })

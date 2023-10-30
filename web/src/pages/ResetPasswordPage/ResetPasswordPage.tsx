@@ -1,29 +1,33 @@
 import { useEffect, useRef, useState } from 'react'
 
 import {
-  Form,
-  Label,
-  PasswordField,
-  Submit,
-  FieldError,
-} from '@redwoodjs/forms'
+  Heading,
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  FormErrorMessage,
+  FormErrorIcon,
+} from '@chakra-ui/react'
+import { useFormik } from 'formik'
+import * as Yup from 'yup'
+
 import { navigate, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
-import { toast, Toaster } from '@redwoodjs/web/toast'
+import { toast } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
 
 const ResetPasswordPage = ({ resetToken }: { resetToken: string }) => {
   const { isAuthenticated, reauthenticate, validateResetToken, resetPassword } =
     useAuth()
-  const [enabled, setEnabled] = useState(true)
-
+  const [enabled, setEnabled] = useState(null)
   useEffect(() => {
     if (isAuthenticated) {
       navigate(routes.home())
     }
   }, [isAuthenticated])
-
   useEffect(() => {
     const validateToken = async () => {
       const response = await validateResetToken(resetToken)
@@ -41,79 +45,74 @@ const ResetPasswordPage = ({ resetToken }: { resetToken: string }) => {
   useEffect(() => {
     passwordRef.current?.focus()
   }, [])
+  const formik = useFormik({
+    initialValues: {
+      password: '',
+    },
+    validationSchema: Yup.object({
+      password: Yup.string().required('Required'),
+    }),
+    onSubmit: async (values) => {
+      const response = await resetPassword({
+        resetToken,
+        password: values.password,
+      })
 
-  const onSubmit = async (data: Record<string, string>) => {
-    const response = await resetPassword({
-      resetToken,
-      password: data.password,
-    })
-
-    if (response.error) {
-      toast.error(response.error)
-    } else {
-      toast.success('Password changed!')
-      await reauthenticate()
-      navigate(routes.login())
-    }
-  }
+      if (response.error) {
+        toast.error(response.error)
+      } else {
+        toast.success('Password changed!')
+        await reauthenticate()
+        navigate(routes.login())
+      }
+    },
+  })
 
   return (
     <>
-      <MetaTags title="Reset Password" />
+      <MetaTags
+        title="Reset Password"
+        description="Reset your account password."
+      />
 
-      <main className="rw-main">
-        <Toaster toastOptions={{ className: 'rw-toast', duration: 6000 }} />
-        <div className="rw-scaffold rw-login-container">
-          <div className="rw-segment">
-            <header className="rw-segment-header">
-              <h2 className="rw-heading rw-heading-secondary">
-                Reset Password
-              </h2>
-            </header>
+      <Heading mb={6}>Reset Password</Heading>
 
-            <div className="rw-segment-main">
-              <div className="rw-form-wrapper">
-                <Form onSubmit={onSubmit} className="rw-form-wrapper">
-                  <div className="text-left">
-                    <Label
-                      name="password"
-                      className="rw-label"
-                      errorClassName="rw-label rw-label-error"
-                    >
-                      New Password
-                    </Label>
-                    <PasswordField
-                      name="password"
-                      autoComplete="new-password"
-                      className="rw-input"
-                      errorClassName="rw-input rw-input-error"
-                      disabled={!enabled}
-                      ref={passwordRef}
-                      validation={{
-                        required: {
-                          value: true,
-                          message: 'New Password is required',
-                        },
-                      }}
-                    />
+      <Box
+        as="form"
+        onSubmit={formik.handleSubmit}
+        w="full"
+        maxW="md"
+        mx="auto"
+      >
+        <FormControl
+          id="password"
+          isInvalid={!!formik.touched.password && !!formik.errors.password}
+        >
+          <FormLabel>New Password</FormLabel>
+          <Input
+            name="password"
+            type="password"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.password}
+            isInvalid={!!formik.touched.password && !!formik.errors.password}
+          />
+          <FormErrorMessage>
+            <FormErrorIcon />
+            {formik.errors.password}
+          </FormErrorMessage>
+        </FormControl>
 
-                    <FieldError name="password" className="rw-field-error" />
-                  </div>
-
-                  <div className="rw-button-group">
-                    <Submit
-                      className="rw-button rw-button-blue"
-                      disabled={!enabled}
-                    >
-                      Submit
-                    </Submit>
-                  </div>
-                </Form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+        <Button
+          mt={4}
+          colorScheme="blue"
+          type="submit"
+          isLoading={formik.isSubmitting}
+          disabled={!enabled}
+        >
+          Submit
+        </Button>
+      </Box>
     </>
   )
 }

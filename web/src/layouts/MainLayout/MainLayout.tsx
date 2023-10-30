@@ -13,8 +13,15 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     <>
       <Toaster />
       <Header />
-      <Box as="main" className="main-content" p={24} maxW={'100vw'} w={'100vw'}>
-        <Center>
+      <Box
+        as="main"
+        className="main-content"
+        p={24}
+        maxW={'100vw'}
+        w={'full'}
+        h={'full'}
+      >
+        <Center flexShrink={0}>
           <Box>{children}</Box>
         </Center>
       </Box>

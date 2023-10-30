@@ -1,9 +1,21 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
-import { Form, Label, TextField, Submit, FieldError } from '@redwoodjs/forms'
+import {
+  Heading,
+  Box,
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  FormErrorMessage,
+  FormErrorIcon,
+} from '@chakra-ui/react'
+import { useFormik } from 'formik'
+import * as Yup from 'yup'
+
 import { navigate, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
-import { toast, Toaster } from '@redwoodjs/web/toast'
+import { toast } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
 
@@ -16,87 +28,80 @@ const ForgotPasswordPage = () => {
     }
   }, [isAuthenticated])
 
-  const yourEmailRef = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    yourEmailRef?.current?.focus()
-  }, [])
+  const formik = useFormik({
+    initialValues: {
+      yourEmail: '',
+    },
+    validationSchema: Yup.object({
+      yourEmail: Yup.string()
+        .email('Invalid email address')
+        .required('Required'),
+    }),
+    onSubmit: async (values) => {
+      try {
+        const response = await forgotPassword(values.yourEmail)
 
-  const onSubmit = async (data: { yourEmail: string }) => {
-    const response = await forgotPassword(data.yourEmail)
-    toast
-      .promise(response, {
-        loading: 'Submitting the request...',
-        error: response.error,
-        success: 'A link to reset yout password was sent to' + response.email,
-      })
-      .finally(() => {
-        setTimeout(() => {
-          navigate(routes.login())
-        }, 2000)
-      })
-
-    // if (response.error) {
-    //   toast.error(response.error)
-    // } else {
-    //   // The function `forgotPassword.handler` in api/src/functions/auth.js has
-    //   // been invoked, let the user know how to get the link to reset their
-    //   // password (sent in email, perhaps?)
-    //   toast.success(
-    //     'A link to reset your password was sent to ' + response.email
-    //   )
-    //   navigate(routes.login())
-    // }
-  }
+        if (response.error) {
+          toast.error(response.error)
+        } else {
+          toast.success(
+            'A link to reset your password was sent to ' + response.user.email
+          )
+          setTimeout(() => {
+            navigate(routes.login())
+          }, 2000)
+        }
+      } catch (err) {
+        console.error('Error during password reset:', err)
+        toast.error('An unexpected error occurred. Please try again later.')
+      }
+    },
+  })
 
   return (
     <>
-      <MetaTags title="Forgot Password" />
+      <MetaTags
+        title="Forgot Password"
+        description="A place where we all go, but no one likes it... "
+      />
 
-      <main className="rw-main">
-        <div className="rw-scaffold rw-login-container">
-          <div className="rw-segment">
-            <header className="rw-segment-header">
-              <h2 className="rw-heading rw-heading-secondary">
-                Forgot Password
-              </h2>
-            </header>
+      <Heading mb={6}>Forgot Password</Heading>
 
-            <div className="rw-segment-main">
-              <div className="rw-form-wrapper">
-                <Form onSubmit={onSubmit} className="rw-form-wrapper">
-                  <div className="text-left">
-                    <Label
-                      name="yourEmail"
-                      className="rw-label"
-                      errorClassName="rw-label rw-label-error"
-                    >
-                      Your Email
-                    </Label>
-                    <TextField
-                      name="yourEmail"
-                      className="rw-input"
-                      errorClassName="rw-input rw-input-error"
-                      ref={yourEmailRef}
-                      validation={{
-                        required: {
-                          value: true,
-                          message: 'Your Email is required',
-                        },
-                      }}
-                    />
+      <Box
+        as="form"
+        onSubmit={formik.handleSubmit}
+        w="full"
+        maxW="md"
+        mx="auto"
+      >
+        <FormControl
+          id="yourEmail"
+          isInvalid={!!formik.touched.yourEmail && !!formik.errors.yourEmail}
+        >
+          <FormLabel>Your Email</FormLabel>
+          <Input
+            name="yourEmail"
+            type="email"
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            value={formik.values.yourEmail}
+            isInvalid={!!formik.touched.yourEmail && !!formik.errors.yourEmail}
+          />
+          <FormErrorMessage>
+            <FormErrorIcon />
+            {formik.errors.yourEmail}
+          </FormErrorMessage>
+        </FormControl>
 
-                    <FieldError name="yourEmail" className="rw-field-error" />
-                  </div>
-
-                  <div className="rw-button-group">
-                    <Submit className="rw-button rw-button-blue">Submit</Submit>
-                  </div>
-                </Form>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+        <Button
+          mt={4}
+          colorScheme="blue"
+          type="submit"
+          isLoading={formik.isSubmitting}
+        >
+          Submit
+        </Button>
+      </Box>
     </>
   )
 }

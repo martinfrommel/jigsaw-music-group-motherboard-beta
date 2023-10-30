@@ -40,7 +40,7 @@ describe('releases', () => {
         language: 'String',
         primaryGenre: 'String',
         explicitLyrics: true,
-        isicUpcCode: 'String',
+        iscUpcCode: 'String',
         length: 6711689,
       },
     })
@@ -54,7 +54,7 @@ describe('releases', () => {
     expect(result.language).toEqual('String')
     expect(result.primaryGenre).toEqual('String')
     expect(result.explicitLyrics).toEqual(true)
-    expect(result.isicUpcCode).toEqual('String')
+    expect(result.iscUpcCode).toEqual('String')
     expect(result.length).toEqual(6711689)
   })
 

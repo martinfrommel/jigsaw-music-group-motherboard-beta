@@ -7,7 +7,10 @@ import NewReleaseForm from 'src/components/NewReleaseForm/NewReleaseForm'
 const SubmitReleasePage = () => {
   return (
     <>
-      <MetaTags title="SubmitRelease" description="SubmitRelease page" />
+      <MetaTags
+        title="Submit a release"
+        description="Here you can upload a new release for review"
+      />
       <Stack>
         <Center>
           <Text fontSize={'4xl'} mb={12}>

@@ -13,7 +13,7 @@ export const schema = gql`
     primaryGenre: String!
     secondaryGenre: String
     explicitLyrics: Boolean!
-    isicUpcCode: String!
+    iscUpcCode: String!
     pLine: String
     cLine: String
     length: Int!
@@ -39,7 +39,7 @@ export const schema = gql`
     primaryGenre: String!
     secondaryGenre: String
     explicitLyrics: Boolean!
-    isicUpcCode: String!
+    iscUpcCode: String!
     pLine: String
     cLine: String
     length: Int!
@@ -58,7 +58,7 @@ export const schema = gql`
     primaryGenre: String
     secondaryGenre: String
     explicitLyrics: Boolean
-    isicUpcCode: String
+    iscUpcCode: String
     pLine: String
     cLine: String
     length: Int

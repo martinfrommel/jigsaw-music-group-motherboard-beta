@@ -21,7 +21,7 @@ model User {
   firstName      String
   lastName       String
   email          String    @unique
-  picture        String? @default("https://avatars.dicebear.com/api/male/username.svg")
+  picture        String?
   hashedPassword String
   salt           String
   resetToken     String?
@@ -47,7 +47,7 @@ model Release {
   primaryGenre        String   // Assuming genre is stored as a string, you can adjust as needed
   secondaryGenre      String?  // Optional field
   explicitLyrics      Boolean
-  isicUpcCode         String
+  iscUpcCode         String
   pLine               String?  // Optional field
   cLine               String?  // Optional field
   length              Int      // Assuming length is stored in seconds as an integer
