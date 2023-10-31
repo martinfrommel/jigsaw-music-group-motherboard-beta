@@ -37,6 +37,7 @@ import { Formik } from 'formik'
 import { navigate, routes } from '@redwoodjs/router'
 import { toast } from '@redwoodjs/web/dist/toast'
 
+import { useAuth } from 'src/auth'
 import { LanguageList } from 'src/lib/languageList'
 
 import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
@@ -78,6 +79,9 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
   const [isFeaturedArtistChecked, setIsFeaturedArtistChecked] = useState(false)
   const [uploadedAudio, setUploadedAudio] = useState(null)
   const [audioDuration, setAudioDuration] = useState(null)
+  const [audioFilePath, setAudioFilePath] = useState<string | null>(null)
+
+  const { currentUser } = useAuth()
 
   const handleAudioChange = (file, duration) => {
     setUploadedAudio(file)
@@ -426,6 +430,11 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     errors={props.errors.songMaster}
                     mt={6}
                     onAudioChange={handleAudioChange}
+                    bucketName={'audioMasters'}
+                    folderName={
+                      currentUser.id.toString() + currentUser.lastName
+                    }
+                    onUploadComplete={(path: string) => setAudioFilePath(path)}
                   />
                   <FormErrorMessage minHeight={6}>
                     <FormErrorIcon />
@@ -441,6 +450,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                   mt={6}
                   size={'lg'}
                   width={'full'}
+                  isDisabled={!audioFilePath}
                 >
                   Submit
                 </Button>

@@ -15,15 +15,14 @@ import { useDropzone } from 'react-dropzone'
 import { toast } from '@redwoodjs/web/dist/toast'
 
 import supabase from '../../lib/initiliaseSupabase'
-import { useAuth } from 'src/auth'
 
 interface AudioUploadProps extends BoxProps {
   onAudioChange: (file: File, duration: number) => void
-  errors?: never
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  errors?: any
   bucketName: string
   folderName: string
   onUploadComplete: (path: string) => void
-  projectId: string
 }
 
 export const AudioUpload: React.FC<AudioUploadProps> = ({
@@ -32,20 +31,85 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   bucketName,
   folderName,
   onUploadComplete,
-  projectId,
   ...rest
 }) => {
   const { colorMode } = useColorMode()
   const [flashColor, setFlashColor] = useState(false)
   const [filename, setFilename] = useState<string | null>(null)
   const acceptedFilesRef = useRef<File[]>([])
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [totalSize, setTotalSize] = useState(0)
-  const { currentUser } = useAuth();
-  const userId = currentUser?.id;
+  const [isUploading, setIsUploading] = useState(false)
+  const [filePath, setFilePath] = useState<string | null>(null)
+
+  const clearFile = async () => {
+    if (filePath) {
+      // Check if the file exists in Supabase
+      const { data, error: statError } = await supabase.storage
+        .from(bucketName)
+        .list(folderName, {
+          limit: 1,
+          offset: 0,
+          search: filename,
+        })
+
+      if (data) {
+        toast.loading('File exists, deleting from storage...', {
+          duration: 500,
+        })
+        // If file exists, delete it
+        const { error: deleteError } = await supabase.storage
+          .from(bucketName)
+          .remove([filePath])
+
+        if (deleteError) {
+          toast(`Failed to delete file from Supabase: ${deleteError.message}`)
+          return
+        }
+      } else if (statError) {
+        toast(`Failed to check file in Supabase: ${statError.message}`)
+        return
+      }
+    }
+
+    // Clear the file from browser context
+    setFilename(null)
+    acceptedFilesRef.current = []
+    toast.success('File was cleared')
+  }
 
   const handleUpload = async (file: File) => {
-    const {data, error} = await supabase.storage.from('audioMasters').upload(file, cacheControl: '')
+    // ... Your existing code to check user authentication ...
+    const filePath = `${folderName}/${file.name}`
+    setFilePath(filePath)
+
+    setIsUploading(true) // Start the indeterminate progress
+
+    // Upload the file
+    try {
+      // Upload the file
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: 'audio/wav',
+        })
+
+      setIsUploading(false) // Stop the indeterminate progress
+
+      // Handle errors
+      if (error) {
+        toast.error(`Upload failed: ${error.message}`)
+        // clearFile()
+      } else {
+        onUploadComplete(data.path)
+        toast.success('File successfully uploaded')
+      }
+    } catch (error) {
+      setIsUploading(false)
+
+      toast.error(`Upload failed: ${error.message}`)
+      // clearFile()
+    }
   }
 
   const {
@@ -128,15 +192,16 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     >
       {filename && (
         <Button
+          aria-label="Clear File button"
           type="button"
           position={'absolute'}
           top={4}
           right={4}
+          isDisabled={isUploading}
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            setFilename(null)
-            acceptedFilesRef.current = []
+            clearFile()
           }}
         >
           Clear File
@@ -200,7 +265,17 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         )}
       </Text>
       {filename && <Text fontWeight={'light'}>Accepted file: {filename}</Text>}
-      <Progress value={uploadProgress} max={100} />
+      {isUploading && (
+        <Progress
+          w={'90%'}
+          h={4}
+          rounded={4}
+          isIndeterminate={isUploading}
+          hasStripe
+          position={'absolute'}
+          bottom={2}
+        />
+      )}
     </Box>
   )
 }

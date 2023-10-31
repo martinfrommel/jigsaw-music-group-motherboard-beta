@@ -10612,6 +10612,7 @@ __metadata:
     "@redwoodjs/auth-dbauth-api": 6.3.2
     "@redwoodjs/graphql-server": 6.3.2
     "@simplewebauthn/server": ^7
+    jose: ^5.0.1
     nodemailer: ^6.9.7
   languageName: unknown
   linkType: soft
@@ -18513,6 +18514,13 @@ __metadata:
   version: 4.15.2
   resolution: "jose@npm:4.15.2"
   checksum: d5fbd7f07719b6098c071cd29889283a5813f6fd59c7134a5db22fae8ae2e447de38a4d5adb5ba84506b2be1ea66cf2b2a587f149a9a7acfc8b05e86873f1b59
+  languageName: node
+  linkType: hard
+
+"jose@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "jose@npm:5.0.1"
+  checksum: 19435a27217126b8a52fae164fd72aa83fafe43c6949c1b8407f069e2d8ccc355bf4c7e3d8ab46b20248aecd416cb3020a8a0bc37f56e8c23d7df2efc57355ae
   languageName: node
   linkType: hard
 

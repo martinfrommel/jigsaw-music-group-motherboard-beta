@@ -1,7 +1,9 @@
-import { Box, Flex, Text, useColorModeValue } from '@chakra-ui/react'
+import { Box, Flex, Image, useColorModeValue } from '@chakra-ui/react'
 
 import { NavLink, routes, Link } from '@redwoodjs/router'
 
+import logoDark from '../../../assets/preliminary_logo.webp'
+import logoLight from '../../../assets/preliminary_logo_white.png'
 import DarkModeToggle from '../../DarkModeToggle/DarkModeToggle'
 import IsUserLoggedIn from '../IsUserLoggedIn/IsUserLoggedIn'
 interface Props {
@@ -17,17 +19,21 @@ const Header = ({
 }: Props) => {
   return (
     <>
-      <Box bg={useColorModeValue('gray.100', 'gray.900')} px={8} py={4}>
-        <Flex h={16} alignItems={'center'} justifyContent={'space-between'}>
+      <Box
+        bg={useColorModeValue('blackAlpha.100', 'blackAlpha.700')}
+        px={8}
+        py={4}
+        rounded={4}
+        
+      >
+        <Flex h={14} alignItems={'center'} justifyContent={'space-between'}>
           <Link className="logo-link" to={routes.home()}>
-            <Text
-              fontWeight={'black'}
-              p={4}
-              borderWidth={'2px'}
-              borderRadius={4}
-            >
-              Jigsaw Music Group
-            </Text>
+            <Image
+              src={useColorModeValue(logoDark, logoLight)}
+              maxHeight={12}
+              maxWidth={'fit-content'}
+              cursor={'pointer'}
+            />
           </Link>
           {showNavLinks && (
             <Flex alignItems={'center'} justifyContent={'space-evenly'}>
