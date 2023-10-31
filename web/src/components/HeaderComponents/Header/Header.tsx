@@ -119,12 +119,13 @@ const Header = ({
       rounded={4}
     >
       <Flex maxH={14} alignItems={'center'} justifyContent={'space-between'}>
-        <LinkOverlay
+        <Link
           as={RwLink}
           flex={0}
           className="logo-link"
           to={routes.home()}
-          w={'fit-content'}
+          maxH={12}
+          maxW={'auto'}
         >
           <Image
             src={useColorModeValue(logoDark, logoLight)}
@@ -132,7 +133,7 @@ const Header = ({
             maxWidth={'fit-content'}
             cursor={'pointer'}
           />
-        </LinkOverlay>
+        </Link>
         {isMobile ? (
           <>
             <IconButton
