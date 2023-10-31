@@ -1,4 +1,9 @@
 import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
   Box,
   Button,
   Container,
@@ -11,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 
 import { Link, routes } from '@redwoodjs/router'
-import { MetaTags } from '@redwoodjs/web'
+import { Head, MetaTags } from '@redwoodjs/web'
 
 const HomePage = () => {
   const Arrow = createIcon({
@@ -39,27 +44,25 @@ const HomePage = () => {
           spacing={{ base: 8, md: 14 }}
           py={{ base: 20, md: 36 }}
         >
-          <Heading
-            fontWeight={600}
-            fontSize={{ base: '2xl', sm: '4xl', md: '8xl' }}
-            lineHeight={'110%'}
-          >
-            Hey there, <br />
+          <Heading fontWeight={'black'} fontSize={'7xl'} lineHeight={'120%'}>
+            {` Hey there,`} <br />
             <Text
               as={'span'}
               color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
             >
-              Jigsaw Family!
+              {` Jigsaw Family!`}
             </Text>
           </Heading>
           <Text
             fontSize={'lg'}
             color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
           >
-            Welcome to the hub where your music begins its journey within
+            {` Welcome to the hub where your music begins its journey within
             Jigsaw. We've made this tool with you in mind — simple, efficient,
-            and friendly.
+            and friendly.`}
+
           </Text>
+
           <Stack
             direction={'column'}
             spacing={3}
@@ -73,11 +76,9 @@ const HomePage = () => {
               colorScheme={'orange'}
               size={'lg'}
             >
-              Log in to my account
+              {`  Log in to my account`}
             </Button>
-            <Button variant={'link'} colorScheme={'blue'} size={'sm'}>
-              Learn more
-            </Button>
+
             <Box>
               <Icon
                 as={Arrow}
@@ -88,17 +89,58 @@ const HomePage = () => {
                 top={'10px'}
               />
               <Text
-                fontSize={'sm'}
-                fontFamily={'Caveat'}
+                fontSize={'xs'}
                 position={'absolute'}
+                fontFamily={'mono'}
                 right={'-125px'}
                 top={'-15px'}
                 transform={'rotate(10deg)'}
               >
-                Just click to get started
+                {` Just click to get started`}
               </Text>
             </Box>
           </Stack>
+        </Stack>
+        <Stack my={12}>
+          <Heading>Learn more...</Heading>
+          <Text fontSize={'md'}
+            color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}>Ready to Dive In?
+Simply sign in at the top right and let's get those tracks moving. If you have any hiccups or suggestions, remember, we're always here to listen and help.</Text>
+          <Accordion allowToggle mt={6}>
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Box as="span" flex="1" textAlign="left">
+                    Section 1 title
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat.
+              </AccordionPanel>
+            </AccordionItem>
+
+            <AccordionItem>
+              <h2>
+                <AccordionButton>
+                  <Box as="span" flex="1" textAlign="left">
+                    Section 2 title
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat.
+              </AccordionPanel>
+            </AccordionItem>
+          </Accordion>
         </Stack>
       </Container>
     </>
