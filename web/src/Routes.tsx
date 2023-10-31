@@ -17,7 +17,7 @@ import { useIsAdmin } from './lib/isAdmin'
 const Routes = () => {
   const isAdmin = useIsAdmin()
   return (
-    <Router useAuth={useAuth}>
+    <Router useAuth={useAuth} >
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
         <Route path="/" page={HomePage} name="home" />
         <Private unauthenticated="login">

@@ -21,6 +21,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         maxW={'100vw'}
         w={'full'}
         h={'full'}
+        minH={'100vh'}
         bgColor={useColorModeValue('purple.50', 'purple.900')}
         bgImage={bgPattern}
       >

@@ -16,18 +16,15 @@
 }
 
 html {
-  min-width: 100vw;
-  min-height: 100vh;
+  @apply min-w-full min-h-screen
 
 }
 body {
-  min-width: 100vw!important;
-  min-height: 100vh!important;
+ @apply min-w-full min-h-screen
 }
 
 #redwood-app {
-  min-width: 100vw!important;
-  min-height: 100vh!important;
+  @apply min-w-full min-h-screen
 }
 
 a:hover {
@@ -46,5 +43,5 @@ a:hover {
 .menu-item {
   margin: 0 1rem 0 1rem;
   transition: all 0.1s ease-out;
-
+  font-size: large;
 }

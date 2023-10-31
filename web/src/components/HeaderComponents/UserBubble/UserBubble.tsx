@@ -33,7 +33,7 @@ const UserBubble = () => {
       <MenuList alignItems={'center'}>
         <br />
         <Center>
-          <Avatar size={'2xl'} src={currentUser.picture} />
+          <Avatar size={'lg'} src={currentUser.picture} />
         </Center>
         <br />
         <Center>

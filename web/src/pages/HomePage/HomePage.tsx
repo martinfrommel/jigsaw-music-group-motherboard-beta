@@ -60,7 +60,6 @@ const HomePage = () => {
             {` Welcome to the hub where your music begins its journey within
             Jigsaw. We've made this tool with you in mind — simple, efficient,
             and friendly.`}
-
           </Text>
 
           <Stack
@@ -69,6 +68,7 @@ const HomePage = () => {
             align={'center'}
             alignSelf={'center'}
             position={'relative'}
+            mt={8}
           >
             <Button
               as={Link}
@@ -84,16 +84,16 @@ const HomePage = () => {
                 as={Arrow}
                 color={useColorModeValue('gray.800', 'gray.300')}
                 w={71}
-                position={'absolute'}
-                right={-71}
-                top={'10px'}
+                position={'relative'}
+                right={-149}
+                top={-12}
               />
               <Text
                 fontSize={'xs'}
-                position={'absolute'}
+                position={'relative'}
                 fontFamily={'mono'}
-                right={'-125px'}
-                top={'-15px'}
+                right={-170}
+                top={-24}
                 transform={'rotate(10deg)'}
               >
                 {` Just click to get started`}
@@ -103,9 +103,14 @@ const HomePage = () => {
         </Stack>
         <Stack my={12}>
           <Heading>Learn more...</Heading>
-          <Text fontSize={'md'}
-            color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}>Ready to Dive In?
-Simply sign in at the top right and let's get those tracks moving. If you have any hiccups or suggestions, remember, we're always here to listen and help.</Text>
+          <Text
+            fontSize={'md'}
+            color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
+          >
+            Ready to Dive In? Simply sign in at the top right and let's get
+            those tracks moving. If you have any hiccups or suggestions,
+            remember, we're always here to listen and help.
+          </Text>
           <Accordion allowToggle mt={6}>
             <AccordionItem>
               <h2>
