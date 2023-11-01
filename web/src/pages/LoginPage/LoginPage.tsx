@@ -4,11 +4,14 @@ import {
   Button,
   ButtonGroup,
   FormControl,
+  FormErrorIcon,
+  FormErrorMessage,
   FormLabel,
   Input,
   Spinner,
 } from '@chakra-ui/react'
-import { Formik, Form, Field, ErrorMessage } from 'formik'
+import { Formik, Form, Field } from 'formik'
+import * as Yup from 'yup'
 
 import { Link, navigate, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
@@ -19,10 +22,18 @@ import JigsawCard from 'src/components/JigsawCard/JigsawCard'
 
 const REDIRECT = routes.home()
 const HOME = routes.home()
-
+interface FormValues {
+  yourEmail: string
+  password: string
+}
 const LoginPage = () => {
   const { isAuthenticated, loading, logIn, reauthenticate } = useAuth()
-
+  const LoginSchema = Yup.object().shape({
+    yourEmail: Yup.string()
+      .email('Needs to be a valid email address')
+      .required('Email is required!'),
+    password: Yup.string().required('Password is required!'),
+  })
   useEffect(() => {
     if (isAuthenticated) {
       navigate(HOME)
@@ -66,18 +77,37 @@ const LoginPage = () => {
       <JigsawCard>
         <JigsawCard.Header>Log in</JigsawCard.Header>
         <JigsawCard.Body>
-          <Formik
+          <Formik<FormValues>
             initialValues={{ yourEmail: '', password: '' }}
             onSubmit={onSubmit}
+            validateOnBlur={true}
+            validateOnChange={true}
+            validateOnMount={false}
+            validationSchema={LoginSchema}
           >
             {(props) => (
               <Form>
-                <FormControl mt={4}>
+                <FormControl
+                  mt={4}
+                  isInvalid={
+                    !!props.errors.yourEmail && !!props.touched.yourEmail
+                  }
+                  onChange={props.handleChange}
+                >
                   <FormLabel>Email</FormLabel>
                   <Field as={Input} name="yourEmail" placeholder="Email" />
-                  <ErrorMessage name="yourEmail" />
+                  <FormErrorMessage>
+                    <FormErrorIcon />
+                    {props.errors.yourEmail}
+                  </FormErrorMessage>
                 </FormControl>
-                <FormControl mt={4}>
+                <FormControl
+                  mt={4}
+                  isInvalid={
+                    !!props.errors.password && !!props.touched.password
+                  }
+                  onChange={props.handleChange}
+                >
                   <FormLabel>Password</FormLabel>
                   <Field
                     as={Input}
@@ -85,7 +115,10 @@ const LoginPage = () => {
                     name="password"
                     placeholder="Password"
                   />
-                  <ErrorMessage name="password" />
+                  <FormErrorMessage>
+                    <FormErrorIcon />
+                    {props.errors.password}
+                  </FormErrorMessage>
                 </FormControl>
                 <ButtonGroup mt={8}>
                   <Button

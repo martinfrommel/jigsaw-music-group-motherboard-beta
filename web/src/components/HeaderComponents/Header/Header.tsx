@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 import {
   Box,
   Flex,
@@ -7,6 +9,7 @@ import {
   useColorModeValue,
   useBreakpointValue,
 } from '@chakra-ui/react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { HiFolderAdd, HiHome } from 'react-icons/hi'
 
 import { NavLink, routes, Link as RwLink } from '@redwoodjs/router'
@@ -30,6 +33,17 @@ const Header = ({
 }: Props) => {
   const isMobile = useBreakpointValue({ base: true, md: false })
   const { isAuthenticated } = useAuth()
+
+  const [animateHeader, setAnimateHeader] = useState(false)
+
+  useEffect(() => {
+    // Check if the header animation has already played
+    if (!sessionStorage.getItem('headerAnimated')) {
+      setAnimateHeader(true)
+      sessionStorage.setItem('headerAnimated', 'true')
+    }
+  }, [])
+
   const normalMenu = (
     <Flex
       flexDirection={'row'}
@@ -104,31 +118,40 @@ const Header = ({
 
   return (
     <>
-      <Box
-        bg={useColorModeValue('blackAlpha.100', 'blackAlpha.700')}
-        px={8}
-        py={4}
-        rounded={4}
-      >
-        <Flex maxH={14} alignItems={'center'} justifyContent={'space-between'}>
-          <Link
-            as={RwLink}
-            flex={0}
-            className="logo-link"
-            to={routes.home()}
-            maxH={12}
-            maxW={'auto'}
+      <AnimatePresence>
+        <Box
+          as={motion.div}
+          bg={useColorModeValue('blackAlpha.100', 'blackAlpha.700')}
+          px={8}
+          py={4}
+          rounded={4}
+          initial={animateHeader ? { opacity: 0 } : { opacity: 1 }}
+          animate={animateHeader && { opacity: 1 }}
+        >
+          <Flex
+            maxH={14}
+            alignItems={'center'}
+            justifyContent={'space-between'}
           >
-            <Image
-              src={useColorModeValue(logoDark, logoLight)}
-              maxHeight={12}
-              maxWidth={'fit-content'}
-              cursor={'pointer'}
-            />
-          </Link>
-          {!isMobile ? normalMenu : mobileMenu}
-        </Flex>{' '}
-      </Box>
+            <Link
+              as={RwLink}
+              flex={0}
+              className="logo-link"
+              to={routes.home()}
+              maxH={12}
+              maxW={'auto'}
+            >
+              <Image
+                src={useColorModeValue(logoDark, logoLight)}
+                maxHeight={12}
+                maxWidth={'fit-content'}
+                cursor={'pointer'}
+              />
+            </Link>
+            {!isMobile ? normalMenu : mobileMenu}
+          </Flex>{' '}
+        </Box>
+      </AnimatePresence>
     </>
   )
 }

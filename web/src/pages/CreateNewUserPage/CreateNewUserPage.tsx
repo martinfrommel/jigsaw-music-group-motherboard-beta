@@ -1,8 +1,9 @@
-import { Card, CardBody, CardHeader, Divider } from '@chakra-ui/react'
+import { Alert, AlertIcon } from '@chakra-ui/react'
 
 import { MetaTags } from '@redwoodjs/web'
 
 import CreateUserForm from 'src/components/CreateNewUserComponents/CreateUserForm/CreateUserForm'
+import JigsawCard from 'src/components/JigsawCard/JigsawCard'
 
 const CreateNewUserPage = () => {
   return (
@@ -11,20 +12,16 @@ const CreateNewUserPage = () => {
         title="Create a user"
         description="Here you can create a new user..."
       />
-      <Card px={20} py={14} variant={'elevated'} shadow={'lg'}>
-        <CardHeader
-          alignSelf={'center'}
-          fontSize={'5xl'}
-          fontWeight={'bold'}
-          textTransform={'uppercase'}
-        >
-          Create a user
-        </CardHeader>
-        <Divider my={8} />
-        <CardBody>
+      <Alert status="warning" flex={0} maxW={'2xl'} mb={12}>
+        <AlertIcon />
+        {`This thing is meant for admins only - if you see it and you're not an admin, that's bad...`}
+      </Alert>
+      <JigsawCard>
+        <JigsawCard.Header>Create a new user</JigsawCard.Header>
+        <JigsawCard.Body>
           <CreateUserForm showRoleSelection />
-        </CardBody>
-      </Card>
+        </JigsawCard.Body>
+      </JigsawCard>
     </>
   )
 }

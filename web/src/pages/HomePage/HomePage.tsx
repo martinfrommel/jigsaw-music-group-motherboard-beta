@@ -39,7 +39,7 @@ const HomePage = () => {
         title="Jigsaw Music Group"
         description="This is where all the fun begins..."
       />
-      <JigsawCard>
+      <JigsawCard py={24}>
         <Container maxW={'3xl'}>
           <Stack as={Box} textAlign={'center'}>
             <Heading fontWeight={'black'} fontSize={'7xl'} lineHeight={'120%'}>

@@ -20,7 +20,7 @@ export const schema = gql`
   }
 
   type Query {
-    users: [User!]! @requireAuth
+    users: [User!]! @requireAuth(roles: ["admin", "moderator"])
     user(id: Int!): User @requireAuth
     userByName(firstName: String!, lastName: String!): User @requireAuth
     getRoles(roles: Role): User @requireAuth
@@ -56,9 +56,10 @@ export const schema = gql`
   }
 
   type Mutation {
-    createUser(input: CreateUserInput!): User! @requireAuth
+    createUser(input: CreateUserInput!): User!
+      @requireAuth(roles: ["admin", "moderator"])
     updateUser(id: Int!, input: UpdateUserInput!): User! @requireAuth
-    deleteUser(id: Int!): User! @requireAuth
+    deleteUser(id: Int!): User! @requireAuth(roles: ["admin", "moderator"])
     updateUserPassword(id: String!, input: UpdatePasswordInput!): User!
       @requireAuth
   }

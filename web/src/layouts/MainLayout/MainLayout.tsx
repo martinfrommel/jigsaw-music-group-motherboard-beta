@@ -1,4 +1,5 @@
-import { Box, Center, Flex, useColorModeValue } from '@chakra-ui/react'
+import { Box, Flex, useColorModeValue } from '@chakra-ui/react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 import { Toaster } from '@redwoodjs/web/dist/toast'
 
@@ -17,27 +18,35 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     resolveChakraColor('whiteAlpha.50')
   )
   const bgPattern = processSVGForBg(bgPatternSVG, bgFillColor)
+  const MotionFlex = motion(Flex)
+  const MotionBox = motion(Box)
 
   return (
     <>
       <Toaster position="bottom-right" reverseOrder />
       <Header />
-      <Flex
-        flexDir={'column'}
-        alignItems={'center'}
-        justifyContent={'center'}
-        as="main"
-        className="main-content"
-        p={6}
-        maxW={'100vw'}
-        w={'full'}
-        h={'full'}
-        minH={'100vh'}
-        bgColor={useColorModeValue('purple.50', 'purple.900')}
-        bgImage={bgPattern}
-      >
-        <Box>{children}</Box>
-      </Flex>
+      <AnimatePresence>
+        <MotionFlex
+          flexDir={'column'}
+          alignItems={'center'}
+          justifyContent={'center'}
+          as="main"
+          className="main-content"
+          p={6}
+          maxW={'100vw'}
+          minH={'100vh'}
+          bgColor={useColorModeValue('purple.50', 'purple.900')}
+          bgImage={bgPattern}
+        >
+          <MotionBox
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {children}
+          </MotionBox>
+        </MotionFlex>
+      </AnimatePresence>
     </>
   )
 }

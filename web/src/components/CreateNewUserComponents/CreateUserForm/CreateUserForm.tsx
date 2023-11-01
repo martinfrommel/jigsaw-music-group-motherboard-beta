@@ -13,7 +13,7 @@ import {
   FormErrorIcon,
   Flex,
 } from '@chakra-ui/react'
-import { Formik, ErrorMessage } from 'formik'
+import { Formik } from 'formik'
 
 import { useQuery } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
@@ -90,12 +90,7 @@ const CreateUserForm = ({
 
   return (
     <>
-      <Box
-        {...rest}
-        minWidth={96}
-        width={'50vw'}
-        transition={'all 1s ease-in-out'}
-      >
+      <Box {...rest}>
         <Formik
           initialValues={{
             yourEmail: '',
