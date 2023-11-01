@@ -11,11 +11,12 @@ import {
   FormErrorMessage,
   FormErrorIcon,
 } from '@chakra-ui/react'
-import { Formik, Field, ErrorMessage, FormikHelpers } from 'formik'
+import { Formik, FormikHelpers } from 'formik'
 
 import { useMutation } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
+import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
 import { ChangePasswordSchema } from 'src/lib/changePasswordSchema'
 
@@ -66,7 +67,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
     }
   }
 
-  if (error) toast.error(error?.message)
+  if (error) return <FailedToFetchData>{error?.message}</FailedToFetchData>
   if (loading) return <Spinner />
 
   return (

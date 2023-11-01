@@ -11,8 +11,10 @@ import {
   DrawerCloseButton,
   useDisclosure,
   useBreakpointValue,
-  LinkOverlay,
   IconButton,
+  Menu,
+  MenuList,
+  MenuButton,
 } from '@chakra-ui/react'
 import { HiFolderAdd, HiHome, HiOutlineMenu, HiX } from 'react-icons/hi'
 
@@ -20,7 +22,6 @@ import { NavLink, routes, Link as RwLink } from '@redwoodjs/router'
 
 import { useAuth } from 'src/auth'
 
-import bgPattern from '../../../assets/bgPattern.svg'
 import logoDark from '../../../assets/preliminary_logo.webp'
 import logoLight from '../../../assets/preliminary_logo_white.png'
 import DarkModeToggle from '../../DarkModeToggle/DarkModeToggle'
@@ -36,135 +37,108 @@ const Header = ({
   showDarkModeToggle = true,
   showUserStatus = true,
 }: Props) => {
-  const { isOpen, onOpen, onClose } = useDisclosure()
   const isMobile = useBreakpointValue({ base: true, md: false })
   const { isAuthenticated } = useAuth()
-  const linksContent = (
+  const normalMenu = (
     <Flex
       flexDirection={'row'}
-      alignItems={isMobile ? 'flex-start' : 'center'}
-      justifyContent={isMobile ? 'flex-start' : 'center'}
+      alignItems={'center'}
+      justifyContent={'center'}
       flex={1}
-      gap={8}
+      gap={3}
     >
-      {showNavLinks && isAuthenticated && (
-        <>
-          <Link
-            as={NavLink}
-            to={routes.home()}
-            className="nav-link menu-item"
-            activeClassName="nav-link-active"
-            onClick={onClose}
-          >
-            <Flex
-              flex={1}
-              alignItems={'center'}
-              borderLeft={!isMobile && '2px'}
-              borderTop={isMobile && '2px'}
-              pl={!isMobile ? 4 : 0}
-              py={isMobile ? 4 : 1}
-              pr={!isMobile ? 1 : 0}
+      <Flex alignItems={'center'} justifyContent={'center'} flex={1}>
+        {showNavLinks && isAuthenticated && (
+          <>
+            <Link
+              as={NavLink}
+              to={routes.home()}
+              className="nav-link menu-item"
+              activeClassName="nav-link-active"
             >
-              <Icon as={HiHome} mr={2} fontSize={14} />
-              Home
-            </Flex>
-          </Link>
-          <Link
-            as={NavLink}
-            to={routes.submitRelease()}
-            className="nav-link menu-item"
-            activeClassName="nav-link-active"
-            onClick={onClose}
-          >
-            <Flex
-              alignItems={'center'}
-              borderLeft={!isMobile && '2px'}
-              borderTop={isMobile && '2px'}
-              pl={!isMobile ? 4 : 0}
-              py={isMobile ? 4 : 1}
-              pr={!isMobile ? 1 : 0}
+              <Flex
+                flex={1}
+                alignItems={'center'}
+                justifyContent={'center'}
+                borderLeft={'2px'}
+                borderRight={'2px'}
+                px={4}
+              >
+                <Icon as={HiHome} mr={2} fontSize={16} />
+                Home
+              </Flex>
+            </Link>
+            <Link
+              as={NavLink}
+              to={routes.submitRelease()}
+              className="nav-link menu-item"
+              activeClassName="nav-link-active"
             >
-              <Icon as={HiFolderAdd} mr={2} fontSize={14} />
-              Submit a release
-            </Flex>
-          </Link>
-        </>
-      )}
+              <Flex
+                alignItems={'center'}
+                borderLeft={'2px'}
+                borderRight={'2px'}
+                px={4}
+              >
+                <Icon as={HiFolderAdd} mr={2} fontSize={16} />
+                Submit a release
+              </Flex>
+            </Link>
+          </>
+        )}
+      </Flex>
+      <Flex
+        flexDirection="row"
+        flex={0}
+        alignItems="center"
+        justifySelf={'flex-end'}
+      >
+        {showDarkModeToggle && <DarkModeToggle className="menu-item" />}
+        {showUserStatus && <IsUserLoggedIn />}
+      </Flex>
     </Flex>
   )
 
-  const actionsContent = (
-    <Flex flexDirection="row" flex={0} alignItems="center">
+  const mobileMenu = (
+    <Flex
+      flexDirection="row"
+      flex={0}
+      alignItems="center"
+      justifySelf={'flex-end'}
+    >
       {showDarkModeToggle && <DarkModeToggle className="menu-item" />}
       {showUserStatus && <IsUserLoggedIn />}
     </Flex>
   )
 
-  const drawerContent = (
-    <Flex
-      flexDirection={isMobile ? 'column' : 'row'}
-      justifyContent="space-between"
-      flex={1}
-      flexShrink={0}
-      alignItems="center"
-    >
-      {linksContent}
-    </Flex>
-  )
   return (
-    <Box
-      bg={useColorModeValue('blackAlpha.100', 'blackAlpha.700')}
-      px={8}
-      py={4}
-      rounded={4}
-    >
-      <Flex maxH={14} alignItems={'center'} justifyContent={'space-between'}>
-        <Link
-          as={RwLink}
-          flex={0}
-          className="logo-link"
-          to={routes.home()}
-          maxH={12}
-          maxW={'auto'}
-        >
-          <Image
-            src={useColorModeValue(logoDark, logoLight)}
-            maxHeight={12}
-            maxWidth={'fit-content'}
-            cursor={'pointer'}
-          />
-        </Link>
-        {isMobile ? (
-          <>
-            <IconButton
-              variant={'link'}
-              onClick={onOpen}
-              aria-label="Open menu"
-              as={isOpen ? HiX : HiOutlineMenu}
+    <>
+      <Box
+        bg={useColorModeValue('blackAlpha.100', 'blackAlpha.700')}
+        px={8}
+        py={4}
+        rounded={4}
+      >
+        <Flex maxH={14} alignItems={'center'} justifyContent={'space-between'}>
+          <Link
+            as={RwLink}
+            flex={0}
+            className="logo-link"
+            to={routes.home()}
+            maxH={12}
+            maxW={'auto'}
+          >
+            <Image
+              src={useColorModeValue(logoDark, logoLight)}
+              maxHeight={12}
+              maxWidth={'fit-content'}
+              cursor={'pointer'}
             />
-            <Drawer isOpen={isOpen} placement="top" onClose={onClose}>
-              <DrawerOverlay />
-              <DrawerContent
-                py={20}
-                bgImage={bgPattern}
-                bgColor={'purple.800'}
-                rounded={4}
-              >
-                <DrawerCloseButton size={'lg'} />
-                {drawerContent}
-              </DrawerContent>
-            </Drawer>
-            {actionsContent}
-          </>
-        ) : (
-          <Flex alignItems={'center'} flex={1} justifyContent={'center'}>
-            {drawerContent}
-            {actionsContent}
-          </Flex>
-        )}
-      </Flex>
-    </Box>
+          </Link>
+          {!isMobile ? normalMenu : mobileMenu}
+        </Flex>{' '}
+      </Box>
+    </>
   )
 }
-
 export default Header

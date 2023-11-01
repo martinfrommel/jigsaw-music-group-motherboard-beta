@@ -2,14 +2,22 @@ import { Box, Center, useColorModeValue } from '@chakra-ui/react'
 
 import { Toaster } from '@redwoodjs/web/dist/toast'
 
+import bgPatternSVG from 'src/assets/bgPattern'
 import Header from 'src/components/HeaderComponents/Header/Header'
+import { processSVGForBg } from 'src/lib/processSVG'
 
-import bgPattern from '../../assets/bgPattern.svg'
+import { resolveChakraColor } from '../../lib/resolveChakraColor'
 type MainLayoutProps = {
   children?: React.ReactNode
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
+  const bgFillColor = useColorModeValue(
+    resolveChakraColor('blackAlpha.50'),
+    resolveChakraColor('whiteAlpha.50')
+  )
+  const bgPattern = processSVGForBg(bgPatternSVG, bgFillColor)
+
   return (
     <>
       <Toaster position="bottom-right" reverseOrder />

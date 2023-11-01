@@ -3,16 +3,19 @@ import { Button, Spinner, useColorModeValue } from '@chakra-ui/react'
 import { NavLink, routes } from '@redwoodjs/router'
 
 import { useAuth } from 'src/auth'
+import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 
 import UserBubble from '../UserBubble/UserBubble'
 const IsUserLoggedIn = () => {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading, error } = useAuth()
   const colorModeValue = useColorModeValue('blackAlpha', 'gray')
 
   return (
     <>
       {loading ? (
         <Spinner />
+      ) : error ? (
+        <FailedToFetchData>{error.message}</FailedToFetchData>
       ) : isAuthenticated ? (
         <UserBubble />
       ) : (

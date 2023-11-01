@@ -18,6 +18,8 @@ import {
 import { Link, routes } from '@redwoodjs/router'
 import { Head, MetaTags } from '@redwoodjs/web'
 
+import JigsawCard from 'src/components/JigsawCard/JigsawCard'
+
 const HomePage = () => {
   const Arrow = createIcon({
     displayName: 'Arrow',
@@ -37,79 +39,83 @@ const HomePage = () => {
         title="Jigsaw Music Group"
         description="This is where all the fun begins..."
       />
-      <Container maxW={'3xl'}>
-        <Stack
-          as={Box}
-          textAlign={'center'}
-          spacing={{ base: 8, md: 14 }}
-          py={{ base: 20, md: 36 }}
-        >
-          <Heading fontWeight={'black'} fontSize={'7xl'} lineHeight={'120%'}>
-            {` Hey there,`} <br />
+      <JigsawCard py={0} px={48}>
+        <Container maxW={'3xl'}>
+          <Stack
+            as={Box}
+            textAlign={'center'}
+            spacing={{ base: 8, md: 14 }}
+            py={{ base: 20, md: 36 }}
+          >
+            <Heading fontWeight={'black'} fontSize={'7xl'} lineHeight={'120%'}>
+              {` Hey there,`} <br />
+              <Text
+                as={'span'}
+                color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
+              >
+                {` Jigsaw Family!`}
+              </Text>
+            </Heading>
             <Text
-              as={'span'}
+              fontSize={'lg'}
               color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
             >
-              {` Jigsaw Family!`}
-            </Text>
-          </Heading>
-          <Text
-            fontSize={'lg'}
-            color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
-          >
-            {` Welcome to the hub where your music begins its journey within
+              {` Welcome to the hub where your music begins its journey within
             Jigsaw. We've made this tool with you in mind — simple, efficient,
             and friendly.`}
-          </Text>
+            </Text>
 
-          <Stack
-            direction={'column'}
-            spacing={3}
-            align={'center'}
-            alignSelf={'center'}
-            position={'relative'}
-            mt={8}
-          >
-            <Button
-              as={Link}
-              to={routes.submitRelease()}
-              colorScheme={'orange'}
-              size={'lg'}
+            <Stack
+              direction={'column'}
+              spacing={3}
+              align={'center'}
+              alignSelf={'center'}
+              position={'relative'}
+              mt={8}
             >
-              {`  Log in to my account`}
-            </Button>
-
-            <Box>
-              <Icon
-                as={Arrow}
-                color={useColorModeValue('gray.800', 'gray.300')}
-                w={71}
-                position={'relative'}
-                right={-149}
-                top={-12}
-              />
-              <Text
-                fontSize={'xs'}
-                position={'relative'}
-                fontFamily={'mono'}
-                right={-170}
-                top={-24}
-                transform={'rotate(10deg)'}
+              <Button
+                as={Link}
+                to={routes.submitRelease()}
+                colorScheme={'orange'}
+                size={'lg'}
               >
-                {` Just click to get started`}
-              </Text>
-            </Box>
+                {`  Log in to my account`}
+              </Button>
+
+              <Box>
+                <Icon
+                  as={Arrow}
+                  color={useColorModeValue('gray.800', 'gray.300')}
+                  w={71}
+                  position={'relative'}
+                  right={-149}
+                  top={-12}
+                />
+                <Text
+                  fontSize={'xs'}
+                  position={'relative'}
+                  fontFamily={'mono'}
+                  right={-170}
+                  top={-24}
+                  transform={'rotate(10deg)'}
+                >
+                  {` Just click to get started`}
+                </Text>
+              </Box>
+            </Stack>
           </Stack>
-        </Stack>
+        </Container>
+      </JigsawCard>
+      <Container>
         <Stack my={12}>
           <Heading>Learn more...</Heading>
           <Text
             fontSize={'md'}
             color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
           >
-            Ready to Dive In? Simply sign in at the top right and let's get
+            {` Ready to Dive In? Simply sign in at the top right and let's get
             those tracks moving. If you have any hiccups or suggestions,
-            remember, we're always here to listen and help.
+            remember, we're always here to listen and help.`}
           </Text>
           <Accordion allowToggle mt={6}>
             <AccordionItem>
