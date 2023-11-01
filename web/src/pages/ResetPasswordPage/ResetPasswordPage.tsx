@@ -18,6 +18,7 @@ import { MetaTags } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
+import JigsawCard from 'src/components/JigsawCard/JigsawCard'
 
 const ResetPasswordPage = ({ resetToken }: { resetToken: string }) => {
   const { isAuthenticated, reauthenticate, validateResetToken, resetPassword } =
@@ -75,44 +76,50 @@ const ResetPasswordPage = ({ resetToken }: { resetToken: string }) => {
         description="Reset your account password."
       />
 
-      <Heading mb={6}>Reset Password</Heading>
+      <JigsawCard>
+        <JigsawCard.Header> Reset Password</JigsawCard.Header>
 
-      <Box
-        as="form"
-        onSubmit={formik.handleSubmit}
-        w="full"
-        maxW="md"
-        mx="auto"
-      >
-        <FormControl
-          id="password"
-          isInvalid={!!formik.touched.password && !!formik.errors.password}
-        >
-          <FormLabel>New Password</FormLabel>
-          <Input
-            name="password"
-            type="password"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.password}
-            isInvalid={!!formik.touched.password && !!formik.errors.password}
-          />
-          <FormErrorMessage>
-            <FormErrorIcon />
-            {formik.errors.password}
-          </FormErrorMessage>
-        </FormControl>
+        <JigsawCard.Body>
+          <Box
+            as="form"
+            onSubmit={formik.handleSubmit}
+            w="full"
+            maxW="md"
+            mx="auto"
+          >
+            <FormControl
+              id="password"
+              isInvalid={!!formik.touched.password && !!formik.errors.password}
+            >
+              <FormLabel>New Password</FormLabel>
+              <Input
+                name="password"
+                type="password"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                value={formik.values.password}
+                isInvalid={
+                  !!formik.touched.password && !!formik.errors.password
+                }
+              />
+              <FormErrorMessage>
+                <FormErrorIcon />
+                {formik.errors.password}
+              </FormErrorMessage>
+            </FormControl>
 
-        <Button
-          mt={4}
-          colorScheme="blue"
-          type="submit"
-          isLoading={formik.isSubmitting}
-          disabled={!enabled}
-        >
-          Submit
-        </Button>
-      </Box>
+            <Button
+              mt={4}
+              colorScheme="green"
+              type="submit"
+              isLoading={formik.isSubmitting}
+              disabled={!enabled}
+            >
+              Submit
+            </Button>
+          </Box>
+        </JigsawCard.Body>
+      </JigsawCard>
     </>
   )
 }

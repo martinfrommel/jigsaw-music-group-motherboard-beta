@@ -5,18 +5,9 @@ import {
   Image,
   Link,
   useColorModeValue,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
-  useDisclosure,
   useBreakpointValue,
-  IconButton,
-  Menu,
-  MenuList,
-  MenuButton,
 } from '@chakra-ui/react'
-import { HiFolderAdd, HiHome, HiOutlineMenu, HiX } from 'react-icons/hi'
+import { HiFolderAdd, HiHome } from 'react-icons/hi'
 
 import { NavLink, routes, Link as RwLink } from '@redwoodjs/router'
 

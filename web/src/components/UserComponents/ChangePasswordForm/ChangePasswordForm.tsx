@@ -95,7 +95,13 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({
               isInvalid={props.errors.oldPassword && props.touched.oldPassword}
             >
               <FormLabel>Old Password</FormLabel>
-              <Input type="password" name="oldPassword" />{' '}
+              <Input
+                type="password"
+                name="oldPassword"
+                value={props.values.oldPassword}
+                onChange={props.handleChange}
+              />
+
               <FormErrorMessage>
                 <FormErrorIcon />
                 {props.errors?.oldPassword}

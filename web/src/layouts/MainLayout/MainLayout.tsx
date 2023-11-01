@@ -1,4 +1,4 @@
-import { Box, Center, useColorModeValue } from '@chakra-ui/react'
+import { Box, Center, Flex, useColorModeValue } from '@chakra-ui/react'
 
 import { Toaster } from '@redwoodjs/web/dist/toast'
 
@@ -22,10 +22,13 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     <>
       <Toaster position="bottom-right" reverseOrder />
       <Header />
-      <Box
+      <Flex
+        flexDir={'column'}
+        alignItems={'center'}
+        justifyContent={'center'}
         as="main"
         className="main-content"
-        p={24}
+        p={6}
         maxW={'100vw'}
         w={'full'}
         h={'full'}
@@ -33,10 +36,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         bgColor={useColorModeValue('purple.50', 'purple.900')}
         bgImage={bgPattern}
       >
-        <Center flexShrink={0}>
-          <Box>{children}</Box>
-        </Center>
-      </Box>
+        <Box>{children}</Box>
+      </Flex>
     </>
   )
 }

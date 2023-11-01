@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 
 import { Link, routes } from '@redwoodjs/router'
-import { Head, MetaTags } from '@redwoodjs/web'
+import { MetaTags } from '@redwoodjs/web'
 
 import JigsawCard from 'src/components/JigsawCard/JigsawCard'
 
@@ -39,24 +39,20 @@ const HomePage = () => {
         title="Jigsaw Music Group"
         description="This is where all the fun begins..."
       />
-      <JigsawCard py={0} px={48}>
+      <JigsawCard>
         <Container maxW={'3xl'}>
-          <Stack
-            as={Box}
-            textAlign={'center'}
-            spacing={{ base: 8, md: 14 }}
-            py={{ base: 20, md: 36 }}
-          >
+          <Stack as={Box} textAlign={'center'}>
             <Heading fontWeight={'black'} fontSize={'7xl'} lineHeight={'120%'}>
               {` Hey there,`} <br />
               <Text
                 as={'span'}
-                color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
+                color={useColorModeValue('purple.900', 'purple.300')}
               >
                 {` Jigsaw Family!`}
               </Text>
             </Heading>
             <Text
+              my={8}
               fontSize={'lg'}
               color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
             >
@@ -104,56 +100,57 @@ const HomePage = () => {
               </Box>
             </Stack>
           </Stack>
-        </Container>
-      </JigsawCard>
-      <Container>
-        <Stack my={12}>
-          <Heading>Learn more...</Heading>
-          <Text
-            fontSize={'md'}
-            color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
-          >
-            {` Ready to Dive In? Simply sign in at the top right and let's get
+
+          <Stack my={24}>
+            <Heading textAlign={'center'}>Learn more...</Heading>
+            <Text
+              mt={4}
+              textAlign={'center'}
+              fontSize={'md'}
+              color={useColorModeValue('blackAlpha.800', 'whiteAlpha.700')}
+            >
+              {` Ready to dive in? Simply sign in at the top right and let's get
             those tracks moving. If you have any hiccups or suggestions,
             remember, we're always here to listen and help.`}
-          </Text>
-          <Accordion allowToggle mt={6}>
-            <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Box as="span" flex="1" textAlign="left">
-                    Section 1 title
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel pb={4}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat.
-              </AccordionPanel>
-            </AccordionItem>
+            </Text>
+            <Accordion allowToggle mt={6}>
+              <AccordionItem>
+                <h2>
+                  <AccordionButton>
+                    <Box as="span" flex="1" textAlign="left">
+                      Section 1 title
+                    </Box>
+                    <AccordionIcon />
+                  </AccordionButton>
+                </h2>
+                <AccordionPanel pb={4}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                  laboris nisi ut aliquip ex ea commodo consequat.
+                </AccordionPanel>
+              </AccordionItem>
 
-            <AccordionItem>
-              <h2>
-                <AccordionButton>
-                  <Box as="span" flex="1" textAlign="left">
-                    Section 2 title
-                  </Box>
-                  <AccordionIcon />
-                </AccordionButton>
-              </h2>
-              <AccordionPanel pb={4}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat.
-              </AccordionPanel>
-            </AccordionItem>
-          </Accordion>
-        </Stack>
-      </Container>
+              <AccordionItem>
+                <h2>
+                  <AccordionButton>
+                    <Box as="span" flex="1" textAlign="left">
+                      Section 2 title
+                    </Box>
+                    <AccordionIcon />
+                  </AccordionButton>
+                </h2>
+                <AccordionPanel pb={4}>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                  laboris nisi ut aliquip ex ea commodo consequat.
+                </AccordionPanel>
+              </AccordionItem>
+            </Accordion>
+          </Stack>
+        </Container>
+      </JigsawCard>
     </>
   )
 }

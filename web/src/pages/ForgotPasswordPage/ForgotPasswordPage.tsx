@@ -20,6 +20,7 @@ import { MetaTags } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
+import JigsawCard from 'src/components/JigsawCard/JigsawCard'
 
 const ForgotPasswordPage = () => {
   const { isAuthenticated, forgotPassword } = useAuth()
@@ -66,57 +67,54 @@ const ForgotPasswordPage = () => {
         title="Forgot Password"
         description="A place where we all go, but no one likes it... "
       />
-      <Card px={20} py={14} variant={'elevated'}>
-        <CardHeader
-          alignSelf={'center'}
-          fontSize={'5xl'}
-          fontWeight={'bold'}
-          textTransform={'uppercase'}
-        >
-          Forgot Password?
-        </CardHeader>
+      <JigsawCard px={20} py={14} variant={'elevated'}>
+        <JigsawCard.Header>Forgot Password?</JigsawCard.Header>
 
-        <Box
-          as="form"
-          onSubmit={formik.handleSubmit}
-          w="full"
-          maxW="md"
-          mx="auto"
-        >
-          <FormControl
-            id="yourEmail"
-            isInvalid={!!formik.touched.yourEmail && !!formik.errors.yourEmail}
+        <JigsawCard.Body>
+          <Box
+            as="form"
+            onSubmit={formik.handleSubmit}
+            w="full"
+            maxW="md"
+            mx="auto"
           >
-            <FormLabel>Your Email</FormLabel>
-            <Input
-              name="yourEmail"
-              type="email"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              value={formik.values.yourEmail}
+            <FormControl
+              id="yourEmail"
               isInvalid={
                 !!formik.touched.yourEmail && !!formik.errors.yourEmail
               }
-            />
-            <FormErrorMessage>
-              <FormErrorIcon />
-              {formik.errors.yourEmail}
-            </FormErrorMessage>
-          </FormControl>
-          <ButtonGroup mt={8}>
-            <Button
-              colorScheme="green"
-              type="submit"
-              isLoading={formik.isSubmitting}
             >
-              Submit
-            </Button>
-            <Button as={Link} to={routes.login()}>
-              Go back
-            </Button>
-          </ButtonGroup>
-        </Box>
-      </Card>
+              <FormLabel>Your Email</FormLabel>
+              <Input
+                name="yourEmail"
+                type="email"
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                value={formik.values.yourEmail}
+                isInvalid={
+                  !!formik.touched.yourEmail && !!formik.errors.yourEmail
+                }
+              />
+              <FormErrorMessage>
+                <FormErrorIcon />
+                {formik.errors.yourEmail}
+              </FormErrorMessage>
+            </FormControl>
+            <ButtonGroup mt={8}>
+              <Button
+                colorScheme="green"
+                type="submit"
+                isLoading={formik.isSubmitting}
+              >
+                Submit
+              </Button>
+              <Button as={Link} to={routes.login()}>
+                Go back
+              </Button>
+            </ButtonGroup>
+          </Box>
+        </JigsawCard.Body>
+      </JigsawCard>
     </>
   )
 }
