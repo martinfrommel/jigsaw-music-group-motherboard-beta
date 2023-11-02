@@ -42,13 +42,13 @@ export const schema = gql`
   }
 
   # This is for when an Admin creates a user (main way of signing up on this page)
-  # input AdminCreateUserInput {
-  #   firstName: String!
-  #   lastName: String!
-  #   email: String!
-  #   roles: Role!
-  #   picture: String
-  # }
+  input AdminCreateUserInput {
+    firstName: String!
+    lastName: String!
+    email: String!
+    roles: Role!
+    picture: String
+  }
 
   input UpdateUserInput {
     firstName: String
@@ -73,7 +73,7 @@ export const schema = gql`
     deleteUser(id: Int!): User! @requireAuth(roles: ["admin", "moderator"])
     updateUserPassword(id: String!, input: UpdatePasswordInput!): User!
       @requireAuth
-    # adminCreateUser(input: AdminCreateUserInput!): User!
-    #   @requireAuth(roles: ["admin"])
+    adminCreateUser(input: AdminCreateUserInput!): User!
+      @requireAuth(roles: ["admin"])
   }
 `

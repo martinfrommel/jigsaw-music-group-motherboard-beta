@@ -16,7 +16,4 @@ export const SignupSchema = Yup.object().shape({
     .required('Confirm Password is required'),
   firstName: Yup.string().required('First name is required'),
   lastName: Yup.string().required('Last name is required'),
-  role: Yup.string()
-    .oneOf(['user', 'moderator', 'admin'], 'Invalid role')
-    .required('Required'),
 })

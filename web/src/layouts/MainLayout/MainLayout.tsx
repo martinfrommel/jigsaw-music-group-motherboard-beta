@@ -29,7 +29,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <MotionFlex
           flexDir={'column'}
           alignItems={'center'}
-          justifyContent={'center'}
+          justifyContent={'flex-start'}
           as="main"
           className="main-content"
           p={6}

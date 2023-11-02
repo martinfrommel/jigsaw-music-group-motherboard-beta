@@ -19,8 +19,13 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
-  Skeleton,
   Badge,
+  useBreakpointValue,
+  Box,
+  Flex,
+  Text,
+  Grid,
+  GridItem,
 } from '@chakra-ui/react'
 import type { UsersQuery } from 'types/graphql'
 
@@ -71,6 +76,7 @@ export const Failure = ({ error }: CellFailureProps) => (
 export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
   const { refetch } = useQuery(QUERY)
 
+  const isMobile = useBreakpointValue({ base: true, md: false })
   const [removeUser] = useMutation(DELETE_USER_MUTATION)
 
   const { forgotPassword, currentUser } = useAuth()
@@ -108,12 +114,48 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
     }
   }
 
-  return (
-    <JigsawCard justifySelf={'flex-start'} alignSelf={'flex-start'}>
-      <JigsawCard.Header>Admin section</JigsawCard.Header>
-      <JigsawCard.Body>
+  const ActionButtons = ({ user }) => {
+    return (
+      <ButtonGroup>
+        <Button
+          size="sm"
+          colorScheme="red"
+          mr={3}
+          onClick={() => onDeleteClick(user)}
+          isDisabled={
+            currentUser.id === user.id ||
+            (currentUser.roles === 'admin' && user.roles === 'admin')
+          }
+        >
+          Delete
+        </Button>
+
+        <Button
+          as={Link}
+          size="sm"
+          colorScheme="blue"
+          href={`mailto:${user.email}`}
+        >
+          Message
+        </Button>
+        <Button
+          size="sm"
+          colorScheme="yellow"
+          onClick={() => sendResetPasswordLink(user.email)}
+          isLoading={isResettingPassword}
+          className="hover:underline"
+        >
+          Send Password Reset
+        </Button>
+      </ButtonGroup>
+    )
+  }
+
+  const DesktopView = ({ users }) => {
+    return (
+      <>
         <TableContainer>
-          <Table>
+          <Table variant={'striped'}>
             <Thead>
               <Tr>
                 <Th>ID</Th>
@@ -153,41 +195,79 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
                   </Td>
 
                   <Td>
-                    <ButtonGroup>
-                      <Button
-                        size="sm"
-                        colorScheme="red"
-                        mr={3}
-                        onClick={() => onDeleteClick(user)}
-                        isDisabled={currentUser.id == user.id}
-                      >
-                        Delete
-                      </Button>
-
-                      <Button
-                        as={Link}
-                        size="sm"
-                        colorScheme="blue"
-                        href={`mailto:${user.email}`}
-                      >
-                        Message
-                      </Button>
-                      <Button
-                        size="sm"
-                        colorScheme="yellow"
-                        onClick={() => sendResetPasswordLink(user.email)}
-                        isLoading={isResettingPassword}
-                        className="hover:underline"
-                      >
-                        Send Password Reset
-                      </Button>
-                    </ButtonGroup>
+                    <ActionButtons user={user} />
                   </Td>
                 </Tr>
               ))}
             </Tbody>
           </Table>
         </TableContainer>
+      </>
+    )
+  }
+  const MobileView = ({ users }) => {
+    return (
+      <>
+        {users.map((user) => (
+          <Box
+            as={Grid}
+            key={user.id}
+            borderWidth="1px"
+            borderRadius="lg"
+            overflow="hidden"
+            my={6}
+            templateColumns="auto 1fr"
+            gap={4}
+            p={2}
+            alignItems="center"
+          >
+            <Avatar as={GridItem} rowSpan={3} src={user.picture} size={'lg'} />
+
+            <GridItem rowSpan={3} textAlign={'center'}>
+              <Text fontWeight="bold" fontSize="xl">
+                {user.firstName} {user.lastName}
+              </Text>
+
+              <Text>{user.email}</Text>
+
+              <Badge
+                colorScheme={
+                  user.roles == 'admin'
+                    ? 'red'
+                    : user.roles == 'moderator'
+                    ? 'orange'
+                    : user.roles == 'user'
+                    ? 'gray'
+                    : 'white'
+                }
+                variant={'solid'}
+              >
+                {capitalizeFirstLetter(user.roles)}
+              </Badge>
+            </GridItem>
+            <Flex
+              as={GridItem}
+              colSpan={2}
+              justifyContent="space-between"
+              mt={4}
+            >
+              <ActionButtons user={user} />
+            </Flex>
+          </Box>
+        ))}
+      </>
+    )
+  }
+
+  return (
+    <JigsawCard justifySelf={'flex-start'} alignSelf={'flex-start'}>
+      <JigsawCard.Header>Admin section</JigsawCard.Header>
+      <JigsawCard.Body>
+        {!isMobile ? (
+          <DesktopView users={users} />
+        ) : (
+          <MobileView users={users} />
+        )}
       </JigsawCard.Body>
       <AlertDialog
         isOpen={isOpen}

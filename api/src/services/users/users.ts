@@ -6,12 +6,16 @@ import type {
 
 import { hashPassword } from '@redwoodjs/auth-dbauth-api'
 import {
+  AuthenticationError,
   ForbiddenError,
   UserInputError,
   ValidationError,
 } from '@redwoodjs/graphql-server'
 
 import { db } from 'src/lib/db'
+import { generateSignUpToken } from 'src/lib/generateToken'
+import { generateRandomPassword } from 'src/lib/passwordUtils'
+import { sendEmail } from 'src/lib/sendEmail'
 
 export const users: QueryResolvers['users'] = () => {
   const currentUser = context.currentUser
@@ -52,76 +56,77 @@ export const createUser: MutationResolvers['createUser'] = ({ input }) => {
   })
 }
 
-// export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
-//   input,
-// }) => {
-//   // Check if the user is an admin
-//   if (!context.currentUser || !context.currentUser.roles.includes('admin')) {
-//     throw new AuthenticationError('Only admins can create users.')
-//   }
+export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
+  input,
+}) => {
+  // Check if the user is an admin
+  if (!context.currentUser || !context.currentUser.roles.includes('admin')) {
+    throw new AuthenticationError('Only admins can create users.')
+  }
 
-//   let user
-//   let token: string
-//   let expiration
+  let user
+  let token: string
+  let expiration
 
-//   const maxTokenGenerationAttempts = 5
-//   let attempt = 0
+  const maxTokenGenerationAttempts = 5
+  let attempt = 0
 
-//   // Generate a unique reset token for the user
-//   while (attempt < maxTokenGenerationAttempts) {
-//     const generated = generateSignUpToken()
-//     token = generated.token
-//     expiration = generated.expiration
+  // Generate a unique reset token for the user
+  while (attempt < maxTokenGenerationAttempts) {
+    const generated = generateSignUpToken()
+    token = generated.token
+    expiration = generated.expiration
 
-//     // Check if the token already exists in the database
-//     const existingUserWithToken = await db.user.findUnique({
-//       where: { signUpToken: token },
-//     })
+    // Check if the token already exists in the database
+    const existingUserWithToken = await db.user.findUnique({
+      where: { signUpToken: token },
+    })
 
-//     if (!existingUserWithToken) {
-//       // Token is unique, break out of loop
-//       break
-//     }
+    if (!existingUserWithToken) {
+      // Token is unique, break out of loop
+      break
+    }
 
-//     attempt += 1
+    attempt += 1
 
-//     if (attempt === maxTokenGenerationAttempts) {
-//       throw new ValidationError(
-//         'Failed to generate a unique token after multiple attempts.'
-//       )
-//     }
-//   }
+    if (attempt === maxTokenGenerationAttempts) {
+      throw new ValidationError(
+        'Failed to generate a unique token after multiple attempts.'
+      )
+    }
+  }
+  const tempPassword = generateRandomPassword()
+  const [hashedTempPassword, tempSalt] = hashPassword(tempPassword)
 
-//   try {
+  try {
+    // Create the user in the database
+    user = await db.user.create({
+      data: {
+        ...input,
+        hashedPassword: hashedTempPassword, // You'll need to implement hashPassword function.
+        salt: tempSalt, // You'll need to implement generateSalt function.
+        signUpToken: hashPassword(token)[0],
+        signUpTokenExpiresAt: expiration,
+      },
+    })
+  } catch (error) {
+    throw new SyntaxError(`Failed to create user: ${error.message}`)
+  }
 
-//     // Create the user in the database
-//     user = await db.user.create({
-//       data: {
-//         ...input,
-//         hashedPassword: await hashPassword(tempPassword),  // You'll need to implement hashPassword function.
-//         salt: generateSalt(), // You'll need to implement generateSalt function.
-//         signUpToken: token,
-//         signUpTokenExpiresAt: expiration,
-//       },
-//     })
-//   } catch (error) {
-//     throw new SyntaxError(`Failed to create user: ${error.message}`)
-//   }
+  try {
+    // Send the email to the user to set their password
+    sendEmail({
+      to: input.email,
+      subject: 'Set Your Password',
+      text: '',
+      html: `Click the link to set your password: ${process.env.WEBSITE_URL}/set-password?token=${token}`,
+    })
+  } catch (error) {
+    throw new SyntaxError(`Failed to send email: ${error.message}`)
+  }
 
-//   try {
-//     // Send the email to the user to set their password
-//     sendEmail({
-//       to: input.email,
-//       subject: 'Set Your Password',
-//       text: '',
-//       html: `Click the link to set your password: ${process.env.WEBSITE_URL}/set-password?token=${token}`,
-//     })
-//   } catch (error) {
-//     throw new SyntaxError(`Failed to send email: ${error.message}`)
-//   }
-
-//   return user
-// }
+  return user
+}
 
 export const deleteUser: MutationResolvers['deleteUser'] = ({ id }) => {
   // Protect against unauthorised queries
@@ -170,4 +175,27 @@ export const updateUserPassword = async ({ id, input }) => {
     },
     where: { id: parseInt(id, 10) },
   })
+}
+
+// Signup token validation
+
+export const validateToken = async (token) => {
+  const user = await db.user.findUnique({
+    where: { signUpToken: token },
+  })
+
+  if (!user) {
+    throw new UserInputError('Invalid token.')
+  }
+
+  const currentDate = new Date()
+  if (currentDate > user.signUpTokenExpiresAt) {
+    throw new AuthenticationError(
+      'Token has expired. Please contact the admin to give you a new token'
+    )
+  }
+
+  // ... any other logic related to token validation
+
+  return true // or return user or any other relevant data
 }

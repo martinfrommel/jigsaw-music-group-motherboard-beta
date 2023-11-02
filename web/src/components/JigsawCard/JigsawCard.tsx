@@ -5,7 +5,8 @@ import {
   CardProps,
   Divider,
   useColorModeValue,
-  Flex, useBreakpointValue
+  Flex,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 
 interface JigsawCardProps extends CardProps {
@@ -43,10 +44,11 @@ JigsawCard.Header = ({ children, divider = true, ...rest }) => {
   return (
     <>
       <ChakraCardHeader
-        alignSelf={'center'}
         fontSize={'5xl'}
         fontWeight={'bold'}
         textTransform={'capitalize'}
+        flex={1}
+        textAlign={'center'}
         {...rest}
       >
         {children}
