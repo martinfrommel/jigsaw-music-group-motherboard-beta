@@ -36,6 +36,16 @@ const GET_ROLES = gql`
   }
 `
 
+const CREATE_USER_MUTATION = gql`
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      firstName
+      lastName
+      email
+    }
+  }
+`
+
 interface createUserFormProps extends BoxProps {
   showRoleSelection: boolean
 }

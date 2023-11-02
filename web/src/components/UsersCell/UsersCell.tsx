@@ -3,7 +3,6 @@ import { useState } from 'react'
 import {
   Spinner,
   Table,
-  TableCaption,
   TableContainer,
   Thead,
   Tbody,
@@ -20,6 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogBody,
   AlertDialogFooter,
+  Skeleton,
+  Badge,
 } from '@chakra-ui/react'
 import type { UsersQuery } from 'types/graphql'
 
@@ -32,6 +33,7 @@ import {
 import { toast } from '@redwoodjs/web/dist/toast'
 
 import { useAuth } from 'src/auth'
+import { capitalizeFirstLetter } from 'src/lib/capitalizeFirstLetter'
 
 import EmptyCellAlert from '../DataFetching/EmptyCellAlert/EmptyCellAlert'
 import FailedToFetchData from '../DataFetching/FailedToFetchData/FailedToFetchData'
@@ -71,7 +73,7 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
 
   const [removeUser] = useMutation(DELETE_USER_MUTATION)
 
-  const { forgotPassword } = useAuth()
+  const { forgotPassword, currentUser } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const onClose = () => setIsOpen(false)
@@ -92,23 +94,29 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
     }
   }
 
+  const [isResettingPassword, setIsResettingPassword] = useState(false)
+
   const sendResetPasswordLink = async (email: string) => {
+    setIsResettingPassword(true)
     try {
       await forgotPassword(email)
       toast.success('Password reset link sent successfully!')
     } catch (error) {
       toast.error(error.message || 'Failed to send password reset link.')
+    } finally {
+      setIsResettingPassword(false)
     }
   }
 
   return (
-    <JigsawCard>
+    <JigsawCard justifySelf={'flex-start'} alignSelf={'flex-start'}>
       <JigsawCard.Header>Admin section</JigsawCard.Header>
       <JigsawCard.Body>
         <TableContainer>
           <Table>
             <Thead>
               <Tr>
+                <Th>ID</Th>
                 <Th>First Name</Th>
                 <Th>Last Name</Th>
                 <Th>Email</Th>
@@ -120,13 +128,30 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
             <Tbody>
               {users.map((user) => (
                 <Tr key={user.id}>
+                  <Td>{user.id}</Td>
                   <Td>{user.firstName}</Td>
                   <Td>{user.lastName}</Td>
                   <Td>{user.email}</Td>
-                  <Td>{user.roles}</Td>
+                  <Td>
+                    <Badge
+                      colorScheme={
+                        user.roles == 'admin'
+                          ? 'red'
+                          : user.roles == 'moderator'
+                          ? 'orange'
+                          : user.roles == 'user'
+                          ? 'gray'
+                          : 'white'
+                      }
+                      variant={'solid'}
+                    >
+                      {capitalizeFirstLetter(user.roles)}
+                    </Badge>
+                  </Td>
                   <Td>
                     <Avatar src={user.picture} size={'sm'} />
                   </Td>
+
                   <Td>
                     <ButtonGroup>
                       <Button
@@ -134,6 +159,7 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
                         colorScheme="red"
                         mr={3}
                         onClick={() => onDeleteClick(user)}
+                        isDisabled={currentUser.id == user.id}
                       >
                         Delete
                       </Button>
@@ -150,6 +176,8 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
                         size="sm"
                         colorScheme="yellow"
                         onClick={() => sendResetPasswordLink(user.email)}
+                        isLoading={isResettingPassword}
+                        className="hover:underline"
                       >
                         Send Password Reset
                       </Button>
@@ -184,7 +212,7 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
               <Button
                 colorScheme="red"
                 onClick={handleDelete}
-                isLoading={!!handleDelete}
+                isLoading={!handleDelete}
               >
                 Delete
               </Button>

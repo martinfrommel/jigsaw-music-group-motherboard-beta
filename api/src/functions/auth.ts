@@ -1,5 +1,4 @@
 import type { APIGatewayProxyEvent, Context } from 'aws-lambda'
-import * as jose from 'jose'
 import { Role } from 'types/graphql'
 
 import { DbAuthHandler, DbAuthHandlerOptions } from '@redwoodjs/auth-dbauth-api'

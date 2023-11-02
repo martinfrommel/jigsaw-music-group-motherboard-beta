@@ -17,6 +17,9 @@ export const schema = gql`
     roles: Role!
     releases: [Release]!
     picture: String!
+    signUpToken: String
+    signUpTokenExpiresAt: DateTime
+    createdAt: DateTime
   }
 
   type Query {
@@ -38,6 +41,15 @@ export const schema = gql`
     picture: String
   }
 
+  # This is for when an Admin creates a user (main way of signing up on this page)
+  # input AdminCreateUserInput {
+  #   firstName: String!
+  #   lastName: String!
+  #   email: String!
+  #   roles: Role!
+  #   picture: String
+  # }
+
   input UpdateUserInput {
     firstName: String
     lastName: String
@@ -56,11 +68,12 @@ export const schema = gql`
   }
 
   type Mutation {
-    createUser(input: CreateUserInput!): User!
-      @requireAuth(roles: ["admin", "moderator"])
+    createUser(input: CreateUserInput!): User! @requireAuth(roles: ["admin"])
     updateUser(id: Int!, input: UpdateUserInput!): User! @requireAuth
     deleteUser(id: Int!): User! @requireAuth(roles: ["admin", "moderator"])
     updateUserPassword(id: String!, input: UpdatePasswordInput!): User!
       @requireAuth
+    # adminCreateUser(input: AdminCreateUserInput!): User!
+    #   @requireAuth(roles: ["admin"])
   }
 `

@@ -12,6 +12,7 @@ import {
   Stack,
   Text,
   createIcon,
+  useBreakpointValue,
   useColorModeValue,
 } from '@chakra-ui/react'
 
@@ -77,27 +78,6 @@ const HomePage = () => {
               >
                 {`  Log in to my account`}
               </Button>
-
-              <Box>
-                <Icon
-                  as={Arrow}
-                  color={useColorModeValue('gray.800', 'gray.300')}
-                  w={71}
-                  position={'relative'}
-                  right={-149}
-                  top={-12}
-                />
-                <Text
-                  fontSize={'xs'}
-                  position={'relative'}
-                  fontFamily={'mono'}
-                  right={-170}
-                  top={-24}
-                  transform={'rotate(10deg)'}
-                >
-                  {` Just click to get started`}
-                </Text>
-              </Box>
             </Stack>
           </Stack>
 

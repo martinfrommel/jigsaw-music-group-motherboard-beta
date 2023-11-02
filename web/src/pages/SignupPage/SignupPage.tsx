@@ -17,7 +17,7 @@ import { useAuth } from 'src/auth'
 import CreateUserForm from 'src/components/CreateNewUserComponents/CreateUserForm/CreateUserForm'
 
 const SignupPage = () => {
-  const { isAuthenticated, signUp } = useAuth()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -31,27 +31,9 @@ const SignupPage = () => {
     yourEmailRef.current?.focus()
   }, [])
 
-  const onSubmit = async (data: Record<string, string>) => {
-    const response = await signUp({
-      username: data.yourEmail,
-      password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-    })
-
-    if (response.message) {
-      toast(response.message)
-    } else if (response.error) {
-      toast.error(response.error)
-    } else {
-      // user is signed in automatically
-      toast.success('Welcome!')
-    }
-  }
-
   return (
     <>
-      <CreateUserForm  />
+      <CreateUserForm showRoleSelection={false} />
     </>
   )
 }

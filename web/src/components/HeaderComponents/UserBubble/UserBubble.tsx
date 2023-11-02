@@ -49,18 +49,19 @@ const UserBubble = () => {
         </Center>
         <br />
         <MenuDivider />
+        <MenuItem as={NavLink} to={routes.home()}>
+          Homepage
+        </MenuItem>
+        <MenuItem as={NavLink} to={routes.submitRelease()}>
+          Submit a release
+        </MenuItem>
         <MenuItem
           as={NavLink}
           to={routes.changePassword({ id: currentUser.id })}
         >
-          Change password{' '}
+          Change password
         </MenuItem>
-        {/* <MenuItem
-          as={NavLink}
-          to={routes.releases({ id: currentUser.id.toString() })}
-        >
-          My Releases
-        </MenuItem> */}
+
         <MenuItem onClick={logOut}>Logout</MenuItem>
       </MenuList>
     </Menu>

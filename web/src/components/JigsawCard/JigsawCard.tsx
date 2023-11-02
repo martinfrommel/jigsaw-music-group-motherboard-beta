@@ -5,8 +5,7 @@ import {
   CardProps,
   Divider,
   useColorModeValue,
-  Flex,
-  Box,
+  Flex, useBreakpointValue
 } from '@chakra-ui/react'
 
 interface JigsawCardProps extends CardProps {
@@ -22,12 +21,12 @@ const JigsawCard: React.FC<JigsawCardProps> & {
     [key: string]: any
   }>
   Body: React.FC<{ children?: React.ReactNode; [key: string]: any }>
-} = ({ children, width = 'full', height = 'full', ...rest }) => {
+} = ({ children, ...rest }) => {
   return (
     <Flex
       as={Card}
-      px={14}
-      py={14}
+      px={useBreakpointValue({ base: 0, md: 14 })}
+      py={useBreakpointValue({ base: 4, md: 14 })}
       bgColor={useColorModeValue('whiteAlpha.800', 'blackAlpha.700')}
       shadow={'lg'}
       {...rest}
