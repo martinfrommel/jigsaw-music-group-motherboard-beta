@@ -77,7 +77,8 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
   const { refetch } = useQuery(QUERY)
 
   const isMobile = useBreakpointValue({ base: true, md: false })
-  const [removeUser] = useMutation(DELETE_USER_MUTATION)
+  const [removeUser, { loading: deleteLoading, error: deleteError }] =
+    useMutation(DELETE_USER_MUTATION)
 
   const { forgotPassword, currentUser } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
@@ -96,7 +97,7 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
       refetch()
     } catch (error) {
       toast.error('Error deleting user.')
-      console.log(error?.message)
+      console.log(deleteError?.message)
     }
   }
 
@@ -292,7 +293,7 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
               <Button
                 colorScheme="red"
                 onClick={handleDelete}
-                isLoading={!handleDelete}
+                isLoading={deleteLoading}
               >
                 Delete
               </Button>

@@ -103,16 +103,22 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
     user = await db.user.create({
       data: {
         ...input,
-        hashedPassword: hashedTempPassword, // You'll need to implement hashPassword function.
-        salt: tempSalt, // You'll need to implement generateSalt function.
+        hashedPassword: hashedTempPassword,
+        salt: tempSalt,
         signUpToken: hashPassword(token)[0],
         signUpTokenExpiresAt: expiration,
       },
     })
   } catch (error) {
-    throw new SyntaxError(`Failed to create user: ${error.message}`)
+    // Check if the error is a unique constraint violation
+    if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+      throw new ValidationError('A user with this email already exists.')
+    } else {
+      // Log the error or handle other types of errors as needed
+      console.error('Error creating user:', error)
+      throw new SyntaxError('Failed to create user due to an unexpected error.')
+    }
   }
-
   try {
     // Send the email to the user to set their password
     sendEmail({

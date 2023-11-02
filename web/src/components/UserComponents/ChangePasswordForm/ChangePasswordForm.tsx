@@ -18,7 +18,7 @@ import { toast } from '@redwoodjs/web/toast'
 
 import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
-import { ChangePasswordSchema } from 'src/lib/changePasswordSchema'
+import { ChangePasswordSchema } from 'src/lib/validation/changePasswordSchema'
 
 const UPDATE_USER_PASSWORD_MUTATION = gql`
   mutation UpdateUserPasswordMutation(

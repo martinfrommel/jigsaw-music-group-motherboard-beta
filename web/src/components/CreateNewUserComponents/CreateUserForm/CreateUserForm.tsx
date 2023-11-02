@@ -15,16 +15,18 @@ import {
 } from '@chakra-ui/react'
 import { Formik } from 'formik'
 
+import { FormError } from '@redwoodjs/forms'
 import { useMutation, useQuery } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
 import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
-import { AdminCreateUserSchema } from 'src/lib/adminCreateUserSchema'
+import { loading } from 'src/components/ReleasesCell/ReleasesCell.stories'
 import { capitalizeFirstLetter } from 'src/lib/capitalizeFirstLetter'
 import { useIsAdmin } from 'src/lib/isAdmin'
 import { setRandomAvatar } from 'src/lib/setRandomAvatar'
-import { SignupSchema } from 'src/lib/signUpSchema'
+import { AdminCreateUserSchema } from 'src/lib/validation/adminCreateUserSchema'
+import { SignupSchema } from 'src/lib/validation/signUpSchema'
 
 const GET_ROLES = gql`
   query getRoles {
@@ -54,8 +56,14 @@ const CreateUserForm = ({
   showRoleSelection = false,
   ...rest
 }: createUserFormProps) => {
-  const { data, loading, error } = useQuery(GET_ROLES)
-  const [adminCreateUser] = useMutation(CREATE_ADMIN_USER_MUTATION)
+  const {
+    data: rolesData,
+    loading: loadingRoles,
+    error: getRolesError,
+  } = useQuery(GET_ROLES)
+  const [adminCreateUser, { error: createUserError }] = useMutation(
+    CREATE_ADMIN_USER_MUTATION
+  )
   const isAdmin = useIsAdmin()
 
   // focus on your email box on page load
@@ -65,29 +73,36 @@ const CreateUserForm = ({
   }, [])
 
   const onSubmit = async (
-    data: Record<string, string>,
+    formData: Record<string, string>,
     { setSubmitting, setErrors }
   ) => {
-    if (!AdminCreateUserSchema.isValid(data)) {
+    if (!AdminCreateUserSchema.isValid(formData)) {
       toast.error('Some fields are required')
       return
     }
 
+    // Show a loading toast without a timeout
+    const toastId = toast.loading('Creating user...')
+
     const setAvatar = setRandomAvatar()
     const input = {
-      email: data.userEmail,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      roles: data.role,
+      email: formData.userEmail,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      roles: formData.role,
       picture: setAvatar,
     }
 
     try {
       await adminCreateUser({ variables: { input } })
+      // Dismiss the loading toast and show a success message
+      toast.dismiss(toastId)
       toast.success('User created successfully!')
     } catch (error) {
-      toast.error(error?.message)
-      setErrors({ api: error.message })
+      // Dismiss the loading toast and show an error message
+      toast.dismiss(toastId)
+      toast.error('Failed: ' + createUserError?.message)
+      setErrors({ api: createUserError.message })
     } finally {
       setSubmitting(false)
     }
@@ -115,7 +130,6 @@ const CreateUserForm = ({
                 <FormControl
                   flex={1}
                   isInvalid={props.errors.firstName && props.touched.firstName}
-                  onChange={props.handleChange}
                   onBlur={props.handleBlur}
                 >
                   <FormLabel mt={4}>First Name</FormLabel>
@@ -123,6 +137,7 @@ const CreateUserForm = ({
                     type="text"
                     name="firstName"
                     value={props.values.firstName}
+                    onChange={props.handleChange}
                   />
                   <FormErrorMessage>
                     <FormErrorIcon />
@@ -133,7 +148,6 @@ const CreateUserForm = ({
                   flex={1}
                   ml={4}
                   isInvalid={props.errors.lastName && props.touched.lastName}
-                  onChange={props.handleChange}
                   onBlur={props.handleBlur}
                 >
                   <FormLabel mt={4}>Last Name</FormLabel>
@@ -141,6 +155,7 @@ const CreateUserForm = ({
                     type="text"
                     name="lastName"
                     value={props.values.lastName}
+                    onChange={props.handleChange}
                   />
                   <FormErrorMessage>
                     <FormErrorIcon />
@@ -149,7 +164,11 @@ const CreateUserForm = ({
                 </FormControl>
               </Flex>
               <Flex mt={4}>
-                <FormControl flex={1}>
+                <FormControl
+                  flex={1}
+                  isInvalid={props.errors.userEmail && props.touched.userEmail}
+                  onBlur={props.handleBlur}
+                >
                   <FormLabel>{"User's email"}</FormLabel>
                   <Input
                     type="email"
@@ -159,7 +178,10 @@ const CreateUserForm = ({
                       props.errors.userEmail && props.touched.userEmail
                     }
                   />
-                  <FormErrorMessage>{props.errors.userEmail}</FormErrorMessage>
+                  <FormErrorMessage>
+                    <FormErrorIcon />
+                    {props.errors.userEmail}
+                  </FormErrorMessage>
                 </FormControl>
                 {showRoleSelection && isAdmin && (
                   <>
@@ -167,25 +189,27 @@ const CreateUserForm = ({
                       flex={1}
                       ml={4}
                       isInvalid={!!props.errors.role}
-                      onChange={props.handleChange}
                       onBlur={props.handleBlur}
                     >
                       <FormLabel>Role</FormLabel>
                       {/* If loading, show a spinner */}
-                      {loading && <Spinner />}
+                      {loadingRoles && <Spinner />}
                       {/* If there's an error, show the FailedToFetchData component */}
-                      {error && (
-                        <FailedToFetchData>{error.message}</FailedToFetchData>
+                      {getRolesError && (
+                        <FailedToFetchData>
+                          {getRolesError.message}
+                        </FailedToFetchData>
                       )}
                       {/* If data is available, show the Select component */}
-                      {!loading && !error && (
+                      {!loadingRoles && !getRolesError && (
                         <>
                           <Select
                             name="role"
                             value={props.values.role}
+                            onChange={props.handleChange}
                             isInvalid={props.errors.role && props.touched.role}
                           >
-                            {data?.__type.enumValues.map((role) => (
+                            {rolesData?.__type.enumValues.map((role) => (
                               <option key={role.name} value={role.name}>
                                 {capitalizeFirstLetter(role.name)}
                               </option>
@@ -202,17 +226,17 @@ const CreateUserForm = ({
                 )}
               </Flex>
 
-              <Box mt={4}>
-                <Button
-                  type="submit"
-                  isLoading={props.isSubmitting}
-                  colorScheme="green"
-                  loadingText="Creating new user"
-                  spinnerPlacement="start"
-                >
-                  Create a user
-                </Button>
-              </Box>
+              <Button
+                mt={12}
+                type="submit"
+                isLoading={props.isSubmitting}
+                colorScheme="green"
+                loadingText="Creating new user"
+                spinnerPlacement="start"
+                w={'full'}
+              >
+                Create a user
+              </Button>
             </form>
           )}
         </Formik>

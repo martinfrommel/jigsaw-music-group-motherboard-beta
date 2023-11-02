@@ -18,7 +18,7 @@ import { toast } from '@redwoodjs/web/toast'
 import { useAuth } from 'src/auth'
 import PasswordConfirmationField from 'src/components/PasswordConfirmationField/PasswordConfirmationField'
 import { setRandomAvatar } from 'src/lib/setRandomAvatar'
-import { SignupSchema } from 'src/lib/signUpSchema'
+import { SignupSchema } from 'src/lib/validation/signUpSchema'
 
 interface createUserFormProps extends BoxProps {
   showRoleSelection: boolean

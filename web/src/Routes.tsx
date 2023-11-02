@@ -17,7 +17,7 @@ import { useIsAdmin } from './lib/isAdmin'
 const Routes = () => {
   const isAdmin = useIsAdmin()
   return (
-    <Router useAuth={useAuth} >
+    <Router useAuth={useAuth}>
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
         <Route path="/" page={HomePage} name="home" />
         <Private unauthenticated="login">
@@ -29,6 +29,7 @@ const Routes = () => {
         <Route path="/signup" page={SignupPage} name="signup" />
         <Route path="/forgot-password" page={ForgotPasswordPage} name="forgotPassword" />
         <Route path="/reset-password" page={ResetPasswordPage} name="resetPassword" />
+        <Route path="/set-password" page={SetPasswordPage} name="setPassword" />
         <Route notfound page={NotFoundPage} />
       </Set>
 
