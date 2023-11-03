@@ -4,7 +4,7 @@ import type {
   UserRelationResolvers,
 } from 'types/graphql'
 
-import { hashPassword } from '@redwoodjs/auth-dbauth-api'
+import { hashPassword, hashToken } from '@redwoodjs/auth-dbauth-api'
 import {
   AuthenticationError,
   ForbiddenError,
@@ -82,6 +82,12 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
       where: { signUpToken: token },
     })
 
+    if (existingUserWithToken) {
+      console.log(
+        'A user with this token already exists. Generating a new one.'
+      )
+    }
+
     if (!existingUserWithToken) {
       // Token is unique, break out of loop
       break
@@ -105,7 +111,7 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
         ...input,
         hashedPassword: hashedTempPassword,
         salt: tempSalt,
-        signUpToken: hashPassword(token)[0],
+        signUpToken: hashToken(token),
         signUpTokenExpiresAt: expiration,
       },
     })
@@ -125,7 +131,41 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
       to: input.email,
       subject: 'Set Your Password',
       text: '',
-      html: `Click the link to set your password: ${process.env.WEBSITE_URL}/set-password?token=${token}`,
+      html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Set Your Password</title>
+            <style>
+              .email-container {
+                max-width: 600px;
+                margin: 20px auto;
+                font-family: Arial, sans-serif;
+              }
+              .button {
+                display: inline-block;
+                padding: 10px 20px;
+                margin: 20px 0;
+                background-color: #007bff;
+                color: white;
+                text-decoration: none;
+                border-radius: 5px;
+              }
+              .button:hover {
+                background-color: #0056b3;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="email-container">
+              <h1>Set Your Password</h1>
+              <p>You're almost there! Click the button below to set up your password and get started.</p>
+              <a href="${process.env.WEBSITE_URL}/set-password?token=${token}" class="button">Set your password</a>
+              <p>If you did not request this email, please ignore it.</p>
+            </div>
+          </body>
+          </html>
+          `,
     })
   } catch (error) {
     throw new SyntaxError(`Failed to send email: ${error.message}`)
@@ -153,55 +193,109 @@ export const User: UserRelationResolvers = {
 
 // A function to update the user password securely. Uses the ChangePasswordForm
 
-export const updateUserPassword = async ({ id, input }) => {
-  const { oldPassword, newPassword } = input
+export const updateUserPassword: MutationResolvers['updateUserPassword'] =
+  async ({ id, input }) => {
+    const { oldPassword, newPassword } = input
 
-  // Fetch the user's current hashed password and salt from the database and
-  const user = await db.user.findUnique({ where: { id: parseInt(id, 10) } })
-  if (!user) {
-    throw new UserInputError('User not found')
+    // Fetch the user's current hashed password and salt from the database and
+    const user = await db.user.findUnique({ where: { id: parseInt(id, 10) } })
+    if (!user) {
+      throw new UserInputError('User not found')
+    }
+
+    // Re-hash the old password with the stored salt
+    const [rehashedOldPassword] = hashPassword(oldPassword, user.salt)
+
+    // Verify the old password by comparing the re-hashed old password to the stored hashed password
+    if (rehashedOldPassword !== user.hashedPassword) {
+      throw new ValidationError('Incorrect old password')
+    }
+
+    // Hash the new password
+    const [hashedPassword, salt] = hashPassword(newPassword)
+
+    // Update the user's password in the database
+    return db.user.update({
+      data: {
+        hashedPassword,
+        salt,
+      },
+      where: { id: parseInt(id, 10) },
+    })
   }
 
-  // Re-hash the old password with the stored salt
-  const [rehashedOldPassword] = hashPassword(oldPassword, user.salt)
+// Signup token validation
+export const validateSignUpToken: QueryResolvers['validateSignUpToken'] =
+  async ({ signUpToken }) => {
+    try {
+      const hashedToken = hashToken(signUpToken)
 
-  // Verify the old password by comparing the re-hashed old password to the stored hashed password
-  if (rehashedOldPassword !== user.hashedPassword) {
-    throw new ValidationError('Incorrect old password')
+      const user = await db.user.findUnique({
+        where: { signUpToken: hashedToken },
+      })
+      console.log(signUpToken + hashedToken)
+      if (!user) {
+        return false // Instead of throwing an error, return false
+      }
+
+      const currentDate = new Date()
+      if (currentDate > user.signUpTokenExpiresAt) {
+        return false // Instead of throwing an error, return false
+      }
+
+      // ... any other logic related to token validation
+
+      return true // Return true if all checks pass
+    } catch (error) {
+      console.log(signUpToken)
+      throw new UserInputError(
+        'Something went wrong... please contact the admin'
+      )
+    }
+  }
+
+export const setUserPassword: MutationResolvers['setUserPassword'] = async ({
+  token,
+  newPassword,
+}) => {
+  // Hash the provided token
+  const hashedToken = hashToken(token)
+
+  console.log('Original token: ' + token)
+  console.log('Hashed token: ' + hashedToken)
+  // Find the user by the hashed token and ensure the token hasn't expired
+  const user = await db.user.findFirst({
+    where: {
+      signUpToken: hashedToken,
+    },
+  })
+
+  if (hashedToken !== user.signUpToken) {
+    throw new SyntaxError('The tokens do not match!')
+  }
+  // If no user is found or the token is expired, throw an error
+  if (!user) {
+    throw new UserInputError('Invalid or expired token')
+  }
+  const currentDate = new Date()
+  if (currentDate > user.signUpTokenExpiresAt) {
+    throw new UserInputError('The token has expired!') // Instead of throwing an error, return false
   }
 
   // Hash the new password
-  const [hashedPassword, salt] = hashPassword(newPassword)
+  const [hashedNewPassword, newSalt] = hashPassword(newPassword)
 
-  // Update the user's password in the database
-  return db.user.update({
+  // Update the user's hashedPassword, salt, and clear the signUpToken and signUpTokenExpiresAt
+  const updatedUser = await db.user.update({
+    where: { id: user.id },
     data: {
-      hashedPassword,
-      salt,
+      hashedPassword: hashedNewPassword,
+      salt: newSalt,
+      signUpToken: null,
+      signUpTokenExpiresAt: null,
     },
-    where: { id: parseInt(id, 10) },
-  })
-}
-
-// Signup token validation
-
-export const validateToken = async (token) => {
-  const user = await db.user.findUnique({
-    where: { signUpToken: token },
   })
 
-  if (!user) {
-    throw new UserInputError('Invalid token.')
-  }
-
-  const currentDate = new Date()
-  if (currentDate > user.signUpTokenExpiresAt) {
-    throw new AuthenticationError(
-      'Token has expired. Please contact the admin to give you a new token'
-    )
-  }
-
-  // ... any other logic related to token validation
-
-  return true // or return user or any other relevant data
+  // Return the updated user
+  return updatedUser
 }

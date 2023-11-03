@@ -27,6 +27,7 @@ export const schema = gql`
     user(id: Int!): User @requireAuth
     userByName(firstName: String!, lastName: String!): User @requireAuth
     getRoles(roles: Role): User @requireAuth
+    validateSignUpToken(signUpToken: String!): Boolean! @skipAuth
   }
 
   input CreateUserInput {
@@ -67,13 +68,19 @@ export const schema = gql`
     newPassword: String!
   }
 
+  input SetUserPasswordInput {
+    token: String!
+    newPassword: String!
+  }
+
   type Mutation {
-    createUser(input: CreateUserInput!): User! @requireAuth(roles: ["admin"])
+    createUser(input: CreateUserInput!): User! @skipAuth
     updateUser(id: Int!, input: UpdateUserInput!): User! @requireAuth
     deleteUser(id: Int!): User! @requireAuth(roles: ["admin", "moderator"])
     updateUserPassword(id: String!, input: UpdatePasswordInput!): User!
       @requireAuth
     adminCreateUser(input: AdminCreateUserInput!): User!
-      @requireAuth(roles: ["admin"])
+      @requireAuth(roles: ["admin", "moderator"])
+    setUserPassword(token: String!, newPassword: String!): User! @skipAuth
   }
 `

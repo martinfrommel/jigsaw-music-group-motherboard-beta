@@ -15,18 +15,14 @@ import {
 } from '@chakra-ui/react'
 import { Formik } from 'formik'
 
-import { FormError } from '@redwoodjs/forms'
 import { useMutation, useQuery } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
-import { useAuth } from 'src/auth'
 import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
-import { loading } from 'src/components/ReleasesCell/ReleasesCell.stories'
 import { capitalizeFirstLetter } from 'src/lib/capitalizeFirstLetter'
 import { useIsAdmin } from 'src/lib/isAdmin'
 import { setRandomAvatar } from 'src/lib/setRandomAvatar'
 import { AdminCreateUserSchema } from 'src/lib/validation/adminCreateUserSchema'
-import { SignupSchema } from 'src/lib/validation/signUpSchema'
 
 const GET_ROLES = gql`
   query getRoles {

@@ -40,11 +40,18 @@ const JigsawCard: React.FC<JigsawCardProps> & {
   )
 }
 
-JigsawCard.Header = ({ children, divider = true, ...rest }) => {
+// Define Header as a standalone component
+const Header: React.FC<{
+  divider?: boolean
+  children?: React.ReactNode
+  [key: string]: any
+}> = ({ children, divider = true, ...rest }) => {
+  const fontSize = useBreakpointValue({ base: '3xl', md: '5xl' })
+
   return (
     <>
       <ChakraCardHeader
-        fontSize={'5xl'}
+        fontSize={fontSize}
         fontWeight={'bold'}
         textTransform={'capitalize'}
         flex={1}
@@ -57,6 +64,9 @@ JigsawCard.Header = ({ children, divider = true, ...rest }) => {
     </>
   )
 }
+
+// Assign Header to JigsawCard after its declaration
+JigsawCard.Header = Header
 
 JigsawCard.Body = ({ children, ...rest }) => {
   return <ChakraCardBody {...rest}>{children}</ChakraCardBody>

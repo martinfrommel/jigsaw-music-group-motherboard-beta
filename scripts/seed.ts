@@ -51,13 +51,7 @@ export default async () => {
         password: 'Enimyks1',
         role: Role.admin,
       },
-      {
-        firstName: 'Chris',
-        lastName: 'Priest',
-        email: 'chris@jigsawmusicgroup.com',
-        password: 'JackallWentJumping',
-        role: Role.admin,
-      },
+
     ]
 
     for (const user of users) {
