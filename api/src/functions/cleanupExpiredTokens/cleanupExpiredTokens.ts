@@ -1,7 +1,7 @@
 import type { APIGatewayEvent } from 'aws-lambda'
 
 import { db } from 'src/lib/db'
-import { sendEmail } from 'src/lib/sendEmail'
+import { sendEmail } from 'src/lib/emails/sendEmail'
 /**
  * The handler function is your code that processes http request events.
  * You can use return and throw to send a response or error, respectively.
@@ -19,7 +19,7 @@ import { sendEmail } from 'src/lib/sendEmail'
  * function, and execution environment.
  */
 export const handler = async (event: APIGatewayEvent) => {
-  if (event.headers['x-api-key'] !== process.env.FUNCTION_API_KEY) {
+  if (event.headers['x-api-key'] !== process.env.WEBSITE_API_KEY) {
     return {
       statusCode: 403,
       body: JSON.stringify({ message: 'Forbidden' }),

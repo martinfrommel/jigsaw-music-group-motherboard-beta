@@ -13,9 +13,10 @@ import {
 } from '@redwoodjs/graphql-server'
 
 import { db } from 'src/lib/db'
+import { genericEmailTemplate } from 'src/lib/emails/emailTemplates/genericEmailTemplate'
+import { sendEmail } from 'src/lib/emails/sendEmail'
 import { generateSignUpToken } from 'src/lib/generateToken'
 import { generateRandomPassword } from 'src/lib/passwordUtils'
-import { sendEmail } from 'src/lib/sendEmail'
 
 export const users: QueryResolvers['users'] = () => {
   const currentUser = context.currentUser
@@ -126,46 +127,22 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
     }
   }
   try {
-    // Send the email to the user to set their password
-    sendEmail({
+    // Construct the email HTML using the generic template function
+    const emailHTML = genericEmailTemplate({
+      title: 'Set Your Password',
+      heading: 'Set Your Password',
+      paragraph: `${user.firstName}, an account has been created for you at Jigsaw Music Group, so that you can start submitting your releases. Click the button below to set up your password and get started.`,
+      link: `${process.env.WEBSITE_URL}/set-password?token=${token}`,
+      linkText: 'Set your password',
+      disclaimer: 'If you did not request this email, please ignore it.',
+    })
+
+    // Send the email with the constructed HTML content
+    await sendEmail({
       to: input.email,
       subject: 'Set Your Password',
-      text: '',
-      html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Set Your Password</title>
-            <style>
-              .email-container {
-                max-width: 600px;
-                margin: 20px auto;
-                font-family: Arial, sans-serif;
-              }
-              .button {
-                display: inline-block;
-                padding: 10px 20px;
-                margin: 20px 0;
-                background-color: #007bff;
-                color: white;
-                text-decoration: none;
-                border-radius: 5px;
-              }
-              .button:hover {
-                background-color: #0056b3;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="email-container">
-              <h1>Set Your Password</h1>
-              <p>You're almost there! Click the button below to set up your password and get started.</p>
-              <a href="${process.env.WEBSITE_URL}/set-password?token=${token}" class="button">Set your password</a>
-              <p>If you did not request this email, please ignore it.</p>
-            </div>
-          </body>
-          </html>
-          `,
+      text: `Please set up your password by visiting the following link: ${process.env.WEBSITE_URL}/set-password?token=${token}`,
+      html: emailHTML,
     })
   } catch (error) {
     throw new SyntaxError(`Failed to send email: ${error.message}`)

@@ -5,7 +5,8 @@ import { DbAuthHandler, DbAuthHandlerOptions } from '@redwoodjs/auth-dbauth-api'
 import { UserInputError } from '@redwoodjs/graphql-server'
 
 import { db } from 'src/lib/db'
-import { sendEmail } from 'src/lib/sendEmail'
+import { genericEmailTemplate } from 'src/lib/emails/emailTemplates/genericEmailTemplate'
+import { sendEmail } from 'src/lib/emails/sendEmail'
 
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -34,19 +35,25 @@ export const handler = async (
         baseUrl = 'http://' + baseUrl
       }
       const resetUrl = `${baseUrl}/reset-password?resetToken=${user.resetToken}`
+      // Construct the email HTML using the generic template function
+      const resetEmailHTML = genericEmailTemplate({
+        title: 'Reset Your Password',
+        heading: 'Password Reset Request',
+        paragraph: `Dear ${user.firstName}, if you requested to reset your password, please click on the button below.`,
+        link: resetUrl,
+        linkText: 'Reset Password',
+        disclaimer:
+          'If you did not request a password reset, please ignore this email or reply to contact support.',
+      })
 
-      const emailResult = await sendEmail({
+      // Send the email with the constructed HTML content
+      sendEmail({
         to: user.email,
         subject: 'Reset Your Password',
         text: `Click the link to reset your password: ${resetUrl}`,
-        html: `<p>Click <a href="${resetUrl}">here</a> to reset your password.</p>`,
+        html: resetEmailHTML,
       })
-
-      if (emailResult.error) {
-        console.error(emailResult.error)
-        return { error: 'Error sending email' }
-      }
-
+      console.log('A reset password email was sent to: ' + user.email)
       return { success: true, user }
     },
     expires: 60 * 60 * 24,

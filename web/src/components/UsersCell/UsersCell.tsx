@@ -26,6 +26,8 @@ import {
   Text,
   Grid,
   GridItem,
+  VStack,
+  HStack,
 } from '@chakra-ui/react'
 import type { UsersQuery } from 'types/graphql'
 
@@ -115,31 +117,34 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
     }
   }
 
-  const ActionButtons = ({ user }) => {
+  const ActionButtons = ({ user, isMobile }) => {
+    const StackComponent = isMobile ? VStack : HStack
     return (
-      <ButtonGroup>
+      <StackComponent as={ButtonGroup} spacing={isMobile ? 2 : 0}>
         <Button
           size="sm"
           colorScheme="red"
-          mr={3}
+          mr={isMobile ? 0 : 3}
           onClick={() => onDeleteClick(user)}
           isDisabled={
             currentUser.id === user.id ||
             (currentUser.roles === 'admin' && user.roles === 'admin')
           }
+          w={isMobile ? 'full' : 'initial'}
         >
           Delete
         </Button>
-
         <Button
           as={Link}
           size="sm"
           colorScheme="blue"
           href={`mailto:${user.email}`}
+          w={isMobile ? 'full' : 'initial'}
         >
           Message
         </Button>
         <Button
+          w={isMobile ? 'full' : 'initial'}
           size="sm"
           colorScheme="yellow"
           onClick={() => sendResetPasswordLink(user.email)}
@@ -147,8 +152,8 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
           className="hover:underline"
         >
           Send Password Reset
-        </Button>
-      </ButtonGroup>
+        </Button>{' '}
+      </StackComponent>
     )
   }
 
@@ -196,7 +201,7 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
                   </Td>
 
                   <Td>
-                    <ActionButtons user={user} />
+                    <ActionButtons isMobile={isMobile} user={user} />
                   </Td>
                 </Tr>
               ))}
@@ -249,10 +254,11 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
             <Flex
               as={GridItem}
               colSpan={2}
-              justifyContent="space-between"
+              justifyContent="center"
+              alignItems={'center'}
               mt={4}
             >
-              <ActionButtons user={user} />
+              <ActionButtons isMobile={isMobile} user={user} />
             </Flex>
           </Box>
         ))}
