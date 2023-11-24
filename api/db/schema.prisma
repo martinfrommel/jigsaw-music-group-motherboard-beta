@@ -33,7 +33,18 @@ model User {
   signUpTokenExpiresAt DateTime?
   roles Role  @default(user)
   releases       Release[] // This establishes a one-to-many relationship with Release
+  labelId      Int?    // Foreign key to establish relationship with Label (Optional so a user can exist without a label)
+  label        Label?  @relation(fields: [labelId], references: [id]) // This establishes the relationship with Label
 
+}
+
+model Label {
+  id          Int      @id @default(autoincrement())
+  name        String   // Name of the Label
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  users       User[]   // One-to-many relationship with User
+  releases    Release[] // One-to-many relationship with Release
 }
 
 model Release {
@@ -55,4 +66,6 @@ model Release {
   cLine               String?  // Optional field
   length              Int      // Assuming length is stored in seconds as an integer
   user                User     @relation(fields: [userId], references: [id]) // This establishes the relationship with User
+  labelId            Int?    // Foreign key to establish relationship with Label (Optional if a release can exist without a label)
+  label              Label?  @relation(fields: [labelId], references: [id]) // This establishes the relationship with Label
 }
