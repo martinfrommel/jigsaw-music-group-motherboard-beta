@@ -26,8 +26,6 @@ export const handler = async (event: APIGatewayEvent) => {
     }
   }
 
-  // ... rest of your function logic
-
   const currentDate = new Date()
 
   const usersWithExpiredTokens = await db.user.findMany({

@@ -9989,7 +9989,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@whatwg-node/fetch@npm:^0.9.10, @whatwg-node/fetch@npm:^0.9.7":
+"@whatwg-node/fetch@npm:^0.9.10, @whatwg-node/fetch@npm:^0.9.14, @whatwg-node/fetch@npm:^0.9.7":
   version: 0.9.14
   resolution: "@whatwg-node/fetch@npm:0.9.14"
   dependencies:
@@ -10547,6 +10547,7 @@ __metadata:
     "@redwoodjs/auth-dbauth-api": 6.4.0
     "@redwoodjs/graphql-server": 6.4.0
     "@simplewebauthn/server": ^7
+    "@whatwg-node/fetch": ^0.9.14
     jose: ^5.0.1
     nodemailer: ^6.9.7
   languageName: unknown
