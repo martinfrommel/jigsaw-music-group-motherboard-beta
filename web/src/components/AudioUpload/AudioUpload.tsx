@@ -61,11 +61,13 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
           .remove([filePath])
 
         if (deleteError) {
-          toast(`Failed to delete file from Supabase: ${deleteError.message}`)
+          toast.error(
+            `Failed to delete file from Supabase: ${deleteError.message}`
+          )
           return
         }
       } else if (statError) {
-        toast(`Failed to check file in Supabase: ${statError.message}`)
+        toast.error(`Failed to check file in Supabase: ${statError.message}`)
         return
       }
     }

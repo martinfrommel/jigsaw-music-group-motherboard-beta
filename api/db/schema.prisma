@@ -69,3 +69,13 @@ model Release {
   labelId            Int?    // Foreign key to establish relationship with Label (Optional if a release can exist without a label)
   label              Label?  @relation(fields: [labelId], references: [id]) // This establishes the relationship with Label
 }
+
+model ApiToken {
+  id               Int      @id @default(autoincrement())
+  accessToken      String
+  refreshToken     String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  accessTokenExpiresAt       DateTime?
+  refreshTokenExpiresAt      DateTime?
+}
