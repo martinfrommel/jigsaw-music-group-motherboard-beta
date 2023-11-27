@@ -2,6 +2,7 @@ import * as Yup from 'yup'
 
 export const ReleaseSchema = Yup.object().shape({
   songMaster: Yup.string().required('You have to upload the master audio'),
+  songImage: Yup.string().required('You have to upload the song image'),
   metadata: Yup.object().shape({
     songTitle: Yup.string().required('Song title is required'),
     productTitle: Yup.string(),

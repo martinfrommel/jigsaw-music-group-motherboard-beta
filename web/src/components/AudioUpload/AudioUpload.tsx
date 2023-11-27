@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import {
+  S3,
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  CreateBucketCommand,
+} from '@aws-sdk/client-s3'
+import {
   Box,
   BoxProps,
   useColorMode,
@@ -14,25 +21,30 @@ import { useDropzone } from 'react-dropzone'
 
 import { toast } from '@redwoodjs/web/dist/toast'
 
-import supabase from '../../lib/initiliaseSupabase'
-
 interface AudioUploadProps extends BoxProps {
   onAudioChange: (file: File, duration: number) => void
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors?: any
-  bucketName: string
   folderName: string
   onUploadComplete: (path: string) => void
 }
 
+const s3Client = new S3Client({
+  region: 'eu-west-2', // e.g., us-east-1
+  credentials: {
+    accessKeyId: 'AKIAVK6UBHV4MSMH7CN5',
+    secretAccessKey: '0cMY2R6gPPxrVPhDoQKejfHLYm3PbicplLYD5KK4',
+  },
+})
+
 export const AudioUpload: React.FC<AudioUploadProps> = ({
   onAudioChange,
   errors,
-  bucketName,
   folderName,
   onUploadComplete,
   ...rest
 }) => {
+  const bucketPath = 'test-bucket-jigsaw'
   const { colorMode } = useColorMode()
   const [flashColor, setFlashColor] = useState(false)
   const [filename, setFilename] = useState<string | null>(null)
@@ -42,36 +54,23 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
 
   const clearFile = async () => {
     if (filePath) {
-      // Check if the file exists in Supabase
-      const { data, error: statError } = await supabase.storage
-        .from(bucketName)
-        .list(folderName, {
-          limit: 1,
-          offset: 0,
-          search: filename,
-        })
-
-      if (data) {
-        toast.loading('File exists, deleting from storage...', {
-          duration: 500,
-        })
-        // If file exists, delete it
-        const { error: deleteError } = await supabase.storage
-          .from(bucketName)
-          .remove([filePath])
-
-        if (deleteError) {
-          toast.error(
-            `Failed to delete file from Supabase: ${deleteError.message}`
-          )
-          return
+      try {
+        // AWS SDK doesn't have a direct method to check if a file exists like Supabase.
+        // So, we attempt to delete the file directly.
+        const deleteParams = {
+          Bucket: bucketPath,
+          Key: filePath,
         }
-      } else if (statError) {
-        toast.error(`Failed to check file in Supabase: ${statError.message}`)
-        return
+        const deleteCommand = new DeleteObjectCommand(deleteParams)
+        await s3Client.send(deleteCommand)
+
+        toast.success('File successfully deleted from S3')
+      } catch (error) {
+        // AWS S3 delete object does not throw an error if the object does not exist.
+        // So, this catch block handles other potential errors.
+        toast.error(`Failed to delete file from S3: ${error.message}`)
       }
     }
-
     // Clear the file from browser context
     setFilename(null)
     acceptedFilesRef.current = []
@@ -79,35 +78,31 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   }
 
   const handleUpload = async (file: File) => {
-    const filePath = `${folderName}/${file.name}`
+    const filePath = `${file.name}`
     setFilePath(filePath)
 
     setIsUploading(true) // Start the indeterminate progress
 
-    // Upload the file
     try {
-      // Upload the file
-      const { data, error } = await supabase.storage
-        .from(bucketName)
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: 'audio/wav',
-        })
+      // Now, upload the file
+      const uploadParams = {
+        Bucket: bucketPath,
+        Key: filePath,
+        Body: file,
+        ContentType: 'audio/wav',
+        CacheControl: 'max-age=3600',
+      }
+      console.log('Uploading file: ' + filePath)
+      const uploadCommand = new PutObjectCommand(uploadParams)
+      console.log('Sending command')
+      await s3Client.send(uploadCommand)
+      console.log('File uploaded')
 
       setIsUploading(false) // Stop the indeterminate progress
-
-      // Handle errors
-      if (error) {
-        toast.error(`Upload failed: ${error.message}`)
-        // clearFile()
-      } else {
-        onUploadComplete(data.path)
-        toast.success('File successfully uploaded')
-      }
+      onUploadComplete(filePath)
+      toast.success('File successfully uploaded')
     } catch (error) {
       setIsUploading(false)
-
       toast.error(`Upload failed: ${error.message}`)
       // clearFile()
     }

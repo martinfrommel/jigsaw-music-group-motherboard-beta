@@ -46,6 +46,7 @@ import { ReleaseSchema } from '../../lib/releaseSchema'
 import { AudioUpload } from '../AudioUpload/AudioUpload'
 interface FormValues {
   songMaster: string
+  songImage: string
   metadata: {
     songTitle: string
     productTitle: string
@@ -138,6 +139,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
         <Formik<FormValues>
           initialValues={{
             songMaster: '',
+            songImage: '',
             metadata: {
               songTitle: '',
               productTitle: '',
@@ -435,6 +437,10 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     Previously released?
                   </Checkbox>
                 </Flex>
+                <FormControl isInvalid={!!props.errors.songImage}>
+                  <FormLabel mt={4}>Release artwork</FormLabel>
+                  <Input type="file" name="songImage" />
+                </FormControl>
                 <FormControl isInvalid={!!props.errors?.songMaster}>
                   <FormLabel display={'none'}>
                     Upload audio master file
@@ -443,9 +449,12 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     errors={props.errors.songMaster}
                     mt={6}
                     onAudioChange={handleAudioChange}
-                    bucketName={'audioMasters'}
                     folderName={
-                      currentUser.id.toString() + currentUser.lastName
+                      currentUser.id.toString() +
+                      '-' +
+                      currentUser.lastName.toLowerCase() +
+                      '-' +
+                      props.values.metadata.songTitle
                     }
                     onUploadComplete={(path: string) => setAudioFilePath(path)}
                   />
