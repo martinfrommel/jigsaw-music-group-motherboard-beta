@@ -1,13 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
 import {
-  S3,
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-  CreateBucketCommand,
-} from '@aws-sdk/client-s3'
-import {
   Box,
   BoxProps,
   useColorMode,
@@ -29,14 +22,6 @@ interface AudioUploadProps extends BoxProps {
   onUploadComplete: (path: string) => void
 }
 
-const s3Client = new S3Client({
-  region: 'eu-west-2', // e.g., us-east-1
-  credentials: {
-    accessKeyId: 'AKIAVK6UBHV4MSMH7CN5',
-    secretAccessKey: '0cMY2R6gPPxrVPhDoQKejfHLYm3PbicplLYD5KK4',
-  },
-})
-
 export const AudioUpload: React.FC<AudioUploadProps> = ({
   onAudioChange,
   errors,
@@ -44,7 +29,6 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   onUploadComplete,
   ...rest
 }) => {
-  const bucketPath = 'test-bucket-jigsaw'
   const { colorMode } = useColorMode()
   const [flashColor, setFlashColor] = useState(false)
   const [filename, setFilename] = useState<string | null>(null)
@@ -55,15 +39,6 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   const clearFile = async () => {
     if (filePath) {
       try {
-        // AWS SDK doesn't have a direct method to check if a file exists like Supabase.
-        // So, we attempt to delete the file directly.
-        const deleteParams = {
-          Bucket: bucketPath,
-          Key: filePath,
-        }
-        const deleteCommand = new DeleteObjectCommand(deleteParams)
-        await s3Client.send(deleteCommand)
-
         toast.success('File successfully deleted from S3')
       } catch (error) {
         // AWS S3 delete object does not throw an error if the object does not exist.
@@ -78,24 +53,29 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   }
 
   const handleUpload = async (file: File) => {
-    const filePath = `${file.name}`
+    // Generate the file path
     setFilePath(filePath)
+
+    const { url, key } = await fetch(
+      process.env.REDWOOD_ENV_WEBSITE_API_URL + '/getPresignedUrl',
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+        }),
+      }
+    ).then((res) => res.json())
+
+    console.log('Presigned URL: ' + url + ' Key: ' + key) // Sanity check
 
     setIsUploading(true) // Start the indeterminate progress
 
     try {
       // Now, upload the file
-      const uploadParams = {
-        Bucket: bucketPath,
-        Key: filePath,
-        Body: file,
-        ContentType: 'audio/wav',
-        CacheControl: 'max-age=3600',
-      }
-      console.log('Uploading file: ' + filePath)
-      const uploadCommand = new PutObjectCommand(uploadParams)
-      console.log('Sending command')
-      await s3Client.send(uploadCommand)
+
       console.log('File uploaded')
 
       setIsUploading(false) // Stop the indeterminate progress
