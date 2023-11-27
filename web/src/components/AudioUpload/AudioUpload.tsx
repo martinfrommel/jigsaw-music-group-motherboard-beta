@@ -79,7 +79,6 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   }
 
   const handleUpload = async (file: File) => {
-    // ... Your existing code to check user authentication ...
     const filePath = `${folderName}/${file.name}`
     setFilePath(filePath)
 

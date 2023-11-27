@@ -20,6 +20,7 @@
     "@redwoodjs/router": "6.4.0",
     "@redwoodjs/web": "6.4.0",
     "@simplewebauthn/browser": "^7",
+    "@ssh/audiosalad-xml": "^0.1.5",
     "@supabase/supabase-js": "^2.38.4",
     "@uppy/core": "^3.6.1",
     "@uppy/dashboard": "^3.6.0",

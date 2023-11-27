@@ -38,6 +38,7 @@ import { navigate, routes } from '@redwoodjs/router'
 import { toast } from '@redwoodjs/web/dist/toast'
 
 import { useAuth } from 'src/auth'
+import GetLabelsCell from 'src/components/GetLabelsCell/'
 import { LanguageList } from 'src/lib/languageList'
 
 import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
@@ -77,6 +78,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
   const [createRelease, { error }] = useMutation(CREATE_RELEASE_MUTATION)
   // State to store the length of the uploaded audio file
   const [isFeaturedArtistChecked, setIsFeaturedArtistChecked] = useState(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploadedAudio, setUploadedAudio] = useState(null)
   const [audioDuration, setAudioDuration] = useState(null)
   const [audioFilePath, setAudioFilePath] = useState<string | null>(null)
@@ -97,6 +99,13 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
    * @param {Object} data - The form data.
    */
 
+  /**
+   * Handles the form submission.
+   *
+   * @param {object} data - The form data.
+   * @param {object} setSubmitting - A function to set the submitting state.
+   * @returns {void}
+   */
   const onSubmit = async (data, { setSubmitting }) => {
     // The createRelease mutation returns a promise, so we can pass it directly to toast.promise
     toast
@@ -235,6 +244,10 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     </ScaleFade>
                   </>
                 )}
+                <FormControl>
+                  <FormLabel mt={4}>Label</FormLabel>
+                  <GetLabelsCell />
+                </FormControl>
 
                 <Flex
                   justifyContent={'space-around'}
