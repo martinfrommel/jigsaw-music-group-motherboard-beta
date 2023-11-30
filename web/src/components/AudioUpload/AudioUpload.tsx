@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
+import { useLazyQuery } from '@apollo/client'
 import {
   Box,
   BoxProps,
@@ -9,24 +10,56 @@ import {
   Flex,
   Button,
   Progress,
+  Spinner,
 } from '@chakra-ui/react'
 import { useDropzone } from 'react-dropzone'
 
 import { toast } from '@redwoodjs/web/dist/toast'
 
-interface AudioUploadProps extends BoxProps {
+import { useAuth } from 'src/auth'
+
+import FailedToFetchData from '../DataFetching/FailedToFetchData/FailedToFetchData'
+export interface AudioUploadProps extends BoxProps {
   onAudioChange: (file: File, duration: number) => void
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors?: any
-  folderName: string
   onUploadComplete: (path: string) => void
+  user: {
+    firstName: string
+    lastName: string
+  }
 }
+interface PresignedUrlResponse {
+  url: string
+  fields: {
+    bucket: string
+    'X-Amz-Algorithm': string
+    'X-Amz-Credential': string
+    'X-Amz-Date': string
+    key: string
+    Policy: string
+    'X-Amz-Signature': string
+  }
+}
+
+export const GET_PRESIGNED_URL_QUERY = gql`
+  query GetPresignedUrl(
+    $fileType: String!
+    $fileName: String!
+    $user: UserInput!
+  ) {
+    getPresignedUrl(fileType: $fileType, fileName: $fileName, user: $user) {
+      url
+      fields
+    }
+  }
+`
 
 export const AudioUpload: React.FC<AudioUploadProps> = ({
   onAudioChange,
   errors,
-  folderName,
   onUploadComplete,
+
   ...rest
 }) => {
   const { colorMode } = useColorMode()
@@ -34,7 +67,12 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   const [filename, setFilename] = useState<string | null>(null)
   const acceptedFilesRef = useRef<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [isFetchingUrl, setIsFetchingUrl] = useState(false)
   const [filePath, setFilePath] = useState<string | null>(null)
+  const { currentUser } = useAuth()
+  const [getPresignedUrl, { loading, error }] = useLazyQuery(
+    GET_PRESIGNED_URL_QUERY
+  )
 
   const clearFile = async () => {
     if (filePath) {
@@ -56,35 +94,82 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     // Generate the file path
     setFilePath(filePath)
 
-    const { url, key } = await fetch(
-      process.env.REDWOOD_ENV_WEBSITE_API_URL + '/getPresignedUrl',
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+    // Trigger the lazy query
+    getPresignedUrl({
+      variables: {
+        fileType: file.type,
+        fileName: file.name,
+        user: {
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
         },
-        body: JSON.stringify({
-          fileName: file.name,
-        }),
-      }
-    ).then((res) => res.json())
+      },
+    })
 
-    console.log('Presigned URL: ' + url + ' Key: ' + key) // Sanity check
+    // Check if the query is loading
+    if (loading) {
+      setIsFetchingUrl(true)
+      console.log('Fetching presigned URL...')
+      return // Optionally, you can show a loading indicator or return early
+    }
 
-    setIsUploading(true) // Start the indeterminate progress
+    // Handle query error
+    if (error) {
+      setIsFetchingUrl(false) // Stop the fetching url spinner progress
+      console.error('Error fetching presigned URL:', error)
+      toast.error(`Error fetching presigned URL: ${error.message}`)
+      return (
+        <FailedToFetchData>
+          <p>Failed to fetch data</p>
+        </FailedToFetchData>
+      )
+    }
 
+    // Check if data is available
     try {
-      // Now, upload the file
+      const { data } = await getPresignedUrl({
+        variables: {
+          fileType: file.type,
+          fileName: file.name,
+          user: {
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+          },
+        },
+      })
 
-      console.log('File uploaded')
+      if (data) {
+        const { url, fields } = data.getPresignedUrl
 
-      setIsUploading(false) // Stop the indeterminate progress
-      onUploadComplete(filePath)
-      toast.success('File successfully uploaded')
-    } catch (error) {
+        const formData = new FormData()
+        formData.append('Content-Type', file.type)
+        Object.entries(fields).forEach(([key, value]) => {
+          formData.append(key, String(value))
+        })
+        formData.append('file', file)
+
+        setIsUploading(true)
+        console.log('Uploading file...')
+        const response = await fetch(url, {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const location = response.headers.get('Location')
+        const uploadedFileUrl = decodeURIComponent(location)
+
+        setIsUploading(false)
+        onUploadComplete(filePath)
+        toast.success('File successfully uploaded')
+        console.log('Uploaded File URL:', uploadedFileUrl)
+      }
+    } catch (uploadError) {
       setIsUploading(false)
-      toast.error(`Upload failed: ${error.message}`)
-      // clearFile()
+      toast.error(`Upload failed: ${uploadError.message}`)
     }
   }
 
@@ -165,6 +250,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
       alignItems={'center'}
       flexDirection={'column'}
       height={64}
+      mt={4}
     >
       {filename && (
         <Button
@@ -241,6 +327,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         )}
       </Text>
       {filename && <Text fontWeight={'light'}>Accepted file: {filename}</Text>}
+      {isFetchingUrl && <Spinner />}
       {isUploading && (
         <Progress
           w={'90%'}

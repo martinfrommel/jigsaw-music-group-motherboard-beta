@@ -43,7 +43,7 @@ import { LanguageList } from 'src/lib/languageList'
 
 import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
 import { ReleaseSchema } from '../../lib/releaseSchema'
-import { AudioUpload } from '../AudioUpload/AudioUpload'
+import AudioUpload from '../AudioUpload/AudioUpload'
 interface FormValues {
   songMaster: string
   songImage: string
@@ -446,17 +446,12 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     Upload audio master file
                   </FormLabel>
                   <AudioUpload
-                    errors={props.errors.songMaster}
-                    mt={6}
                     onAudioChange={handleAudioChange}
-                    folderName={
-                      currentUser.id.toString() +
-                      '-' +
-                      currentUser.lastName.toLowerCase() +
-                      '-' +
-                      props.values.metadata.songTitle
-                    }
-                    onUploadComplete={(path: string) => setAudioFilePath(path)}
+                    onUploadComplete={setAudioFilePath}
+                    user={{
+                      firstName: currentUser?.firstName,
+                      lastName: currentUser?.lastName,
+                    }}
                   />
                   <FormErrorMessage minHeight={6}>
                     <FormErrorIcon />

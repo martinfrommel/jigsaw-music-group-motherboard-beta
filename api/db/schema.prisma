@@ -49,7 +49,9 @@ model User {
 model Release {
   id                  Int      @id @default(autoincrement())
   userId              Int      // Foreign key to establish relationship with User
-  songMasterReference String   // Link/reference to the uploaded file on Supabase or similar service
+  songMasterReference String   // Link/reference to the uploaded file on S3
+  songArtworkReference String  // Link/reference to the uploaded file on S3
+
   songTitle           String
   productTitle        String?  // Optional field
   artist              String

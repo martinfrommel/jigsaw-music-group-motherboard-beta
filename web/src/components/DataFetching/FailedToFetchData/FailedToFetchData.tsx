@@ -11,7 +11,7 @@ interface FailedToFetchDataProps {
 
 const FailedToFetchData = ({ children }: FailedToFetchDataProps) => {
   return (
-    <Alert status="error">
+    <Alert status="error" my={4}>
       <AlertIcon />
       <AlertTitle>Error:</AlertTitle>
       <AlertDescription>{children}</AlertDescription>
