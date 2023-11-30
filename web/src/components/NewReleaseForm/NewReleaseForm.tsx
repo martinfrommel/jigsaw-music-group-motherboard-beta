@@ -439,7 +439,17 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                 </Flex>
                 <FormControl isInvalid={!!props.errors.songImage}>
                   <FormLabel mt={4}>Release artwork</FormLabel>
-                  <Input type="file" name="songImage" />
+                  <Input
+                    type="file"
+                    name="songImage"
+                    onChange={props.handleChange}
+                    onBlur={props.handleBlur}
+                    value={props.values.songImage}
+                  />
+                  <FormErrorMessage minHeight={6}>
+                    <FormErrorIcon />
+                    {props.errors.songImage}
+                  </FormErrorMessage>
                 </FormControl>
                 <FormControl isInvalid={!!props.errors?.songMaster}>
                   <FormLabel display={'none'}>

@@ -14,7 +14,10 @@ const FailedToFetchData = ({ children }: FailedToFetchDataProps) => {
     <Alert status="error" my={4}>
       <AlertIcon />
       <AlertTitle>Error:</AlertTitle>
-      <AlertDescription>{children}</AlertDescription>
+      <AlertDescription>
+        {children} Please contact the administrator at
+        admin@jigsawmusicgroup.com
+      </AlertDescription>
     </Alert>
   )
 }

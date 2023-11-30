@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react'
 import { useDropzone } from 'react-dropzone'
 
+import { useMutation } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/dist/toast'
 
 import { useAuth } from 'src/auth'
@@ -55,6 +56,15 @@ export const GET_PRESIGNED_URL_QUERY = gql`
   }
 `
 
+export const CLEAR_FILE_FROM_S3_MUTATION = gql`
+  mutation clearFileFromS3($filePath: String!, $user: UserInput!) {
+    clearFileFromS3(filePath: $filePath, user: $user) {
+      ok
+      error
+    }
+  }
+`
+
 export const AudioUpload: React.FC<AudioUploadProps> = ({
   onAudioChange,
   errors,
@@ -67,27 +77,47 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   const [filename, setFilename] = useState<string | null>(null)
   const acceptedFilesRef = useRef<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const [isFetchingUrl, setIsFetchingUrl] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(false)
   const [filePath, setFilePath] = useState<string | null>(null)
   const { currentUser } = useAuth()
-  const [getPresignedUrl, { loading, error }] = useLazyQuery(
-    GET_PRESIGNED_URL_QUERY
-  )
-
+  const [
+    getPresignedUrl,
+    { loading: getPresignedUrlLoading, error: getPresignedUrlError },
+  ] = useLazyQuery(GET_PRESIGNED_URL_QUERY)
+  const [clearFileFromS3] = useMutation(CLEAR_FILE_FROM_S3_MUTATION)
   const clearFile = async () => {
-    if (filePath) {
-      try {
-        toast.success('File successfully deleted from S3')
-      } catch (error) {
-        // AWS S3 delete object does not throw an error if the object does not exist.
-        // So, this catch block handles other potential errors.
-        toast.error(`Failed to delete file from S3: ${error.message}`)
-      }
+    if (!filePath) {
+      toast.error('No file selected')
+      return
     }
+
+    try {
+      // Call the mutation to clear the file from S3
+      const response = await clearFileFromS3({
+        variables: {
+          filePath,
+          user: {
+            id: currentUser.id,
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+          }, // Assuming currentUser contains the required user fields
+        },
+      })
+
+      // Check the mutation response
+      if (response.data.clearFileFromS3.ok) {
+        toast.success('File successfully deleted from S3')
+      } else {
+        throw new Error(response.data.clearFileFromS3.error)
+      }
+    } catch (error) {
+      toast.error(`Failed to delete file from S3: ${error.message}`)
+    }
+
     // Clear the file from browser context
     setFilename(null)
     acceptedFilesRef.current = []
-    toast.success('File was cleared')
+    toast.success('File was cleared from local reference')
   }
 
   const handleUpload = async (file: File) => {
@@ -100,6 +130,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         fileType: file.type,
         fileName: file.name,
         user: {
+          id: currentUser.id,
           firstName: currentUser.firstName,
           lastName: currentUser.lastName,
         },
@@ -107,17 +138,19 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     })
 
     // Check if the query is loading
-    if (loading) {
-      setIsFetchingUrl(true)
+    if (getPresignedUrlLoading) {
+      setIsLoadingData(true)
       console.log('Fetching presigned URL...')
       return // Optionally, you can show a loading indicator or return early
     }
 
     // Handle query error
-    if (error) {
-      setIsFetchingUrl(false) // Stop the fetching url spinner progress
-      console.error('Error fetching presigned URL:', error)
-      toast.error(`Error fetching presigned URL: ${error.message}`)
+    if (getPresignedUrlError) {
+      setIsLoadingData(false) // Stop the fetching url spinner progress
+      console.error('Error fetching presigned URL:', getPresignedUrlError)
+      toast.error(
+        `Error fetching presigned URL: ${getPresignedUrlError.message}`
+      )
       return (
         <FailedToFetchData>
           <p>Failed to fetch data</p>
@@ -127,16 +160,17 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
 
     // Check if data is available
     try {
-      const { data } = await getPresignedUrl({
+      const { data } = (await getPresignedUrl({
         variables: {
           fileType: file.type,
           fileName: file.name,
           user: {
+            id: currentUser.id,
             firstName: currentUser.firstName,
             lastName: currentUser.lastName,
           },
         },
-      })
+      })) as { data: { getPresignedUrl: PresignedUrlResponse } }
 
       if (data) {
         const { url, fields } = data.getPresignedUrl
@@ -161,7 +195,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
 
         const location = response.headers.get('Location')
         const uploadedFileUrl = decodeURIComponent(location)
-
+        setFilePath(data.getPresignedUrl.fields.key)
         setIsUploading(false)
         onUploadComplete(filePath)
         toast.success('File successfully uploaded')
@@ -170,6 +204,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     } catch (uploadError) {
       setIsUploading(false)
       toast.error(`Upload failed: ${uploadError.message}`)
+      clearFile()
     }
   }
 
@@ -327,7 +362,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         )}
       </Text>
       {filename && <Text fontWeight={'light'}>Accepted file: {filename}</Text>}
-      {isFetchingUrl && <Spinner />}
+      {isLoadingData && <Spinner />}
       {isUploading && (
         <Progress
           w={'90%'}

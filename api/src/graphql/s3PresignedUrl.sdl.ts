@@ -8,24 +8,26 @@ export const schema = gql`
       fileType: String!
       fileName: String!
       user: UserInput!
-    ): PresignedUrlResponse! @requireAuth
+    ): S3PresignedUrlResponse! @requireAuth
   }
   # This is a custom scalar that allows us to return a JSON object from a resolver.
   type Mutation {
-    deleteFile(fileName: String!, user: UserInput!): Boolean! @requireAuth
+    clearFileFromS3(filePath: String!, user: UserInput!): DeleteFileS3Response!
+      @requireAuth
   }
 
   input UserInput {
+    id: Int!
     firstName: String!
     lastName: String!
   }
 
-  type PresignedUrlResponse {
+  type S3PresignedUrlResponse {
     url: String!
     fields: JSONObject!
   }
 
-  type S3Response {
+  type DeleteFileS3Response {
     ok: Boolean!
     error: String
   }
