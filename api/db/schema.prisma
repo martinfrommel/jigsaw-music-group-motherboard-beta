@@ -51,7 +51,6 @@ model Release {
   userId              Int      // Foreign key to establish relationship with User
   songMasterReference String   // Link/reference to the uploaded file on S3
   songArtworkReference String  // Link/reference to the uploaded file on S3
-
   songTitle           String
   productTitle        String?  // Optional field
   artist              String
@@ -68,6 +67,9 @@ model Release {
   length              Int      // Assuming length is stored in seconds as an integer
   user                User     @relation(fields: [userId], references: [id]) // This establishes the relationship with User
   label               String?  @default("JIGSAW")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  AWSUrl              String
 }
 
 // AudioSalad API Token Model

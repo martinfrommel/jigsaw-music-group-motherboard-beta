@@ -21,6 +21,7 @@
 import { useState } from 'react'
 
 import { useMutation } from '@apollo/client'
+import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons'
 import {
   Box,
   Flex,
@@ -30,6 +31,8 @@ import {
   BoxProps,
   FormErrorMessage,
   FormErrorIcon,
+  FormHelperText,
+  Icon,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
 import { Formik } from 'formik'
@@ -44,7 +47,7 @@ import { LanguageList } from 'src/lib/languageList'
 import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
 import { ReleaseSchema } from '../../lib/releaseSchema'
 import AudioUpload from '../AudioUpload/AudioUpload'
-interface FormValues {
+export interface FormValues {
   songMaster: string
   songImage: string
   metadata: {
@@ -90,6 +93,11 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
     setUploadedAudio(file)
     setAudioDuration(duration)
   }
+
+  // const handleKeyComparison = (folderKey) => {
+  //   if (folderKey)
+
+  // }
 
   /**
    * onSubmit
@@ -437,20 +445,13 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     Previously released?
                   </Checkbox>
                 </Flex>
-                <FormControl isInvalid={!!props.errors.songImage}>
-                  <FormLabel mt={4}>Release artwork</FormLabel>
-                  <Input
-                    type="file"
-                    name="songImage"
-                    onChange={props.handleChange}
-                    onBlur={props.handleBlur}
-                    value={props.values.songImage}
-                  />
-                  <FormErrorMessage minHeight={6}>
-                    <FormErrorIcon />
-                    {props.errors.songImage}
-                  </FormErrorMessage>
-                </FormControl>
+                {/* <ArtworkUpload
+                  handleBlur={props.handleBlur}
+                  handleChange={props.handleChange}
+                  values={props.values.songImage}
+                  errors={props.errors?.songImage}
+                  setFieldValue={props.setFieldValue}
+                /> */}
                 <FormControl isInvalid={!!props.errors?.songMaster}>
                   <FormLabel display={'none'}>
                     Upload audio master file
@@ -467,6 +468,17 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     <FormErrorIcon />
                     {props.errors?.songMaster}
                   </FormErrorMessage>
+                  {uploadedAudio ? (
+                    <FormHelperText>
+                      <Icon as={CheckCircleIcon} color="green.500" mr={2} />
+                      The audio file is present on server.
+                    </FormHelperText>
+                  ) : (
+                    <FormHelperText>
+                      <Icon as={InfoIcon} color="red.500" mr={2} />
+                      The audio file is not present on server.
+                    </FormHelperText>
+                  )}
                 </FormControl>
                 <Button
                   type="submit"

@@ -30,7 +30,7 @@ export interface AudioUploadProps extends BoxProps {
     lastName: string
   }
 }
-interface PresignedUrlResponse {
+export interface PresignedUrlResponse {
   url: string
   fields: {
     bucket: string
@@ -41,6 +41,7 @@ interface PresignedUrlResponse {
     Policy: string
     'X-Amz-Signature': string
   }
+  folderKey: string
 }
 
 export const GET_PRESIGNED_URL_QUERY = gql`
@@ -48,10 +49,17 @@ export const GET_PRESIGNED_URL_QUERY = gql`
     $fileType: String!
     $fileName: String!
     $user: UserInput!
+    $pregeneratedUrl: String
   ) {
-    getPresignedUrl(fileType: $fileType, fileName: $fileName, user: $user) {
+    getPresignedUrl(
+      fileType: $fileType
+      fileName: $fileName
+      user: $user
+      pregeneratedUrl: $pregeneratedUrl
+    ) {
       url
       fields
+      folderKey
     }
   }
 `
@@ -69,7 +77,6 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   onAudioChange,
   errors,
   onUploadComplete,
-
   ...rest
 }) => {
   const { colorMode } = useColorMode()
@@ -85,6 +92,8 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     { loading: getPresignedUrlLoading, error: getPresignedUrlError },
   ] = useLazyQuery(GET_PRESIGNED_URL_QUERY)
   const [clearFileFromS3] = useMutation(CLEAR_FILE_FROM_S3_MUTATION)
+  const folderKey = sessionStorage.getItem('folderKey')
+
   const clearFile = async () => {
     if (!filePath) {
       toast.error('No file selected')
@@ -117,6 +126,8 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     // Clear the file from browser context
     setFilename(null)
     acceptedFilesRef.current = []
+    setFilePath(null)
+    onAudioChange(null, 0)
     toast.success('File was cleared from local reference')
   }
 
@@ -124,46 +135,12 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     // Generate the file path
     setFilePath(filePath)
 
-    // Trigger the lazy query
-    getPresignedUrl({
-      variables: {
-        fileType: file.type,
-        fileName: file.name,
-        user: {
-          id: currentUser.id,
-          firstName: currentUser.firstName,
-          lastName: currentUser.lastName,
-        },
-      },
-    })
-
-    // Check if the query is loading
-    if (getPresignedUrlLoading) {
-      setIsLoadingData(true)
-      console.log('Fetching presigned URL...')
-      return // Optionally, you can show a loading indicator or return early
-    }
-
-    // Handle query error
-    if (getPresignedUrlError) {
-      setIsLoadingData(false) // Stop the fetching url spinner progress
-      console.error('Error fetching presigned URL:', getPresignedUrlError)
-      toast.error(
-        `Error fetching presigned URL: ${getPresignedUrlError.message}`
-      )
-      return (
-        <FailedToFetchData>
-          <p>Failed to fetch data</p>
-        </FailedToFetchData>
-      )
-    }
-
-    // Check if data is available
     try {
       const { data } = (await getPresignedUrl({
         variables: {
           fileType: file.type,
           fileName: file.name,
+          pregeneratedUrl: folderKey ? folderKey : null,
           user: {
             id: currentUser.id,
             firstName: currentUser.firstName,
@@ -172,8 +149,29 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         },
       })) as { data: { getPresignedUrl: PresignedUrlResponse } }
 
+      if (getPresignedUrlLoading) {
+        setIsLoadingData(true)
+        console.log('Fetching presigned URL...')
+        return // Optionally, you can show a loading indicator or return early
+      }
+
+      // Handle query error
+      if (getPresignedUrlError) {
+        setIsLoadingData(false) // Stop the fetching url spinner progress
+        console.error('Error fetching presigned URL:', getPresignedUrlError)
+        toast.error(
+          `Error fetching presigned URL: ${getPresignedUrlError.message}`
+        )
+        return (
+          <FailedToFetchData>
+            <p>Failed to fetch data</p>
+          </FailedToFetchData>
+        )
+      }
       if (data) {
-        const { url, fields } = data.getPresignedUrl
+        const { url, fields, folderKey } = data.getPresignedUrl
+
+        sessionStorage.setItem('folderKey', folderKey)
 
         const formData = new FormData()
         formData.append('Content-Type', file.type)

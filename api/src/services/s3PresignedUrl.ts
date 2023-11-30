@@ -10,6 +10,7 @@ import { isAuthenticated } from 'src/lib/auth'
 // ... Import necessary AWS SDK modules and configurations ...
 
 export const getPresignedUrl: QueryResolvers['getPresignedUrl'] = async ({
+  pregeneratedUrl,
   fileType,
   fileName,
   user,
@@ -23,14 +24,16 @@ export const getPresignedUrl: QueryResolvers['getPresignedUrl'] = async ({
     },
   })
 
-  const key = `uploads/${user.firstName}-${
-    user.lastName
-  }-${uuidv4()}/${fileName}`
+  const folderKey = pregeneratedUrl
+    ? pregeneratedUrl
+    : `uploads/${user.firstName}-${user.lastName}-${uuidv4()}/`
+
+  const fileKey = `${fileName}`
 
   // Create the signed URL
   const presignedPostData = await createPresignedPost(s3Client, {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: key,
+    Key: folderKey + fileKey,
     Expires: 3600,
     Conditions: [
       ['content-length-range', 0, 100000000], // up to 100MB
@@ -38,13 +41,13 @@ export const getPresignedUrl: QueryResolvers['getPresignedUrl'] = async ({
     ],
   })
 
-  console.log('presignedPostData requested:', presignedPostData)
+  console.log('presignedPostData requested:', presignedPostData, folderKey)
 
   const url = presignedPostData.url
   const fields = presignedPostData.fields
 
   // Return the presigned URL and key
-  return { url, fields }
+  return { url, fields, folderKey }
 }
 
 // Clear the file upon request

@@ -5,6 +5,7 @@
 export const schema = gql`
   type Query {
     getPresignedUrl(
+      pregeneratedUrl: String
       fileType: String!
       fileName: String!
       user: UserInput!
@@ -25,6 +26,7 @@ export const schema = gql`
   type S3PresignedUrlResponse {
     url: String!
     fields: JSONObject!
+    folderKey: String!
   }
 
   type DeleteFileS3Response {

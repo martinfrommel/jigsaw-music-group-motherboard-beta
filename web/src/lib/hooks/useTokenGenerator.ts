@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { generateToken } from './generateToken'
+import { generateToken } from '../generateToken'
 
 const useTokenGenerator = () => {
   const [token, setToken] = useState<string | null>(null)
