@@ -30,7 +30,7 @@ export interface AudioUploadProps extends BoxProps {
     lastName: string
   }
 }
-export interface PresignedUrlResponse {
+interface PresignedUrlResponse {
   url: string
   fields: {
     bucket: string
@@ -171,7 +171,12 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
       if (data) {
         const { url, fields, folderKey } = data.getPresignedUrl
 
-        sessionStorage.setItem('folderKey', folderKey)
+        if (
+          !sessionStorage.getItem('folderKey') ||
+          folderKey != sessionStorage.getItem('folderKey')
+        ) {
+          sessionStorage.setItem('folderKey', folderKey)
+        }
 
         const formData = new FormData()
         formData.append('Content-Type', file.type)

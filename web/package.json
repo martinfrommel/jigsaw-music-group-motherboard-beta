@@ -18,10 +18,10 @@
     "@chakra-ui/react": "^2",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
-    "@redwoodjs/auth-dbauth-web": "6.4.0",
-    "@redwoodjs/forms": "6.4.0",
-    "@redwoodjs/router": "6.4.0",
-    "@redwoodjs/web": "6.4.0",
+    "@redwoodjs/auth-dbauth-web": "6.4.1",
+    "@redwoodjs/forms": "6.4.1",
+    "@redwoodjs/router": "6.4.1",
+    "@redwoodjs/web": "6.4.1",
     "@simplewebauthn/browser": "^7",
     "@ssh/audiosalad-xml": "^0.1.5",
     "@supabase/supabase-js": "^2.38.4",
@@ -48,7 +48,7 @@
     "yup": "^1.3.2"
   },
   "devDependencies": {
-    "@redwoodjs/vite": "6.4.0",
+    "@redwoodjs/vite": "6.4.1",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
     "autoprefixer": "^10.4.16",

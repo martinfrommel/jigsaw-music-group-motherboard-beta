@@ -3,6 +3,7 @@ export const schema = gql`
     id: Int!
     userId: Int!
     songMasterReference: String!
+    songArtworkReference: String!
     songTitle: String!
     productTitle: String
     artist: String!
@@ -18,6 +19,7 @@ export const schema = gql`
     cLine: String
     length: Int!
     user: User!
+    AWSFolderKey: String!
   }
 
   type Query {
@@ -29,6 +31,7 @@ export const schema = gql`
   input CreateReleaseInput {
     userId: Int!
     songMasterReference: String!
+    songArtworkReference: String!
     songTitle: String!
     productTitle: String
     artist: String!
@@ -43,6 +46,7 @@ export const schema = gql`
     pLine: String
     cLine: String
     length: Int!
+    AWSFolderKey: String!
   }
 
   input UpdateReleaseInput {
@@ -70,4 +74,3 @@ export const schema = gql`
     deleteRelease(id: Int!): Release! @requireAuth
   }
 `
-

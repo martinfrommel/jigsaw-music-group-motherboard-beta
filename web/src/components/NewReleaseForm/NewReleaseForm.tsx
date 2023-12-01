@@ -33,6 +33,7 @@ import {
   FormErrorIcon,
   FormHelperText,
   Icon,
+  Text,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
 import { Formik } from 'formik'
@@ -46,6 +47,7 @@ import { LanguageList } from 'src/lib/languageList'
 
 import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
 import { ReleaseSchema } from '../../lib/releaseSchema'
+import ArtworkUpload from '../ArtworkUpload/ArtworkUpload'
 import AudioUpload from '../AudioUpload/AudioUpload'
 export interface FormValues {
   songMaster: string
@@ -79,14 +81,18 @@ const CREATE_RELEASE_MUTATION = gql`
 `
 
 const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
-  const [createRelease, { error }] = useMutation(CREATE_RELEASE_MUTATION)
+  const [createRelease, { error, loading }] = useMutation(
+    CREATE_RELEASE_MUTATION
+  )
   // State to store the length of the uploaded audio file
   const [isFeaturedArtistChecked, setIsFeaturedArtistChecked] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploadedAudio, setUploadedAudio] = useState(null)
   const [audioDuration, setAudioDuration] = useState(null)
   const [audioFilePath, setAudioFilePath] = useState<string | null>(null)
-
+  const [artworkFilePath, setArtworkFilePath] = useState<string | null>(
+    undefined
+  )
   const { currentUser } = useAuth()
 
   const handleAudioChange = (file, duration) => {
@@ -94,10 +100,9 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
     setAudioDuration(duration)
   }
 
-  // const handleKeyComparison = (folderKey) => {
-  //   if (folderKey)
-
-  // }
+  const handleArtworkUploadComplete = (url) => {
+    setArtworkFilePath(url)
+  }
 
   /**
    * onSubmit
@@ -132,7 +137,8 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
       .finally(() => {
         // Set isSubmitting to false to indicate submission is complete
         setSubmitting(false)
-        console.log(error?.message)
+        sessionStorage.removeItem('folderKey')
+        console.log('Submission complete!')
       })
   }
 
@@ -146,8 +152,8 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
       >
         <Formik<FormValues>
           initialValues={{
-            songMaster: '',
-            songImage: '',
+            songMaster: audioFilePath,
+            songImage: artworkFilePath,
             metadata: {
               songTitle: '',
               productTitle: '',
@@ -445,13 +451,17 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     Previously released?
                   </Checkbox>
                 </Flex>
-                {/* <ArtworkUpload
+
+                <ArtworkUpload
                   handleBlur={props.handleBlur}
                   handleChange={props.handleChange}
-                  values={props.values.songImage}
-                  errors={props.errors?.songImage}
-                  setFieldValue={props.setFieldValue}
-                /> */}
+                  error={props.errors?.songImage}
+                  user={currentUser}
+                  onArtworkChange={handleArtworkUploadComplete}
+                  value={artworkFilePath}
+                />
+                <Text>{artworkFilePath}</Text>
+
                 <FormControl isInvalid={!!props.errors?.songMaster}>
                   <FormLabel display={'none'}>
                     Upload audio master file
