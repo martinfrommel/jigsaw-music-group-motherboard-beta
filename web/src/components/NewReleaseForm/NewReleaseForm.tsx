@@ -33,12 +33,12 @@ import {
   FormErrorIcon,
   FormHelperText,
   Icon,
-  Text,
+  Heading,
+  Table,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
 import { Formik } from 'formik'
 
-import { navigate, routes } from '@redwoodjs/router'
 import { toast } from '@redwoodjs/web/dist/toast'
 
 import { useAuth } from 'src/auth'
@@ -52,21 +52,25 @@ import AudioUpload from '../AudioUpload/AudioUpload'
 export interface FormValues {
   songMaster: string
   songImage: string
+  folderKey: string
   metadata: {
     songTitle: string
     productTitle: string
     artist: string
     featuredArtist: string
-    releaseDate: string
+    // releaseDate: string
     previouslyReleased: boolean
     language: string
+    label: {
+      id: string
+      name: string
+    }
     primaryGenre: string
-    secondaryGenre: string
+    secondaryGenre: string | null
     explicitLyrics: boolean
-    ISCUpcCode: string
+    // ISCUpcCode: string
     pLine: string
     cLine: string
-    length: string
   }
 }
 
@@ -81,27 +85,18 @@ const CREATE_RELEASE_MUTATION = gql`
 `
 
 const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
-  const [createRelease, { error, loading }] = useMutation(
-    CREATE_RELEASE_MUTATION
-  )
+  const [createRelease, { loading }] = useMutation(CREATE_RELEASE_MUTATION)
   // State to store the length of the uploaded audio file
   const [isFeaturedArtistChecked, setIsFeaturedArtistChecked] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [uploadedAudio, setUploadedAudio] = useState(null)
-  const [audioDuration, setAudioDuration] = useState(null)
-  const [audioFilePath, setAudioFilePath] = useState<string | null>(null)
-  const [artworkFilePath, setArtworkFilePath] = useState<string | null>(
-    undefined
-  )
+  const [uploadedAudio, setUploadedAudio] = useState(false)
+  // const [audioDuration, setAudioDuration] = useState(undefined)
+
   const { currentUser } = useAuth()
 
-  const handleAudioChange = (file, duration) => {
+  const handleAudioChange = (file) => {
     setUploadedAudio(file)
-    setAudioDuration(duration)
-  }
-
-  const handleArtworkUploadComplete = (url) => {
-    setArtworkFilePath(url)
+    // setAudioDuration(duration)
   }
 
   /**
@@ -121,25 +116,32 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
    * @returns {void}
    */
   const onSubmit = async (data, { setSubmitting }) => {
-    // The createRelease mutation returns a promise, so we can pass it directly to toast.promise
-    toast
-      .promise(createRelease({ variables: { input: data } }), {
-        loading: 'Submitting your release...',
-        success: 'Your release info was submitted successfully!',
-        error: 'Error submitting the release. Please try again.',
+    setSubmitting(true)
+    try {
+      const { songMaster, songImage, metadata } = data as FormValues
+      toast.loading('Submitting the release...')
+      const { data: createReleaseData } = await createRelease({
+        variables: {
+          input: {
+            songMaster,
+            songImage,
+            metadata,
+          },
+        },
       })
-      .then(() => {
-        // Navigate after the mutation completes (either success or error)
-        setTimeout(() => {
-          navigate(routes.home())
-        }, 5000)
-      })
-      .finally(() => {
-        // Set isSubmitting to false to indicate submission is complete
-        setSubmitting(false)
-        sessionStorage.removeItem('folderKey')
-        console.log('Submission complete!')
-      })
+      toast.remove()
+      console.log(createReleaseData)
+      toast.success('Release submitted successfully!')
+      setTimeout(() => {
+        window.location.reload()
+      }, 3000)
+    } catch (error) {
+      toast.remove()
+      console.error(error)
+      toast.error(`Failed to submit release: ${error.message}`)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -152,23 +154,27 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
       >
         <Formik<FormValues>
           initialValues={{
-            songMaster: audioFilePath,
-            songImage: artworkFilePath,
+            songMaster: '',
+            songImage: '',
+            folderKey: '',
             metadata: {
               songTitle: '',
               productTitle: '',
               artist: '',
               featuredArtist: '',
-              releaseDate: '',
+              // releaseDate: '',
+              label: {
+                id: '1',
+                name: 'JIGSAW',
+              },
               previouslyReleased: false,
-              language: '',
+              language: 'English',
               primaryGenre: '',
               secondaryGenre: '',
               explicitLyrics: false,
-              ISCUpcCode: '',
+              // ISCUpcCode: '',
               pLine: '',
               cLine: '',
-              length: audioDuration,
             },
           }}
           onSubmit={onSubmit}
@@ -177,335 +183,407 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
           validateOnChange={false}
           validateOnMount={false}
         >
-          {(props) => (
-            <>
-              <form onSubmit={props.handleSubmit}>
-                <FormControl
-                  mt={12}
-                  isInvalid={!!props.errors.metadata?.songTitle}
-                >
-                  <FormLabel mt={4}>Song Title</FormLabel>
-                  <Input
-                    type="text"
-                    name="metadata.songTitle"
-                    onChange={props.handleChange}
-                    onBlur={props.handleBlur}
-                    value={props.values.metadata.songTitle}
-                    placeholder="The title of your song"
-                  />
-                  <FormErrorMessage minHeight={6}>
-                    <FormErrorIcon />
-                    {props.errors.metadata?.songTitle}
-                  </FormErrorMessage>
-                </FormControl>
-                <Flex
-                  justifyContent={'space-between'}
-                  alignItems={'center'}
-                  my={8}
-                >
-                  <FormControl flex={1}>
-                    <FormLabel>Artist</FormLabel>
+          {(props) => {
+            const { isValid, dirty } = props
+            return (
+              <>
+                {currentUser.roles.match(/admin/) && (
+                  <Box
+                    bgColor={'red.700'}
+                    position={'fixed'}
+                    w={'full'}
+                    left={0}
+                    top={0}
+                    textAlign={'center'}
+                  >
+                    <Heading>Debug</Heading>
+                    <Table mb={8}>
+                      <thead>
+                        <tr>
+                          <th>Is valid?</th>
+                          <th>Is dirty?</th>
+                          <th>Is submitting?</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{isValid ? 'Yes' : 'No'}</td>
+                          <td>{dirty ? 'Yes' : 'No'}</td>
+                          <td>{props.isSubmitting ? 'Yes' : 'No'}</td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                    <hr />
+                    <Table mt={8}>
+                      <thead>
+                        <tr>
+                          <th>Audio File</th>
+                          <th>Artwork File</th>
+                          <th>Label</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>{props.values.songMaster}</td>
+                          <td>{props.values.songImage}</td>
+                          <td>
+                            {props.values.metadata.label.name} -
+                            {props.values.metadata.label.id}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colSpan={3}>
+                            <pre>
+                              {JSON.stringify(props.values.metadata, null, 2)}
+                            </pre>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                  </Box>
+                )}
+                <form onSubmit={props.handleSubmit}>
+                  <FormControl
+                    mt={12}
+                    isInvalid={!!props.errors.metadata?.songTitle}
+                  >
+                    <FormLabel mt={4}>Song Title</FormLabel>
                     <Input
                       type="text"
-                      name="metadata.artist"
+                      name="metadata.songTitle"
                       onChange={props.handleChange}
                       onBlur={props.handleBlur}
-                      value={props.values.metadata.artist}
-                      isInvalid={!!props.errors.metadata?.artist}
-                      placeholder="Your artist name"
+                      value={props.values.metadata.songTitle}
+                      placeholder="The title of your song"
                     />
                     <FormErrorMessage minHeight={6}>
                       <FormErrorIcon />
-                      {props.errors.metadata?.artist}
+                      {props.errors.metadata?.songTitle}
                     </FormErrorMessage>
                   </FormControl>
                   <Flex
-                    flex={1}
+                    justifyContent={'space-between'}
                     alignItems={'center'}
-                    justifyContent={'center'}
+                    my={8}
                   >
-                    <Checkbox
-                      ml={4}
-                      size={'lg'}
-                      isChecked={isFeaturedArtistChecked}
-                      onChange={(e) =>
-                        setIsFeaturedArtistChecked(e.target.checked)
-                      }
+                    <FormControl flex={1}>
+                      <FormLabel>Artist</FormLabel>
+                      <Input
+                        type="text"
+                        name="metadata.artist"
+                        onChange={props.handleChange}
+                        onBlur={props.handleBlur}
+                        value={props.values.metadata.artist}
+                        isInvalid={!!props.errors.metadata?.artist}
+                        placeholder="Your artist name"
+                      />
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors.metadata?.artist}
+                      </FormErrorMessage>
+                    </FormControl>
+                    <Flex
+                      flex={1}
+                      alignItems={'center'}
+                      justifyContent={'center'}
                     >
-                      Featured artist?
-                    </Checkbox>
-                  </Flex>
-                </Flex>
-                {isFeaturedArtistChecked && (
-                  <>
-                    <ScaleFade delay={0.2} in={isFeaturedArtistChecked}>
-                      <FormControl
-                        flex={1}
-                        isInvalid={!!props.errors.metadata?.featuredArtist}
+                      <Checkbox
+                        ml={4}
+                        size={'lg'}
+                        isChecked={isFeaturedArtistChecked}
+                        onChange={(e) =>
+                          setIsFeaturedArtistChecked(e.target.checked)
+                        }
                       >
-                        <FormLabel mt={4}>Featured artist name</FormLabel>
-                        <Input
-                          type="text"
-                          name="metadata.featuredArtist"
-                          onChange={props.handleChange}
-                          onBlur={props.handleBlur}
-                          value={props.values.metadata.featuredArtist}
-                          placeholder="Featured artist name"
-                        />
-                        <FormErrorMessage minHeight={6}>
-                          <FormErrorIcon />
-                          {props.errors.metadata?.featuredArtist}
-                        </FormErrorMessage>
-                      </FormControl>
-                    </ScaleFade>
-                  </>
-                )}
-                <FormControl>
-                  <FormLabel mt={4}>Label</FormLabel>
-                  <GetLabelsCell />
-                </FormControl>
-
-                <Flex
-                  justifyContent={'space-around'}
-                  alignItems={'center'}
-                  my={8}
-                >
-                  <FormControl
-                    flex={1}
-                    isInvalid={!!props.errors.metadata?.releaseDate}
-                  >
-                    <FormLabel>Release Date</FormLabel>
-                    <Input
-                      type="date"
-                      name="metadata.releaseDate"
-                      onChange={props.handleChange}
-                      onBlur={props.handleBlur}
-                      value={props.values.metadata.releaseDate}
-                      placeholder="Choose a release date"
-                    />
-                    <FormErrorMessage minHeight={6}>
-                      <FormErrorIcon />
-                      {props.errors.metadata?.releaseDate}
-                    </FormErrorMessage>
-                  </FormControl>
-                  <FormControl
-                    ml={4}
-                    flex={1}
-                    isInvalid={!!props.errors.metadata?.language}
-                  >
-                    <FormLabel>Language</FormLabel>
-                    <Select
-                      name="metadata.language"
-                      onChange={props.handleChange}
-                      onBlur={props.handleBlur}
-                      value={props.values.metadata.language}
-                    >
-                      {LanguageList.map((language) => (
-                        <option key={language} value={language}>
-                          {language}
-                        </option>
-                      ))}
-                    </Select>
-                    <FormErrorMessage minHeight={6}>
-                      <FormErrorIcon />
-                      {props.errors.metadata?.language}
-                    </FormErrorMessage>
-                  </FormControl>
-                </Flex>
-                <Flex
-                  justifyContent={'space-around'}
-                  alignItems={'flex-start'}
-                  my={8}
-                >
-                  <FormControl
-                    isInvalid={!!props.errors.metadata?.primaryGenre}
-                    flex={1}
-                  >
-                    <FormLabel>Primary Genre</FormLabel>
-                    <Select
-                      name="metadata.primaryGenre"
-                      onChange={(e) => {
-                        props.handleChange(e)
-                        // Reset secondary genre when primary changes
-                        props.setFieldValue('metadata.secondaryGenre', '')
+                        Featured artist?
+                      </Checkbox>
+                    </Flex>
+                  </Flex>
+                  {isFeaturedArtistChecked && (
+                    <>
+                      <ScaleFade delay={0.2} in={isFeaturedArtistChecked}>
+                        <FormControl
+                          flex={1}
+                          isInvalid={!!props.errors.metadata?.featuredArtist}
+                        >
+                          <FormLabel mt={4}>Featured artist name</FormLabel>
+                          <Input
+                            type="text"
+                            name="metadata.featuredArtist"
+                            onChange={props.handleChange}
+                            onBlur={props.handleBlur}
+                            value={props.values.metadata.featuredArtist}
+                            placeholder="Featured artist name"
+                          />
+                          <FormErrorMessage minHeight={6}>
+                            <FormErrorIcon />
+                            {props.errors.metadata?.featuredArtist}
+                          </FormErrorMessage>
+                        </FormControl>
+                      </ScaleFade>
+                    </>
+                  )}
+                  <FormControl>
+                    <FormLabel mt={4}>Label</FormLabel>
+                    <GetLabelsCell
+                      value={props.values.metadata.label}
+                      onSelect={(labelId, labelName) => {
+                        props.setFieldValue('metadata.label.id', labelId)
+                        props.setFieldValue('metadata.label.name', labelName)
                       }}
-                      onBlur={props.handleBlur}
-                      value={props.values.metadata.primaryGenre}
-                    >
-                      {PrimaryGenre.map((genre) => (
-                        <option key={genre} value={genre}>
-                          {genre}
-                        </option>
-                      ))}
-                    </Select>
-                    <FormErrorMessage minHeight={6}>
-                      <FormErrorIcon />
-                      {props.errors.metadata?.primaryGenre}
-                    </FormErrorMessage>
+                    />
                   </FormControl>
-
-                  <>
+                  <Flex
+                    justifyContent={'space-around'}
+                    alignItems={'center'}
+                    my={8}
+                  >
+                    {/* <FormControl
+                      flex={1}
+                      isInvalid={!!props.errors.metadata?.releaseDate}
+                    >
+                      <FormLabel>Release Date</FormLabel>
+                      <Input
+                        type="date"
+                        name="metadata.releaseDate"
+                        onChange={props.handleChange}
+                        onBlur={props.handleBlur}
+                        value={props.values.metadata.releaseDate}
+                        placeholder="Choose a release date"
+                      />
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors.metadata?.releaseDate}
+                      </FormErrorMessage>
+                    </FormControl> */}
                     <FormControl
                       ml={4}
                       flex={1}
-                      isInvalid={!!props.errors.metadata?.secondaryGenre}
-                      isDisabled={
-                        !SecondaryGenre[props.values.metadata.primaryGenre]
-                          ?.length
-                      }
+                      isInvalid={!!props.errors.metadata?.language}
                     >
-                      <FormLabel>Secondary Genre</FormLabel>
+                      <FormLabel>Language</FormLabel>
                       <Select
-                        name="metadata.secondaryGenre"
+                        name="metadata.language"
                         onChange={props.handleChange}
                         onBlur={props.handleBlur}
-                        value={props.values.metadata.secondaryGenre}
+                        value={props.values.metadata.language}
                       >
-                        {SecondaryGenre[
-                          props.values.metadata.primaryGenre
-                        ]?.map((subGenre) => (
-                          <option key={subGenre} value={subGenre}>
-                            {subGenre}
+                        {LanguageList.map((language) => (
+                          <option key={language} value={language}>
+                            {language}
                           </option>
                         ))}
                       </Select>
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
-                        {props.errors.metadata?.secondaryGenre}
+                        {props.errors.metadata?.language}
                       </FormErrorMessage>
                     </FormControl>
-                  </>
-                </Flex>
-                <FormControl
-                  mt={4}
-                  isInvalid={!!props.errors.metadata?.ISCUpcCode}
-                >
-                  <FormLabel>ISC/UPC Code</FormLabel>
-                  <Input
-                    type="text"
-                    name="metadata.ISCUpcCode"
-                    onChange={props.handleChange}
-                    onBlur={props.handleBlur}
-                    value={props.values.metadata.ISCUpcCode}
-                    placeholder="Here goes the ISC/UPC code - if you have one..."
-                  />
-                  <FormErrorMessage minHeight={6}>
-                    <FormErrorIcon />
-                    {props.errors.metadata?.ISCUpcCode}
-                  </FormErrorMessage>
-                </FormControl>
-                <Flex>
-                  <FormControl
-                    flex={1}
-                    isInvalid={!!props.errors.metadata?.pLine}
+                  </Flex>
+                  <Flex
+                    justifyContent={'space-around'}
+                    alignItems={'flex-start'}
+                    my={8}
                   >
-                    <FormLabel mt={4}>℗ Line</FormLabel>
+                    <FormControl
+                      isInvalid={!!props.errors.metadata?.primaryGenre}
+                      flex={1}
+                    >
+                      <FormLabel>Primary Genre</FormLabel>
+                      <Select
+                        name="metadata.primaryGenre"
+                        onChange={(e) => {
+                          props.handleChange(e)
+                          // Reset secondary genre when primary changes
+                          props.setFieldValue('metadata.secondaryGenre', '')
+                        }}
+                        onBlur={props.handleBlur}
+                        value={props.values.metadata.primaryGenre}
+                      >
+                        {PrimaryGenre.map((genre) => (
+                          <option key={genre} value={genre}>
+                            {genre}
+                          </option>
+                        ))}
+                      </Select>
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors.metadata?.primaryGenre}
+                      </FormErrorMessage>
+                    </FormControl>
+
+                    <>
+                      <FormControl
+                        ml={4}
+                        flex={1}
+                        isInvalid={!!props.errors.metadata?.secondaryGenre}
+                        isDisabled={
+                          !SecondaryGenre[props.values.metadata.primaryGenre]
+                            ?.length
+                        }
+                      >
+                        <FormLabel>Secondary Genre</FormLabel>
+                        <Select
+                          name="metadata.secondaryGenre"
+                          onChange={props.handleChange}
+                          onBlur={props.handleBlur}
+                          value={props.values.metadata.secondaryGenre}
+                        >
+                          {SecondaryGenre[
+                            props.values.metadata.primaryGenre
+                          ]?.map((subGenre) => (
+                            <option key={subGenre} value={subGenre}>
+                              {subGenre}
+                            </option>
+                          ))}
+                        </Select>
+                        <FormErrorMessage minHeight={6}>
+                          <FormErrorIcon />
+                          {props.errors.metadata?.secondaryGenre}
+                        </FormErrorMessage>
+                      </FormControl>
+                    </>
+                  </Flex>
+                  {/* <FormControl
+                    mt={4}
+                    isInvalid={!!props.errors.metadata?.ISCUpcCode}
+                  >
+                    <FormLabel>ISC/UPC Code</FormLabel>
                     <Input
                       type="text"
-                      name="metadata.pLine"
+                      name="metadata.ISCUpcCode"
                       onChange={props.handleChange}
                       onBlur={props.handleBlur}
-                      value={props.values.metadata.pLine}
-                      placeholder="Add the ℗ Line here"
+                      value={props.values.metadata.ISCUpcCode}
+                      placeholder="Here goes the ISC/UPC code - if you have one..."
                     />
                     <FormErrorMessage minHeight={6}>
                       <FormErrorIcon />
-                      {props.errors.metadata?.pLine}
+                      {props.errors.metadata?.ISCUpcCode}
                     </FormErrorMessage>
-                  </FormControl>
-                  <FormControl
-                    flex={1}
-                    ml={4}
-                    isInvalid={!!props.errors.metadata?.cLine}
+                  </FormControl> */}
+                  <Flex>
+                    <FormControl
+                      flex={1}
+                      isInvalid={!!props.errors.metadata?.pLine}
+                    >
+                      <FormLabel mt={4}>℗ Line</FormLabel>
+                      <Input
+                        type="text"
+                        name="metadata.pLine"
+                        onChange={props.handleChange}
+                        onBlur={props.handleBlur}
+                        value={props.values.metadata.pLine}
+                        placeholder="Add the ℗ Line here"
+                      />
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors.metadata?.pLine}
+                      </FormErrorMessage>
+                    </FormControl>
+                    <FormControl
+                      flex={1}
+                      ml={4}
+                      isInvalid={!!props.errors.metadata?.cLine}
+                    >
+                      <FormLabel mt={4}>© Line</FormLabel>
+                      <Input
+                        type="text"
+                        name="metadata.cLine"
+                        onChange={props.handleChange}
+                        onBlur={props.handleBlur}
+                        value={props.values.metadata.cLine}
+                        placeholder="Add the © line here"
+                      />
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors.metadata?.cLine}
+                      </FormErrorMessage>
+                    </FormControl>
+                  </Flex>
+                  <Flex
+                    justifyContent={'space-around'}
+                    alignItems={'center'}
+                    my={8}
                   >
-                    <FormLabel mt={4}>© Line</FormLabel>
-                    <Input
-                      type="text"
-                      name="metadata.cLine"
+                    <Checkbox
+                      flex={1}
+                      size={'lg'}
+                      name="metadata.explicitLyrics"
                       onChange={props.handleChange}
                       onBlur={props.handleBlur}
-                      value={props.values.metadata.cLine}
-                      placeholder="Add the © line here"
-                    />
-                    <FormErrorMessage minHeight={6}>
-                      <FormErrorIcon />
-                      {props.errors.metadata?.cLine}
-                    </FormErrorMessage>
-                  </FormControl>
-                </Flex>
+                    >
+                      Explicit lyrics?
+                    </Checkbox>
 
-                <Flex
-                  justifyContent={'space-around'}
-                  alignItems={'center'}
-                  my={8}
-                >
-                  <Checkbox flex={1} size={'lg'} name="metadata.explicitLyrics">
-                    Explicit lyrics?
-                  </Checkbox>
-
-                  <Checkbox
-                    flex={1}
-                    size={'lg'}
-                    name="metadata.previouslyReleased"
-                  >
-                    Previously released?
-                  </Checkbox>
-                </Flex>
-
-                <ArtworkUpload
-                  handleBlur={props.handleBlur}
-                  handleChange={props.handleChange}
-                  error={props.errors?.songImage}
-                  user={currentUser}
-                  onArtworkChange={handleArtworkUploadComplete}
-                  value={artworkFilePath}
-                />
-                <Text>{artworkFilePath}</Text>
-
-                <FormControl isInvalid={!!props.errors?.songMaster}>
-                  <FormLabel display={'none'}>
-                    Upload audio master file
-                  </FormLabel>
-                  <AudioUpload
-                    onAudioChange={handleAudioChange}
-                    onUploadComplete={setAudioFilePath}
-                    user={{
-                      firstName: currentUser?.firstName,
-                      lastName: currentUser?.lastName,
+                    <Checkbox
+                      flex={1}
+                      size={'lg'}
+                      name="metadata.previouslyReleased"
+                      onChange={props.handleChange}
+                      onBlur={props.handleBlur}
+                    >
+                      Previously released?
+                    </Checkbox>
+                  </Flex>
+                  <ArtworkUpload
+                    handleBlur={props.handleBlur}
+                    handleChange={props.handleChange}
+                    error={props.errors?.songImage}
+                    user={currentUser}
+                    onArtworkChange={(url) => {
+                      props.setFieldValue('songImage', url)
                     }}
+                    value={props.values.songImage}
                   />
-                  <FormErrorMessage minHeight={6}>
-                    <FormErrorIcon />
-                    {props.errors?.songMaster}
-                  </FormErrorMessage>
-                  {uploadedAudio ? (
-                    <FormHelperText>
-                      <Icon as={CheckCircleIcon} color="green.500" mr={2} />
-                      The audio file is present on server.
-                    </FormHelperText>
-                  ) : (
-                    <FormHelperText>
-                      <Icon as={InfoIcon} color="red.500" mr={2} />
-                      The audio file is not present on server.
-                    </FormHelperText>
-                  )}
-                </FormControl>
-                <Button
-                  type="submit"
-                  loadingText="Submitting the release..."
-                  isLoading={!onSubmit}
-                  colorScheme="green"
-                  spinnerPlacement="start"
-                  mt={6}
-                  size={'lg'}
-                  width={'full'}
-                  isDisabled={!audioFilePath}
-                >
-                  Submit
-                </Button>
-              </form>
-            </>
-          )}
+                  <FormControl isInvalid={!!props.errors?.songMaster}>
+                    <FormLabel display={'none'}>
+                      Upload audio master file
+                    </FormLabel>
+                    <AudioUpload
+                      value={props.values.songMaster}
+                      onAudioChange={handleAudioChange}
+                      onUploadComplete={(url) => {
+                        props.setFieldValue('songMaster', url)
+                      }}
+                      user={{
+                        firstName: currentUser?.firstName,
+                        lastName: currentUser?.lastName,
+                      }}
+                    />
+                    <FormErrorMessage minHeight={6}>
+                      <FormErrorIcon />
+                      {props.errors?.songMaster}
+                    </FormErrorMessage>
+                    {uploadedAudio ? (
+                      <FormHelperText>
+                        <Icon as={CheckCircleIcon} color="green.500" mr={2} />
+                        The audio file is present on server.
+                      </FormHelperText>
+                    ) : (
+                      <FormHelperText>
+                        <Icon as={InfoIcon} color="red.500" mr={2} />
+                        The audio file is not present on server.
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                  <Button
+                    type="submit"
+                    loadingText="Submitting the release..."
+                    isLoading={loading && props.isSubmitting}
+                    colorScheme="green"
+                    spinnerPlacement="start"
+                    mt={6}
+                    size={'lg'}
+                    width={'full'}
+                    isDisabled={!isValid || !dirty}
+                  >
+                    Submit
+                  </Button>
+                </form>
+              </>
+            )
+          }}
         </Formik>
       </Box>
     </>

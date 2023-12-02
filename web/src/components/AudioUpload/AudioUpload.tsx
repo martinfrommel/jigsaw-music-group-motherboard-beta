@@ -10,7 +10,6 @@ import {
   Flex,
   Button,
   Progress,
-  Spinner,
 } from '@chakra-ui/react'
 import { useDropzone } from 'react-dropzone'
 
@@ -20,15 +19,16 @@ import { toast } from '@redwoodjs/web/dist/toast'
 import { useAuth } from 'src/auth'
 
 import FailedToFetchData from '../DataFetching/FailedToFetchData/FailedToFetchData'
-export interface AudioUploadProps extends BoxProps {
+interface AudioUploadProps extends BoxProps {
   onAudioChange: (file: File, duration: number) => void
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errors?: any
-  onUploadComplete: (path: string) => void
+  onUploadComplete: (url: string) => void
   user: {
     firstName: string
     lastName: string
   }
+  value: string
 }
 interface PresignedUrlResponse {
   url: string
@@ -84,8 +84,8 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   const [filename, setFilename] = useState<string | null>(null)
   const acceptedFilesRef = useRef<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
-  const [isLoadingData, setIsLoadingData] = useState(false)
   const [filePath, setFilePath] = useState<string | null>(null)
+  const [isUploaded, setIsUploaded] = useState(false)
   const { currentUser } = useAuth()
   const [
     getPresignedUrl,
@@ -115,7 +115,9 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
 
       // Check the mutation response
       if (response.data.clearFileFromS3.ok) {
+        onUploadComplete(undefined)
         toast.success('File successfully deleted from S3')
+        setIsUploaded(false)
       } else {
         throw new Error(response.data.clearFileFromS3.error)
       }
@@ -128,7 +130,6 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     acceptedFilesRef.current = []
     setFilePath(null)
     onAudioChange(null, 0)
-    toast.success('File was cleared from local reference')
   }
 
   const handleUpload = async (file: File) => {
@@ -150,14 +151,12 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
       })) as { data: { getPresignedUrl: PresignedUrlResponse } }
 
       if (getPresignedUrlLoading) {
-        setIsLoadingData(true)
         console.log('Fetching presigned URL...')
         return // Optionally, you can show a loading indicator or return early
       }
 
       // Handle query error
       if (getPresignedUrlError) {
-        setIsLoadingData(false) // Stop the fetching url spinner progress
         console.error('Error fetching presigned URL:', getPresignedUrlError)
         toast.error(
           `Error fetching presigned URL: ${getPresignedUrlError.message}`
@@ -200,7 +199,10 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         const uploadedFileUrl = decodeURIComponent(location)
         setFilePath(data.getPresignedUrl.fields.key)
         setIsUploading(false)
-        onUploadComplete(filePath)
+        onUploadComplete(
+          `${data.getPresignedUrl.url}/${data.getPresignedUrl.fields.key}`
+        )
+        setIsUploaded(true)
         toast.success('File successfully uploaded')
         console.log('Uploaded File URL:', uploadedFileUrl)
       }
@@ -290,7 +292,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
       height={64}
       mt={4}
     >
-      {filename && (
+      {(isUploaded || filename) && (
         <Button
           aria-label="Clear File button"
           type="button"
@@ -365,7 +367,6 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         )}
       </Text>
       {filename && <Text fontWeight={'light'}>Accepted file: {filename}</Text>}
-      {isLoadingData && <Spinner />}
       {isUploading && (
         <Progress
           w={'90%'}
@@ -373,8 +374,8 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
           rounded={4}
           isIndeterminate={isUploading}
           hasStripe
-          position={'absolute'}
-          bottom={2}
+          position={'relative'}
+          top={10}
         />
       )}
     </Box>

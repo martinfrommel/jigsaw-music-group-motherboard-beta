@@ -232,7 +232,7 @@ const ArtworkUpload = ({
         <Button
           colorScheme="green"
           isLoading={isUploading}
-          isDisabled={!isFilePicked}
+          isDisabled={isFileUploaded || !isFilePicked}
           loadingText="Uploading"
           onClick={() =>
             handleUpload(inputRef.current?.files?.[0], presignedUrl.current)
