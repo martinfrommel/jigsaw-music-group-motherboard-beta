@@ -37,14 +37,7 @@ model User {
 
 }
 
-// model Label {
-//   id          Int      @id @default(autoincrement())
-//   name        String   // Name of the Label
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @default(now())
-//   users       User[]   // One-to-many relationship with User
-//   releases    Release[] // One-to-many relationship with Release
-// }
+
 
 model Release {
   id                  Int      @id @default(autoincrement())
@@ -59,7 +52,7 @@ model Release {
   productTitle        String?  // Optional field
   artist              String
   featuredArtist      String?  // Optional field
-  releaseDate         DateTime
+  releaseDate         DateTime? // Optional field
   previouslyReleased  Boolean
   language            String   // Assuming language is stored as a string, you can adjust as needed
   primaryGenre        String   // Assuming genre is stored as a string, you can adjust as needed
@@ -68,7 +61,7 @@ model Release {
   iscUpcCode         String
   pLine               String?  // Optional field
   cLine               String?  // Optional field
-  length              Int      // Assuming length is stored in seconds as an integer
+  length              Int ?     // Assuming length is stored in seconds as an integer
   label               Label? @relation(fields: [labelId], references: [id])
   labelId             Int?
 }

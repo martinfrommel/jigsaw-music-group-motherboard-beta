@@ -9,7 +9,7 @@ export const schema = gql`
     productTitle: String
     artist: String!
     featuredArtist: String
-    releaseDate: DateTime!
+    releaseDate: DateTime
     previouslyReleased: Boolean!
     language: String!
     primaryGenre: String!
@@ -18,7 +18,7 @@ export const schema = gql`
     iscUpcCode: String!
     pLine: String
     cLine: String
-    length: Int!
+    length: Int
     user: User!
     label: Label!
   }
@@ -47,7 +47,7 @@ export const schema = gql`
     productTitle: String
     artist: String!
     featuredArtist: String
-    # releaseDate: DateTime
+    releaseDate: DateTime
     previouslyReleased: Boolean!
     language: String!
     primaryGenre: String!
@@ -84,7 +84,7 @@ export const schema = gql`
   }
 
   type Mutation {
-    createRelease(input: CreateReleaseInput!): Release! @requireAuth
+    createRelease(input: CreateReleaseInput!): Boolean! @requireAuth
     updateRelease(id: Int!, input: UpdateReleaseInput!): Release! @requireAuth
     deleteRelease(id: Int!): Release! @requireAuth
   }

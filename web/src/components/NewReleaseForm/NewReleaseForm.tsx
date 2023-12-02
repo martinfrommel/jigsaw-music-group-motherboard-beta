@@ -33,8 +33,6 @@ import {
   FormErrorIcon,
   FormHelperText,
   Icon,
-  Heading,
-  Table,
   ButtonGroup,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
@@ -75,29 +73,7 @@ interface FormValues {
 
 const CREATE_RELEASE_MUTATION = gql`
   mutation CreateRelease($input: CreateReleaseInput!) {
-    createRelease(input: $input) {
-      userId
-      songMasterReference
-      songArtworkReference
-      AWSFolderKey
-      songTitle
-      productTitle
-      artist
-      featuredArtist
-      releaseDate
-      previouslyReleased
-      language
-      label {
-        id
-        name
-      }
-      primaryGenre
-      secondaryGenre
-      explicitLyrics
-      iscUpcCode
-      pLine
-      cLine
-    }
+    createRelease(input: $input)
   }
 `
 
@@ -116,22 +92,6 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
     // setAudioDuration(duration)
   }
 
-  /**
-   * onSubmit
-   *
-   * This function handles the form submission.
-   * It can be used to send the form data to an API or any other logic.
-   *
-   * @param {Object} data - The form data.
-   */
-
-  /**
-   * Handles the form submission.
-   *
-   * @param {object} data - The form data.
-   * @param {object} setSubmitting - A function to set the submitting state.
-   * @returns {void}
-   */
   const onSubmit = async (data: FormValues, { setSubmitting }) => {
     setSubmitting(true)
     try {
@@ -139,18 +99,28 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
         songMasterReference,
         songArtworkReference,
         AWSFolderKey,
+        label,
         ...metadata
       } = data
+
+      const input = {
+        userId: currentUser.id,
+        songMasterReference: songMasterReference,
+        songArtworkReference: songArtworkReference,
+        AWSFolderKey: AWSFolderKey,
+        metadata: {
+          ...metadata,
+          label: {
+            id: label.id,
+            name: label.name,
+          },
+        },
+      }
+
       toast.loading('Submitting the release...')
       const { data: createReleaseData } = await createRelease({
         variables: {
-          input: {
-            userId: currentUser.id,
-            songMasterReference: songMasterReference,
-            songArtworkReference: songArtworkReference,
-            AWSFolderKey: AWSFolderKey,
-            metadata,
-          },
+          input,
         },
       })
       toast.remove()
@@ -209,7 +179,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
             const { isValid, dirty } = props
             return (
               <>
-                {currentUser.roles.match(/admin/) && (
+                {/* {currentUser.roles.match(/admin/) && (
                   <Box
                     bgColor={'red.700'}
                     position={'fixed'}
@@ -251,7 +221,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       </Box>
                     )}
                   </Box>
-                )}
+                )} */}
                 <form onSubmit={props.handleSubmit}>
                   <FormControl mt={12} isInvalid={!!props.errors?.songTitle}>
                     <FormLabel mt={4}>Song Title</FormLabel>
