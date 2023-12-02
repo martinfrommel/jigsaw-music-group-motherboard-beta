@@ -1,4 +1,5 @@
 import { Button, Flex } from '@chakra-ui/react'
+
 import { NavLink, routes } from '@redwoodjs/router'
 
 const AdminHeader = () => {
@@ -18,6 +19,14 @@ const AdminHeader = () => {
         activeClassName="nav-link-active"
       >
         Access the admin section
+      </Button>
+      <Button
+        as={NavLink}
+        ml={4}
+        to={routes.adminAllReleases()}
+        activeClassName="nav-link-active"
+      >
+        Releases
       </Button>
     </Flex>
   )

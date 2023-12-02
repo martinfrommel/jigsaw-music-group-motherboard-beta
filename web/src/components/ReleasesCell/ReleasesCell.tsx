@@ -6,6 +6,7 @@ export const QUERY = gql`
   query ReleasesQuery {
     releases {
       id
+      
     }
   }
 `

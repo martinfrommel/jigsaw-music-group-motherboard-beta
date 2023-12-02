@@ -120,7 +120,6 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
     // Check if the error is a unique constraint violation
     if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
       throw new ValidationError('A user with this email already exists.')
-      return ValidationError('A user with this email already exists.')
     } else {
       // Log the error or handle other types of errors as needed
       console.error('Error creating user:', error)
@@ -184,7 +183,7 @@ export const updateUserPassword: MutationResolvers['updateUserPassword'] =
     }
 
     // Re-hash the old password with the stored salt
-    const [rehashedOldPassword] = hashPassword(oldPassword, user.salt)
+    const [rehashedOldPassword] = hashPassword(oldPassword, { salt: user.salt })
 
     // Verify the old password by comparing the re-hashed old password to the stored hashed password
     if (rehashedOldPassword !== user.hashedPassword) {

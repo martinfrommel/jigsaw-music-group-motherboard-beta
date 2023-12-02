@@ -1,4 +1,4 @@
-import { Release, formatXML } from '@ssh/audiosalad-xml'
+// import { Release, formatXML } from '@ssh/audiosalad-xml'
 import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
 import { ForbiddenError } from '@redwoodjs/graphql-server'
@@ -13,7 +13,10 @@ export const releases: QueryResolvers['releases'] = () => {
       'You do not have the privileges to access this data.'
     )
   }
-  return db.release.findMany()
+  return db.release.findMany({
+    include: { label: true, user: true },
+    orderBy: { createdAt: 'desc' },
+  })
 }
 
 export const releasesPerUser: QueryResolvers['releasesPerUser'] = ({
@@ -29,6 +32,7 @@ export const releasesPerUser: QueryResolvers['releasesPerUser'] = ({
   }
   return db.release.findMany({
     where: { id, userId },
+    include: { label: true, user: true },
   })
 }
 
@@ -152,18 +156,5 @@ export const deleteRelease: MutationResolvers['deleteRelease'] = ({
 // Start custom logic related to AudioSalad
 
 // export const prepareMetadataForAudioSalad = async (releaseData) => {
-//   try {
-//     const data: Partial<Release> = {
-//       label: {
-//         vendorLabelID: releaseData.label.id,
-//         xml: {
-//           vendorLabelID: releaseData.label.id,
-//         },
-//       },
-//     }
-//     return xmlData
-//   } catch (e) {
-//     console.log(e)
-//     throw new Error('Error preparing metadata for AudioSalad')
-//   }
+
 // }

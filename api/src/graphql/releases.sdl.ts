@@ -19,8 +19,11 @@ export const schema = gql`
     pLine: String
     cLine: String
     length: Int
-    user: User!
+    labelId: Int!
     label: Label!
+    user: User!
+    createdAt: DateTime
+    updatedAt: DateTime
   }
 
   type Label {
@@ -29,7 +32,7 @@ export const schema = gql`
   }
 
   type Query {
-    releases: [Release!]! @requireAuth
+    releases: [Release!]! @requireAuth(roles: ["admin", "moderator"])
     release(id: Int!): Release @requireAuth
     releasesPerUser(id: Int!, userId: Int!): [Release!]! @requireAuth
   }

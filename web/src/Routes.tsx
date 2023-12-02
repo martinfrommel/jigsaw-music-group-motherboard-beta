@@ -7,7 +7,7 @@
 // 'src/pages/HomePage/HomePage.js'         -> HomePage
 // 'src/pages/Admin/BooksPage/BooksPage.js' -> AdminBooksPage
 
-import { Router, Route, Set, Private } from '@redwoodjs/router'
+import { Router, Route, Set, PrivateSet } from '@redwoodjs/router'
 
 import { useAuth } from './auth'
 import AdminLayout from './layouts/AdminLayout/AdminLayout'
@@ -20,11 +20,11 @@ const Routes = () => {
     <Router useAuth={useAuth}>
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
         <Route path="/" page={HomePage} name="home" />
-        <Private unauthenticated="login">
+        <PrivateSet unauthenticated="login">
           <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
-          {/* <Route path="/user/{id:Int}/releases" page={ReleasesPage} name="releases" /> */}
+          <Route path="/user/{id:Int}/releases" page={ReleasesPage} name="releases" />
           <Route path="/user/{id:Int}/change-password" page={ChangePasswordPage} name="changePassword" />
-        </Private>
+        </PrivateSet>
         <Route path="/login" page={LoginPage} name="login" />
         <Route path="/signup" page={SignupPage} name="signup" />
         <Route path="/forgot-password" page={ForgotPasswordPage} name="forgotPassword" />
@@ -33,10 +33,11 @@ const Routes = () => {
         <Route notfound page={NotFoundPage} />
       </Set>
 
-      <Set private roles="admin" unauthenticated="login" wrap={AdminLayout}>
+      <PrivateSet roles="admin" unauthenticated="login" wrap={AdminLayout}>
         <Route path="/admin" page={AdminPage} name="admin" />
         <Route path="/admin/create-a-user" page={CreateNewUserPage} name="createNewUser" />
-      </Set>
+        <Route path="/admin/releases" page={AdminAllReleasesPage} name="adminAllReleases" />
+      </PrivateSet>
     </Router>
   )
 }
