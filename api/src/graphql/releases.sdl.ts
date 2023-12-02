@@ -31,7 +31,7 @@ export const schema = gql`
   type Query {
     releases: [Release!]! @requireAuth
     release(id: Int!): Release @requireAuth
-    releasesPerUser(id: Int!, userId: Int!): Release @requireAuth
+    releasesPerUser(id: Int!, userId: Int!): [Release!]! @requireAuth
   }
 
   input CreateReleaseInput {
@@ -86,6 +86,6 @@ export const schema = gql`
   type Mutation {
     createRelease(input: CreateReleaseInput!): Boolean! @requireAuth
     updateRelease(id: Int!, input: UpdateReleaseInput!): Release! @requireAuth
-    deleteRelease(id: Int!): Release! @requireAuth
+    deleteRelease(id: Int!, userId: Int!): Release! @requireAuth
   }
 `

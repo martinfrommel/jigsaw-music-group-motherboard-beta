@@ -1,9 +1,35 @@
+import { Release, formatXML } from '@ssh/audiosalad-xml'
 import type { QueryResolvers, MutationResolvers } from 'types/graphql'
+
+import { ForbiddenError } from '@redwoodjs/graphql-server'
 
 import { db } from 'src/lib/db'
 
 export const releases: QueryResolvers['releases'] = () => {
+  const currentUser = context.currentUser
+  // If the requested user is not the logged-in user and the logged-in user is not an admin
+  if (currentUser.roles !== 'admin') {
+    throw new ForbiddenError(
+      'You do not have the privileges to access this data.'
+    )
+  }
   return db.release.findMany()
+}
+
+export const releasesPerUser: QueryResolvers['releasesPerUser'] = ({
+  id,
+  userId,
+}) => {
+  const currentUser = context.currentUser
+  // If the requested user is not the logged-in user and the logged-in user is not an admin
+  if (currentUser.roles !== 'admin') {
+    throw new ForbiddenError(
+      'You do not have the privileges to access this data.'
+    )
+  }
+  return db.release.findMany({
+    where: { id, userId },
+  })
 }
 
 export const release: QueryResolvers['release'] = ({ id }) => {
@@ -90,8 +116,6 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
   }
 }
 
-// const sendReleaseToAudioSalad = async (id: number) => {}
-
 export const updateRelease: MutationResolvers['updateRelease'] = ({
   id,
   input,
@@ -102,8 +126,44 @@ export const updateRelease: MutationResolvers['updateRelease'] = ({
   })
 }
 
-export const deleteRelease: MutationResolvers['deleteRelease'] = ({ id }) => {
-  return db.release.delete({
-    where: { id },
-  })
+export const deleteRelease: MutationResolvers['deleteRelease'] = ({
+  id,
+  userId,
+}) => {
+  // Check if the user is an admin or the owner of the release
+  if (
+    !context.currentUser ||
+    !context.currentUser.roles.includes('admin') ||
+    context.currentUser.id !== userId
+  ) {
+    throw new ForbiddenError('You do not have the privileges to do this.')
+  }
+
+  try {
+    return db.release.delete({
+      where: { id },
+    })
+  } catch (e) {
+    console.log(e)
+    throw new Error('Error deleting release')
+  }
 }
+
+// Start custom logic related to AudioSalad
+
+// export const prepareMetadataForAudioSalad = async (releaseData) => {
+//   try {
+//     const data: Partial<Release> = {
+//       label: {
+//         vendorLabelID: releaseData.label.id,
+//         xml: {
+//           vendorLabelID: releaseData.label.id,
+//         },
+//       },
+//     }
+//     return xmlData
+//   } catch (e) {
+//     console.log(e)
+//     throw new Error('Error preparing metadata for AudioSalad')
+//   }
+// }
