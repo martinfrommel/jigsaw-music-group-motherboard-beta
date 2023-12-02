@@ -9,6 +9,7 @@
     "@redwoodjs/auth-dbauth-api": "6.4.1",
     "@redwoodjs/graphql-server": "6.4.1",
     "@simplewebauthn/server": "^7",
+    "@ssh/audiosalad-xml": "^0.1.5",
     "@whatwg-node/fetch": "^0.9.14",
     "jose": "^5.0.1",
     "node-cron": "^3.0.3",

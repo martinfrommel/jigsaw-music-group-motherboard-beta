@@ -7,7 +7,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react'
 
-const DarkModeToggle = (props) => {
+const DarkModeToggle: React.FC = (props) => {
   const { colorMode, toggleColorMode } = useColorMode()
   return (
     <Flex alignItems={'center'} {...props}>

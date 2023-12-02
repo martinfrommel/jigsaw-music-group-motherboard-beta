@@ -120,10 +120,12 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
     // Check if the error is a unique constraint violation
     if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
       throw new ValidationError('A user with this email already exists.')
+      return ValidationError('A user with this email already exists.')
     } else {
       // Log the error or handle other types of errors as needed
       console.error('Error creating user:', error)
       throw new SyntaxError('Failed to create user due to an unexpected error.')
+      return SyntaxError('Failed to create user due to an unexpected error.')
     }
   }
   try {
@@ -146,6 +148,7 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
     })
   } catch (error) {
     throw new SyntaxError(`Failed to send email: ${error.message}`)
+    return SyntaxError(`Failed to send email: ${error.message}`)
   }
 
   return user

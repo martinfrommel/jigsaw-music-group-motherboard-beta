@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 
 import { useLazyQuery } from '@apollo/client'
+import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons'
 import {
   Button,
   ButtonGroup,
@@ -10,6 +11,8 @@ import {
   FormHelperText,
   FormLabel,
   Input,
+  Flex,
+  Icon,
 } from '@chakra-ui/react'
 import { FormikHandlers } from 'formik'
 
@@ -84,6 +87,7 @@ const ArtworkUpload = ({
   const [isFileUploaded, setIsFileUploaded] = useState(false)
   const [isFilePicked, setIsFilePicked] = useState(false)
   const presignedUrl = useRef<PresignedUrlResponse>()
+  const [uploadedArtwork, setUploadedArtwork] = useState(false)
   // Queries and Mutations
   const [clearFileFromS3] = useMutation(CLEAR_FILE_FROM_S3_MUTATION)
   const [getPresignedUrl] = useLazyQuery(GET_PRESIGNED_URL_QUERY)
@@ -147,6 +151,7 @@ const ArtworkUpload = ({
 
           setIsFilePicked(false)
           setIsFileUploaded(false)
+          setUploadedArtwork(false)
           onUploadComplete('', '') // Clear the artwork url
           toast.success('File successfully deleted from S3')
         } else {
@@ -179,6 +184,8 @@ const ArtworkUpload = ({
         if (res.ok) {
           setIsUploading(false)
           setIsFileUploaded(true)
+          setUploadedArtwork(true)
+          onUploadComplete(`${url}${fields.key}`, `${url}${folderKey}`)
           toast.success('File uploaded successfully!')
           console.log('File uploaded successfully!')
           return
@@ -190,9 +197,6 @@ const ArtworkUpload = ({
       .catch((error) => {
         console.log(error.message)
         toast.error(error.message)
-      })
-      .finally(() => {
-        onUploadComplete(`${url}${fields.key}`, `${url}${folderKey}`)
       })
   }
 
@@ -208,7 +212,7 @@ const ArtworkUpload = ({
         onChange={handleFileChange}
       />
       <ButtonGroup
-        borderColor={formError ? 'red.300' : 'gray.300'}
+        borderColor={formError && 'red.300'}
         borderWidth={2}
         borderRadius={10}
         aria-label="Upload artwork"
@@ -250,9 +254,22 @@ const ArtworkUpload = ({
         <FormErrorIcon />
         {formError}
       </FormErrorMessage>
-      <FormHelperText>
-        File name: {inputRef.current?.files?.[0]?.name ?? 'No file selected'}
-      </FormHelperText>
+      <Flex gap={2} mt={2} flexDir={'column'}>
+        {uploadedArtwork ? (
+          <FormHelperText>
+            <Icon as={CheckCircleIcon} color="green.500" mr={2} />
+            The artwork file is present on server.
+          </FormHelperText>
+        ) : (
+          <FormHelperText>
+            <Icon as={InfoIcon} color="red.500" mr={2} />
+            The artwork file is not present on server.
+          </FormHelperText>
+        )}
+        <FormHelperText fontSize={'xs'}>
+          File name: {inputRef.current?.files?.[0]?.name ?? 'No file selected'}
+        </FormHelperText>
+      </Flex>
     </FormControl>
   )
 }

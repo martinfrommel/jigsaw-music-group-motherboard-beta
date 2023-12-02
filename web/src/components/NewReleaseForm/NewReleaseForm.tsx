@@ -1,23 +1,3 @@
-/**
- * NewReleaseForm Component
- *
- * This component provides a multi-step form for users to upload their song master
- * and provide necessary metadata for the song.
- *
- * Features:
- * - Drag and drop file upload for song master.
- * - Multi-step form with a stepper for better user experience.
- * - Form validation using Formik and Yup.
- *
- * Dependencies:
- * - @chakra-ui/react for UI components.
- * - formik for form handling.
- * - react-dropzone for drag and drop file upload.
- * - ReleaseSchema for form validation.
- *
- * @returns JSX.Element
- */
-
 import { useState } from 'react'
 
 import { useMutation } from '@apollo/client'
@@ -28,7 +8,6 @@ import {
   Checkbox,
   Select,
   ScaleFade,
-  BoxProps,
   FormErrorMessage,
   FormErrorIcon,
   FormHelperText,
@@ -48,6 +27,11 @@ import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
 import { ReleaseSchema } from '../../lib/releaseSchema'
 import ArtworkUpload from '../ArtworkUpload/ArtworkUpload'
 import AudioUpload from '../AudioUpload/AudioUpload'
+
+interface NewReleaseFormProps {
+  [key: string]: never
+}
+
 interface FormValues {
   songMasterReference: string
   songArtworkReference: string
@@ -77,14 +61,11 @@ const CREATE_RELEASE_MUTATION = gql`
   }
 `
 
-const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
+const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
   const [createRelease, { loading }] = useMutation(CREATE_RELEASE_MUTATION)
-  // State to store the length of the uploaded audio file
   const [isFeaturedArtistChecked, setIsFeaturedArtistChecked] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [uploadedAudio, setUploadedAudio] = useState(false)
-  // const [audioDuration, setAudioDuration] = useState(undefined)
-
+  const [submitting, setSubmitting] = useState(false)
   const { currentUser } = useAuth()
 
   const handleAudioChange = (file) => {
@@ -92,7 +73,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
     // setAudioDuration(duration)
   }
 
-  const onSubmit = async (data: FormValues, { setSubmitting }) => {
+  const onSubmit = async (data: FormValues) => {
     setSubmitting(true)
     try {
       const {
@@ -124,16 +105,19 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
         },
       })
       toast.remove()
-      console.log(createReleaseData)
-      toast.success('Release submitted successfully!')
+      toast.success('🥳 Release submitted successfully!')
+      toast.loading('Reloading the page...')
       setTimeout(() => {
         window.location.reload()
-      }, 3000)
+        sessionStorage.removeItem('folderKey')
+        toast.remove()
+        setSubmitting(false)
+      }, 5000)
+      return createReleaseData
     } catch (error) {
       toast.remove()
       console.error(error)
       toast.error(`Failed to submit release: ${error.message}`)
-    } finally {
       setSubmitting(false)
     }
   }
@@ -243,7 +227,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     alignItems={'center'}
                     my={8}
                   >
-                    <FormControl flex={1}>
+                    <FormControl flex={1} isInvalid={!!props.errors?.artist}>
                       <FormLabel>Artist</FormLabel>
                       <Input
                         type="text"
@@ -566,7 +550,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                         props.setErrors({})
                         props.setTouched({})
                       }}
-                      isDisabled={!dirty}
+                      isDisabled={!dirty || submitting}
                     >
                       Reset
                     </Button>
@@ -577,7 +561,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       onClick={() => {
                         props.validateForm().then(() => console.log('done'))
                       }}
-                      isDisabled={!dirty}
+                      isDisabled={!dirty || submitting}
                     >
                       Validate
                     </Button>
@@ -587,7 +571,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       isLoading={loading && props.isSubmitting}
                       colorScheme="green"
                       spinnerPlacement="start"
-                      isDisabled={!isValid || !dirty}
+                      isDisabled={!isValid || !dirty || submitting}
                     >
                       Submit
                     </Button>
