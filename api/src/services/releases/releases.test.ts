@@ -33,29 +33,35 @@ describe('releases', () => {
       input: {
         userId: scenario.release.two.userId,
         songMasterReference: 'String',
+        songArtworkReference: 'String',
+        AWSFolderKey: 'String',
+        updatedAt: '2023-12-02T18:52:03.393Z',
         songTitle: 'String',
         artist: 'String',
-        releaseDate: '2023-10-26T15:25:13.095Z',
+        releaseDate: '2023-12-02T18:52:03.393Z',
         previouslyReleased: true,
         language: 'String',
         primaryGenre: 'String',
         explicitLyrics: true,
         iscUpcCode: 'String',
-        length: 6711689,
+        length: 4765064,
       },
     })
 
     expect(result.userId).toEqual(scenario.release.two.userId)
     expect(result.songMasterReference).toEqual('String')
+    expect(result.songArtworkReference).toEqual('String')
+    expect(result.AWSFolderKey).toEqual('String')
+    expect(result.updatedAt).toEqual(new Date('2023-12-02T18:52:03.393Z'))
     expect(result.songTitle).toEqual('String')
     expect(result.artist).toEqual('String')
-    expect(result.releaseDate).toEqual(new Date('2023-10-26T15:25:13.095Z'))
+    expect(result.releaseDate).toEqual(new Date('2023-12-02T18:52:03.393Z'))
     expect(result.previouslyReleased).toEqual(true)
     expect(result.language).toEqual('String')
     expect(result.primaryGenre).toEqual('String')
     expect(result.explicitLyrics).toEqual(true)
     expect(result.iscUpcCode).toEqual('String')
-    expect(result.length).toEqual(6711689)
+    expect(result.length).toEqual(4765064)
   })
 
   scenario('updates a release', async (scenario: StandardScenario) => {

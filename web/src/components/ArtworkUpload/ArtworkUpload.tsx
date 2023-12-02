@@ -32,10 +32,10 @@ interface PresignedUrlResponse {
 
 interface ArtworkUploadProps {
   handleBlur: FormikHandlers['handleBlur']
-  handleChange: FormikHandlers['handleChange']
+  handleChange?: FormikHandlers['handleChange']
   value: string
   error: string
-  onArtworkChange: (url: string) => void
+  onUploadComplete: (url: string, AWSFolderKey: string) => void
   user: {
     id: string | number
     firstName: string
@@ -74,9 +74,8 @@ export const CLEAR_FILE_FROM_S3_MUTATION = gql`
 
 const ArtworkUpload = ({
   handleBlur,
-  handleChange,
-  error,
-  onArtworkChange,
+  error: formError,
+  onUploadComplete,
   user,
 }: ArtworkUploadProps) => {
   // State
@@ -114,7 +113,6 @@ const ArtworkUpload = ({
       presignedUrl.current = { url, fields, folderKey }
 
       sessionStorage.setItem('folderKey', folderKey)
-
       return { url, fields, folderKey }
     } catch (error) {
       console.log(error.message)
@@ -149,7 +147,7 @@ const ArtworkUpload = ({
 
           setIsFilePicked(false)
           setIsFileUploaded(false)
-          onArtworkChange('') // Clear the artwork url
+          onUploadComplete('', '') // Clear the artwork url
           toast.success('File successfully deleted from S3')
         } else {
           throw new Error(response.data.clearFileFromS3.error)
@@ -161,7 +159,10 @@ const ArtworkUpload = ({
 
     // TODO: Clear file from S3
   }
-  const handleUpload = (file: File, { url, fields }: PresignedUrlResponse) => {
+  const handleUpload = (
+    file: File,
+    { url, fields, folderKey }: PresignedUrlResponse
+  ) => {
     const formData = new FormData()
     formData.append('Content-Type', file.type)
     Object.entries({ ...fields, file }).forEach(([key, value]) => {
@@ -178,7 +179,6 @@ const ArtworkUpload = ({
         if (res.ok) {
           setIsUploading(false)
           setIsFileUploaded(true)
-          onArtworkChange(`${url}/${fields.key}`)
           toast.success('File uploaded successfully!')
           console.log('File uploaded successfully!')
           return
@@ -191,11 +191,14 @@ const ArtworkUpload = ({
         console.log(error.message)
         toast.error(error.message)
       })
+      .finally(() => {
+        onUploadComplete(`${url}${fields.key}`, `${url}${folderKey}`)
+      })
   }
 
   // Main return
   return (
-    <FormControl my={8}>
+    <FormControl my={8} isInvalid={!!formError}>
       <FormLabel>Upload release artwork</FormLabel>
       <Input
         hidden
@@ -205,17 +208,18 @@ const ArtworkUpload = ({
         onChange={handleFileChange}
       />
       <ButtonGroup
-        w={'full'}
+        borderColor={formError ? 'red.300' : 'gray.300'}
+        borderWidth={2}
+        borderRadius={10}
         aria-label="Upload artwork"
         variant="solid"
         isAttached
+        onBlur={handleBlur}
       >
         <Button
           colorScheme="gray"
           aria-hidden
           onClick={() => inputRef.current?.click()}
-          onChange={handleChange}
-          onBlur={handleBlur}
           isDisabled={isFileUploaded}
         >
           Choose a file
@@ -241,13 +245,14 @@ const ArtworkUpload = ({
           Upload file
         </Button>
       </ButtonGroup>
+
+      <FormErrorMessage minHeight={6}>
+        <FormErrorIcon />
+        {formError}
+      </FormErrorMessage>
       <FormHelperText>
         File name: {inputRef.current?.files?.[0]?.name ?? 'No file selected'}
       </FormHelperText>
-      <FormErrorMessage>
-        <FormErrorIcon />
-        {error}
-      </FormErrorMessage>
     </FormControl>
   )
 }

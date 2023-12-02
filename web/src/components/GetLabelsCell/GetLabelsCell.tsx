@@ -1,4 +1,5 @@
 import { Select, Spinner } from '@chakra-ui/react'
+import { FormikHandlers } from 'formik'
 import type { getLabels } from 'types/graphql'
 
 import type { CellSuccessProps, CellFailureProps } from '@redwoodjs/web'
@@ -12,6 +13,8 @@ interface GetLabelsCellProps extends CellSuccessProps<getLabels> {
     id: string
     name: string
   }
+  name: string
+  onBlur: FormikHandlers['handleBlur']
 }
 
 export const QUERY = gql`
@@ -31,21 +34,31 @@ export const Failure = ({ error }: CellFailureProps) => (
   <FailedToFetchData>{error.message}</FailedToFetchData>
 )
 
-export const Success = ({ getLabels, onSelect }: GetLabelsCellProps) => {
+export const Success = ({
+  getLabels,
+  onSelect,
+  onBlur,
+}: GetLabelsCellProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const labelId = e.target.value
     const labelName = e.target.options[e.target.selectedIndex].text
     onSelect(labelId, labelName)
   }
   return (
-    <Select onChange={handleChange}>
-      {getLabels.map((label) => {
-        return (
-          <option value={label.id} key={label.id}>
-            {label.name}
-          </option>
-        )
-      })}
-    </Select>
+    <>
+      <Select
+        onChange={handleChange}
+        placeholder="Select a label"
+        onBlur={onBlur}
+      >
+        {getLabels.map((label) => {
+          return (
+            <option value={label.id} key={label.id}>
+              {label.name}
+            </option>
+          )
+        })}
+      </Select>
+    </>
   )
 }

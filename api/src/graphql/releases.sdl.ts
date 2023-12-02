@@ -2,6 +2,7 @@ export const schema = gql`
   type Release {
     id: Int!
     userId: Int!
+    AWSFolderKey: String!
     songMasterReference: String!
     songArtworkReference: String!
     songTitle: String!
@@ -19,7 +20,12 @@ export const schema = gql`
     cLine: String
     length: Int!
     user: User!
-    AWSFolderKey: String!
+    label: Label!
+  }
+
+  type Label {
+    id: Int!
+    name: String!
   }
 
   type Query {
@@ -32,21 +38,30 @@ export const schema = gql`
     userId: Int!
     songMasterReference: String!
     songArtworkReference: String!
+    AWSFolderKey: String!
+    metadata: MetadataInput!
+  }
+
+  input MetadataInput {
     songTitle: String!
     productTitle: String
     artist: String!
     featuredArtist: String
-    releaseDate: DateTime!
+    # releaseDate: DateTime
     previouslyReleased: Boolean!
     language: String!
     primaryGenre: String!
     secondaryGenre: String
     explicitLyrics: Boolean!
-    iscUpcCode: String!
+    iscUpcCode: String
     pLine: String
     cLine: String
-    length: Int!
-    AWSFolderKey: String!
+    label: LabelInput!
+  }
+
+  input LabelInput {
+    name: String!
+    id: String!
   }
 
   input UpdateReleaseInput {

@@ -11,6 +11,7 @@ import {
   Button,
   Progress,
 } from '@chakra-ui/react'
+import { FormikHandlers } from 'formik'
 import { useDropzone } from 'react-dropzone'
 
 import { useMutation } from '@redwoodjs/web'
@@ -21,9 +22,9 @@ import { useAuth } from 'src/auth'
 import FailedToFetchData from '../DataFetching/FailedToFetchData/FailedToFetchData'
 interface AudioUploadProps extends BoxProps {
   onAudioChange: (file: File, duration: number) => void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errors?: any
-  onUploadComplete: (url: string) => void
+  onBlur: FormikHandlers['handleBlur']
+  errors?: string
+  onUploadComplete: (url: string, AWSFolderKey: string) => void
   user: {
     firstName: string
     lastName: string
@@ -77,6 +78,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   onAudioChange,
   errors,
   onUploadComplete,
+  onBlur: handleBlur,
   ...rest
 }) => {
   const { colorMode } = useColorMode()
@@ -115,7 +117,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
 
       // Check the mutation response
       if (response.data.clearFileFromS3.ok) {
-        onUploadComplete(undefined)
+        onUploadComplete(undefined, undefined)
         toast.success('File successfully deleted from S3')
         setIsUploaded(false)
       } else {
@@ -200,7 +202,8 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
         setFilePath(data.getPresignedUrl.fields.key)
         setIsUploading(false)
         onUploadComplete(
-          `${data.getPresignedUrl.url}/${data.getPresignedUrl.fields.key}`
+          `${data.getPresignedUrl.url}${data.getPresignedUrl.fields.key}`,
+          `${data.getPresignedUrl.url}${data.getPresignedUrl.folderKey}`
         )
         setIsUploaded(true)
         toast.success('File successfully uploaded')
@@ -262,8 +265,8 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
       {...getRootProps()}
       borderWidth={2}
       borderColor={
-        errors && acceptedFiles.length === 0 && !isDragActive
-          ? '#f87978'
+        !!errors && !isDragActive
+          ? 'red.300'
           : acceptedFiles.length > 0
           ? 'blackAlpha'
           : isDragActive
@@ -305,12 +308,13 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
             e.stopPropagation()
             clearFile()
           }}
+          onBlur={handleBlur}
         >
           Clear File
         </Button>
       )}
 
-      <input {...getInputProps()} />
+      <input {...getInputProps()} onBlur={handleBlur} />
       <Text
         fontWeight={'bold'}
         fontSize={'lg'}

@@ -1,8 +1,4 @@
-import type {
-  QueryResolvers,
-  MutationResolvers,
-  ReleaseRelationResolvers,
-} from 'types/graphql'
+import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
 import { db } from 'src/lib/db'
 
@@ -38,10 +34,4 @@ export const deleteRelease: MutationResolvers['deleteRelease'] = ({ id }) => {
   return db.release.delete({
     where: { id },
   })
-}
-
-export const Release: ReleaseRelationResolvers = {
-  user: (_obj, { root }) => {
-    return db.release.findUnique({ where: { id: root?.id } }).user()
-  },
 }

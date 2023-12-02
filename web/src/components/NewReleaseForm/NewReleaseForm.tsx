@@ -35,6 +35,7 @@ import {
   Icon,
   Heading,
   Table,
+  ButtonGroup,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
 import { Formik } from 'formik'
@@ -49,37 +50,53 @@ import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
 import { ReleaseSchema } from '../../lib/releaseSchema'
 import ArtworkUpload from '../ArtworkUpload/ArtworkUpload'
 import AudioUpload from '../AudioUpload/AudioUpload'
-export interface FormValues {
-  songMaster: string
-  songImage: string
-  folderKey: string
-  metadata: {
-    songTitle: string
-    productTitle: string
-    artist: string
-    featuredArtist: string
-    // releaseDate: string
-    previouslyReleased: boolean
-    language: string
-    label: {
-      id: string
-      name: string
-    }
-    primaryGenre: string
-    secondaryGenre: string | null
-    explicitLyrics: boolean
-    // ISCUpcCode: string
-    pLine: string
-    cLine: string
+interface FormValues {
+  songMasterReference: string
+  songArtworkReference: string
+  AWSFolderKey: string
+  songTitle: string
+  productTitle: string
+  artist: string
+  featuredArtist: string
+  // releaseDate: string
+  previouslyReleased: boolean
+  language: string
+  label: {
+    id: string
+    name: string
   }
+  primaryGenre: string
+  secondaryGenre: string | undefined
+  explicitLyrics: boolean
+  iscUpcCode: string
+  pLine: string
+  cLine: string
 }
 
 const CREATE_RELEASE_MUTATION = gql`
   mutation CreateRelease($input: CreateReleaseInput!) {
     createRelease(input: $input) {
-      id
+      userId
+      songMasterReference
+      songArtworkReference
+      AWSFolderKey
       songTitle
+      productTitle
       artist
+      featuredArtist
+      releaseDate
+      previouslyReleased
+      language
+      label {
+        id
+        name
+      }
+      primaryGenre
+      secondaryGenre
+      explicitLyrics
+      iscUpcCode
+      pLine
+      cLine
     }
   }
 `
@@ -115,16 +132,23 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
    * @param {object} setSubmitting - A function to set the submitting state.
    * @returns {void}
    */
-  const onSubmit = async (data, { setSubmitting }) => {
+  const onSubmit = async (data: FormValues, { setSubmitting }) => {
     setSubmitting(true)
     try {
-      const { songMaster, songImage, metadata } = data as FormValues
+      const {
+        songMasterReference,
+        songArtworkReference,
+        AWSFolderKey,
+        ...metadata
+      } = data
       toast.loading('Submitting the release...')
       const { data: createReleaseData } = await createRelease({
         variables: {
           input: {
-            songMaster,
-            songImage,
+            userId: currentUser.id,
+            songMasterReference: songMasterReference,
+            songArtworkReference: songArtworkReference,
+            AWSFolderKey: AWSFolderKey,
             metadata,
           },
         },
@@ -154,32 +178,30 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
       >
         <Formik<FormValues>
           initialValues={{
-            songMaster: '',
-            songImage: '',
-            folderKey: '',
-            metadata: {
-              songTitle: '',
-              productTitle: '',
-              artist: '',
-              featuredArtist: '',
-              // releaseDate: '',
-              label: {
-                id: '1',
-                name: 'JIGSAW',
-              },
-              previouslyReleased: false,
-              language: 'English',
-              primaryGenre: '',
-              secondaryGenre: '',
-              explicitLyrics: false,
-              // ISCUpcCode: '',
-              pLine: '',
-              cLine: '',
+            songMasterReference: undefined as unknown as string,
+            songArtworkReference: undefined as unknown as string,
+            AWSFolderKey: undefined as unknown as string,
+            songTitle: '',
+            productTitle: '',
+            artist: '',
+            featuredArtist: '',
+            // releaseDate: '',
+            label: {
+              id: '',
+              name: '',
             },
+            previouslyReleased: false,
+            language: '',
+            primaryGenre: '',
+            secondaryGenre: '',
+            explicitLyrics: false,
+            iscUpcCode: '',
+            pLine: '',
+            cLine: '',
           }}
           onSubmit={onSubmit}
           validationSchema={ReleaseSchema}
-          validateOnBlur={true}
+          validateOnBlur={false}
           validateOnChange={false}
           validateOnMount={false}
         >
@@ -215,50 +237,35 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     </Table>
                     <hr />
                     <Table mt={8}>
-                      <thead>
-                        <tr>
-                          <th>Audio File</th>
-                          <th>Artwork File</th>
-                          <th>Label</th>
-                        </tr>
-                      </thead>
                       <tbody>
                         <tr>
-                          <td>{props.values.songMaster}</td>
-                          <td>{props.values.songImage}</td>
-                          <td>
-                            {props.values.metadata.label.name} -
-                            {props.values.metadata.label.id}
-                          </td>
-                        </tr>
-                        <tr>
                           <td colSpan={3}>
-                            <pre>
-                              {JSON.stringify(props.values.metadata, null, 2)}
-                            </pre>
+                            <pre>{JSON.stringify(props.values, null, 2)}</pre>
                           </td>
                         </tr>
                       </tbody>
                     </Table>
+                    {props.errors && (
+                      <Box mt={8}>
+                        <pre>{JSON.stringify(props.errors, null, 2)}</pre>
+                      </Box>
+                    )}
                   </Box>
                 )}
                 <form onSubmit={props.handleSubmit}>
-                  <FormControl
-                    mt={12}
-                    isInvalid={!!props.errors.metadata?.songTitle}
-                  >
+                  <FormControl mt={12} isInvalid={!!props.errors?.songTitle}>
                     <FormLabel mt={4}>Song Title</FormLabel>
                     <Input
                       type="text"
-                      name="metadata.songTitle"
+                      name="songTitle"
                       onChange={props.handleChange}
                       onBlur={props.handleBlur}
-                      value={props.values.metadata.songTitle}
+                      value={props.values.songTitle}
                       placeholder="The title of your song"
                     />
                     <FormErrorMessage minHeight={6}>
                       <FormErrorIcon />
-                      {props.errors.metadata?.songTitle}
+                      {props.errors?.songTitle}
                     </FormErrorMessage>
                   </FormControl>
                   <Flex
@@ -270,16 +277,16 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       <FormLabel>Artist</FormLabel>
                       <Input
                         type="text"
-                        name="metadata.artist"
+                        name="artist"
                         onChange={props.handleChange}
                         onBlur={props.handleBlur}
-                        value={props.values.metadata.artist}
-                        isInvalid={!!props.errors.metadata?.artist}
+                        value={props.values.artist}
+                        isInvalid={!!props.errors?.artist}
                         placeholder="Your artist name"
                       />
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
-                        {props.errors.metadata?.artist}
+                        {props.errors?.artist}
                       </FormErrorMessage>
                     </FormControl>
                     <Flex
@@ -304,34 +311,43 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       <ScaleFade delay={0.2} in={isFeaturedArtistChecked}>
                         <FormControl
                           flex={1}
-                          isInvalid={!!props.errors.metadata?.featuredArtist}
+                          isInvalid={!!props.errors?.featuredArtist}
                         >
                           <FormLabel mt={4}>Featured artist name</FormLabel>
                           <Input
                             type="text"
-                            name="metadata.featuredArtist"
+                            name="featuredArtist"
                             onChange={props.handleChange}
                             onBlur={props.handleBlur}
-                            value={props.values.metadata.featuredArtist}
+                            value={props.values.featuredArtist}
                             placeholder="Featured artist name"
                           />
                           <FormErrorMessage minHeight={6}>
                             <FormErrorIcon />
-                            {props.errors.metadata?.featuredArtist}
+                            {props.errors?.featuredArtist}
                           </FormErrorMessage>
                         </FormControl>
                       </ScaleFade>
                     </>
                   )}
-                  <FormControl>
+                  <FormControl isInvalid={!!props.errors?.label}>
                     <FormLabel mt={4}>Label</FormLabel>
                     <GetLabelsCell
-                      value={props.values.metadata.label}
-                      onSelect={(labelId, labelName) => {
-                        props.setFieldValue('metadata.label.id', labelId)
-                        props.setFieldValue('metadata.label.name', labelName)
+                      name="label"
+                      value={{
+                        id: props.values.label.id,
+                        name: props.values.label.name,
                       }}
+                      onSelect={(labelId, labelName) => {
+                        props.setFieldValue('label.id', labelId)
+                        props.setFieldValue('label.name', labelName)
+                      }}
+                      onBlur={props.handleBlur}
                     />
+                    <FormErrorMessage>
+                      <FormErrorIcon />
+                      {props.errors?.label?.name}
+                    </FormErrorMessage>
                   </FormControl>
                   <Flex
                     justifyContent={'space-around'}
@@ -340,33 +356,30 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                   >
                     {/* <FormControl
                       flex={1}
-                      isInvalid={!!props.errors.metadata?.releaseDate}
+                      isInvalid={!!props.errors?.releaseDate}
                     >
                       <FormLabel>Release Date</FormLabel>
                       <Input
                         type="date"
-                        name="metadata.releaseDate"
+                        name="releaseDate"
                         onChange={props.handleChange}
                         onBlur={props.handleBlur}
-                        value={props.values.metadata.releaseDate}
+                        value={props.values.releaseDate}
                         placeholder="Choose a release date"
                       />
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
-                        {props.errors.metadata?.releaseDate}
+                        {props.errors?.releaseDate}
                       </FormErrorMessage>
                     </FormControl> */}
-                    <FormControl
-                      ml={4}
-                      flex={1}
-                      isInvalid={!!props.errors.metadata?.language}
-                    >
+                    <FormControl flex={1} isInvalid={!!props.errors?.language}>
                       <FormLabel>Language</FormLabel>
                       <Select
-                        name="metadata.language"
+                        name="language"
                         onChange={props.handleChange}
                         onBlur={props.handleBlur}
-                        value={props.values.metadata.language}
+                        value={props.values.language}
+                        placeholder="Select a language"
                       >
                         {LanguageList.map((language) => (
                           <option key={language} value={language}>
@@ -376,7 +389,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       </Select>
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
-                        {props.errors.metadata?.language}
+                        {props.errors?.language}
                       </FormErrorMessage>
                     </FormControl>
                   </Flex>
@@ -386,19 +399,20 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     my={8}
                   >
                     <FormControl
-                      isInvalid={!!props.errors.metadata?.primaryGenre}
+                      isInvalid={!!props.errors?.primaryGenre}
                       flex={1}
                     >
                       <FormLabel>Primary Genre</FormLabel>
                       <Select
-                        name="metadata.primaryGenre"
+                        placeholder="Select a primary genre"
+                        name="primaryGenre"
                         onChange={(e) => {
                           props.handleChange(e)
                           // Reset secondary genre when primary changes
-                          props.setFieldValue('metadata.secondaryGenre', '')
+                          props.setFieldValue('secondaryGenre', '')
                         }}
                         onBlur={props.handleBlur}
-                        value={props.values.metadata.primaryGenre}
+                        value={props.values.primaryGenre}
                       >
                         {PrimaryGenre.map((genre) => (
                           <option key={genre} value={genre}>
@@ -408,7 +422,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       </Select>
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
-                        {props.errors.metadata?.primaryGenre}
+                        {props.errors?.primaryGenre}
                       </FormErrorMessage>
                     </FormControl>
 
@@ -416,88 +430,82 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                       <FormControl
                         ml={4}
                         flex={1}
-                        isInvalid={!!props.errors.metadata?.secondaryGenre}
+                        isInvalid={!!props.errors?.secondaryGenre}
                         isDisabled={
-                          !SecondaryGenre[props.values.metadata.primaryGenre]
-                            ?.length
+                          !SecondaryGenre[props.values.primaryGenre]?.length
                         }
                       >
                         <FormLabel>Secondary Genre</FormLabel>
                         <Select
-                          name="metadata.secondaryGenre"
+                          name="secondaryGenre"
                           onChange={props.handleChange}
                           onBlur={props.handleBlur}
-                          value={props.values.metadata.secondaryGenre}
+                          value={props.values.secondaryGenre}
+                          placeholder="Select a secondary genre"
                         >
-                          {SecondaryGenre[
-                            props.values.metadata.primaryGenre
-                          ]?.map((subGenre) => (
-                            <option key={subGenre} value={subGenre}>
-                              {subGenre}
-                            </option>
-                          ))}
+                          {SecondaryGenre[props.values.primaryGenre]?.map(
+                            (subGenre) => (
+                              <option key={subGenre} value={subGenre}>
+                                {subGenre}
+                              </option>
+                            )
+                          )}
                         </Select>
                         <FormErrorMessage minHeight={6}>
                           <FormErrorIcon />
-                          {props.errors.metadata?.secondaryGenre}
+                          {props.errors?.secondaryGenre}
                         </FormErrorMessage>
                       </FormControl>
                     </>
                   </Flex>
-                  {/* <FormControl
-                    mt={4}
-                    isInvalid={!!props.errors.metadata?.ISCUpcCode}
-                  >
+                  <FormControl mt={4} isInvalid={!!props.errors?.iscUpcCode}>
                     <FormLabel>ISC/UPC Code</FormLabel>
                     <Input
                       type="text"
-                      name="metadata.ISCUpcCode"
+                      name="iscUpcCode"
                       onChange={props.handleChange}
                       onBlur={props.handleBlur}
-                      value={props.values.metadata.ISCUpcCode}
+                      value={props.values.iscUpcCode}
                       placeholder="Here goes the ISC/UPC code - if you have one..."
                     />
                     <FormErrorMessage minHeight={6}>
                       <FormErrorIcon />
-                      {props.errors.metadata?.ISCUpcCode}
+                      {props.errors?.iscUpcCode}
                     </FormErrorMessage>
-                  </FormControl> */}
+                  </FormControl>
                   <Flex>
-                    <FormControl
-                      flex={1}
-                      isInvalid={!!props.errors.metadata?.pLine}
-                    >
+                    <FormControl flex={1} isInvalid={!!props.errors?.pLine}>
                       <FormLabel mt={4}>℗ Line</FormLabel>
                       <Input
                         type="text"
-                        name="metadata.pLine"
+                        name="pLine"
                         onChange={props.handleChange}
                         onBlur={props.handleBlur}
-                        value={props.values.metadata.pLine}
+                        value={props.values.pLine}
                         placeholder="Add the ℗ Line here"
                       />
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
-                        {props.errors.metadata?.pLine}
+                        {props.errors?.pLine}
                       </FormErrorMessage>
                     </FormControl>
                     <FormControl
                       flex={1}
                       ml={4}
-                      isInvalid={!!props.errors.metadata?.cLine}
+                      isInvalid={!!props.errors?.cLine}
                     >
                       <FormLabel mt={4}>© Line</FormLabel>
                       <Input
                         type="text"
-                        name="metadata.cLine"
+                        name="cLine"
                         onChange={props.handleChange}
                         onBlur={props.handleBlur}
-                        value={props.values.metadata.cLine}
+                        value={props.values.cLine}
                         placeholder="Add the © line here"
                       />
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
-                        {props.errors.metadata?.cLine}
+                        {props.errors?.cLine}
                       </FormErrorMessage>
                     </FormControl>
                   </Flex>
@@ -509,7 +517,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     <Checkbox
                       flex={1}
                       size={'lg'}
-                      name="metadata.explicitLyrics"
+                      name="explicitLyrics"
                       onChange={props.handleChange}
                       onBlur={props.handleBlur}
                     >
@@ -519,7 +527,7 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                     <Checkbox
                       flex={1}
                       size={'lg'}
-                      name="metadata.previouslyReleased"
+                      name="previouslyReleased"
                       onChange={props.handleChange}
                       onBlur={props.handleBlur}
                     >
@@ -529,57 +537,91 @@ const NewReleaseForm: React.FC<BoxProps> = ({ ...rest }) => {
                   <ArtworkUpload
                     handleBlur={props.handleBlur}
                     handleChange={props.handleChange}
-                    error={props.errors?.songImage}
+                    error={props.errors?.songArtworkReference}
                     user={currentUser}
-                    onArtworkChange={(url) => {
-                      props.setFieldValue('songImage', url)
+                    onUploadComplete={(url, AWSFolderKey) => {
+                      // Set the field values and wait for the operation to complete
+                      props.setFieldValue('songArtworkReference', url, false)
+                      props.setFieldValue('AWSFolderKey', AWSFolderKey, false)
                     }}
-                    value={props.values.songImage}
+                    value={props.values.songArtworkReference}
                   />
-                  <FormControl isInvalid={!!props.errors?.songMaster}>
+                  <FormControl isInvalid={!!props.errors?.songMasterReference}>
                     <FormLabel display={'none'}>
                       Upload audio master file
                     </FormLabel>
                     <AudioUpload
-                      value={props.values.songMaster}
+                      onBlur={props.handleBlur}
+                      value={props.values.songMasterReference}
                       onAudioChange={handleAudioChange}
-                      onUploadComplete={(url) => {
-                        props.setFieldValue('songMaster', url)
+                      onUploadComplete={async (url, AWSFolderKey) => {
+                        props.setFieldValue('songMasterReference', url, false)
+                        props.setFieldValue('AWSFolderKey', AWSFolderKey, false)
                       }}
+                      errors={props.errors?.songMasterReference}
                       user={{
                         firstName: currentUser?.firstName,
                         lastName: currentUser?.lastName,
                       }}
                     />
-                    <FormErrorMessage minHeight={6}>
-                      <FormErrorIcon />
-                      {props.errors?.songMaster}
-                    </FormErrorMessage>
-                    {uploadedAudio ? (
-                      <FormHelperText>
-                        <Icon as={CheckCircleIcon} color="green.500" mr={2} />
-                        The audio file is present on server.
-                      </FormHelperText>
-                    ) : (
-                      <FormHelperText>
-                        <Icon as={InfoIcon} color="red.500" mr={2} />
-                        The audio file is not present on server.
-                      </FormHelperText>
-                    )}
+                    <Flex
+                      gap={4}
+                      alignItems={'center'}
+                      justifyContent={'space-between'}
+                    >
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors?.songMasterReference}
+                      </FormErrorMessage>
+                      {uploadedAudio ? (
+                        <FormHelperText>
+                          <Icon as={CheckCircleIcon} color="green.500" mr={2} />
+                          The audio file is present on server.
+                        </FormHelperText>
+                      ) : (
+                        <FormHelperText>
+                          <Icon as={InfoIcon} color="red.500" mr={2} />
+                          The audio file is not present on server.
+                        </FormHelperText>
+                      )}
+                    </Flex>
                   </FormControl>
-                  <Button
-                    type="submit"
-                    loadingText="Submitting the release..."
-                    isLoading={loading && props.isSubmitting}
-                    colorScheme="green"
-                    spinnerPlacement="start"
-                    mt={6}
-                    size={'lg'}
-                    width={'full'}
-                    isDisabled={!isValid || !dirty}
-                  >
-                    Submit
-                  </Button>
+                  <ButtonGroup mt={8} isAttached>
+                    <Button
+                      type="reset"
+                      variant="outline"
+                      colorScheme="red"
+                      onClick={() => {
+                        props.resetForm()
+                        props.setErrors({})
+                        props.setTouched({})
+                      }}
+                      isDisabled={!dirty}
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      colorScheme="yellow"
+                      onClick={() => {
+                        props.validateForm().then(() => console.log('done'))
+                      }}
+                      isDisabled={!dirty}
+                    >
+                      Validate
+                    </Button>
+                    <Button
+                      type="submit"
+                      loadingText="Submitting the release..."
+                      isLoading={loading && props.isSubmitting}
+                      colorScheme="green"
+                      spinnerPlacement="start"
+                      isDisabled={!isValid || !dirty}
+                    >
+                      Submit
+                    </Button>
+                  </ButtonGroup>
                 </form>
               </>
             )
