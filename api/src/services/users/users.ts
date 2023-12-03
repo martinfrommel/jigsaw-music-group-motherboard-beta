@@ -18,6 +18,12 @@ import { sendEmail } from 'src/lib/emails/sendEmail'
 import { generateSignUpToken } from 'src/lib/generateToken'
 import { generateRandomPassword } from 'src/lib/passwordUtils'
 
+/**
+ * Retrieves a list of users.
+ *
+ * @returns {Promise<User[]>} A promise that resolves to an array of User objects.
+ * @throws {ForbiddenError} If the logged-in user is not an admin.
+ */
 export const users: QueryResolvers['users'] = () => {
   const currentUser = context.currentUser
   // If the requested user is not the logged-in user and the logged-in user is not an admin
@@ -29,6 +35,16 @@ export const users: QueryResolvers['users'] = () => {
   return db.user.findMany()
 }
 
+/**
+ * Retrieves a user based on the provided ID.
+ *
+ * @param {object} args - The arguments for the query resolver.
+ * @param {string} args.id - The ID of the user to retrieve.
+ * @param {object} context - The context object containing the current user information.
+ * @param {object} context.currentUser - The currently logged-in user.
+ * @returns {Promise<User>} - A promise that resolves to the user object.
+ * @throws {ForbiddenError} - If the requested user is not the logged-in user and the logged-in user is not an admin.
+ */
 export const user: QueryResolvers['user'] = ({ id }) => {
   // Protect against unauthorised queries
   const currentUser = context.currentUser
@@ -45,6 +61,12 @@ export const user: QueryResolvers['user'] = ({ id }) => {
   })
 }
 
+/**
+ * Creates a new user.
+ * @param input - The user input data.
+ * @returns The created user.
+ * @throws ForbiddenError if the current user does not have admin privileges.
+ */
 export const createUser: MutationResolvers['createUser'] = ({ input }) => {
   // Protect against unauthorised queries
   const currentUser = context.currentUser.roles
@@ -57,6 +79,16 @@ export const createUser: MutationResolvers['createUser'] = ({ input }) => {
   })
 }
 
+/**
+ * Creates a new user with admin privileges.
+ *
+ * @param input - The input data for creating the user.
+ * @returns The created user.
+ * @throws {AuthenticationError} If the current user is not an admin.
+ * @throws {ValidationError} If a unique token cannot be generated after multiple attempts.
+ * @throws {ValidationError} If a user with the same email already exists.
+ * @throws {SyntaxError} If there is an unexpected error while creating the user or sending the email.
+ */
 export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
   input,
 }) => {
@@ -204,6 +236,13 @@ export const updateUserPassword: MutationResolvers['updateUserPassword'] =
   }
 
 // Signup token validation
+/**
+ * Validates the sign-up token.
+ *
+ * @param signUpToken - The sign-up token to validate.
+ * @returns A boolean indicating whether the token is valid or not.
+ * @throws UserInputError if an error occurs during the validation process.
+ */
 export const validateSignUpToken: QueryResolvers['validateSignUpToken'] =
   async ({ signUpToken }) => {
     try {
@@ -233,6 +272,14 @@ export const validateSignUpToken: QueryResolvers['validateSignUpToken'] =
     }
   }
 
+/**
+ * Sets the password for a user using a provided token.
+ * @param token - The token used to verify the user's identity.
+ * @param newPassword - The new password to set for the user.
+ * @returns The updated user object.
+ * @throws {SyntaxError} If the provided token does not match the user's signUpToken.
+ * @throws {UserInputError} If the token is invalid or expired.
+ */
 export const setUserPassword: MutationResolvers['setUserPassword'] = async ({
   token,
   newPassword,

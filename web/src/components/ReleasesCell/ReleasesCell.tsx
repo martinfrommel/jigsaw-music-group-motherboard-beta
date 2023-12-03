@@ -1,30 +1,69 @@
-import type { ReleasesQuery } from 'types/graphql'
+import { Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import type { releasesPerUserQuery } from 'types/graphql'
 
 import type { CellSuccessProps, CellFailureProps } from '@redwoodjs/web'
 
+import EmptyCellAlert from '../DataFetching/EmptyCellAlert/EmptyCellAlert'
+import FailedToFetchData from '../DataFetching/FailedToFetchData/FailedToFetchData'
+
+interface ReleasesCellProps {
+  userId: number
+}
 export const QUERY = gql`
-  query ReleasesQuery {
-    releases {
+  query releasesPerUserQuery($userId: Int!) {
+    releasesPerUser(userId: $userId) {
       id
-      
+      songTitle
+      createdAt
+      label {
+        name
+      }
     }
   }
 `
+export const beforeQuery = (props: ReleasesCellProps) => {
+  return { variables: props, fetchPolicy: 'cache-and-network' }
+}
+export const Loading = () => <Spinner />
 
-export const Loading = () => <div>Loading...</div>
-
-export const Empty = () => <div>Empty</div>
+export const Empty = () => <EmptyCellAlert />
 
 export const Failure = ({ error }: CellFailureProps) => (
-  <div style={{ color: 'red' }}>Error: {error?.message}</div>
+  <FailedToFetchData>{error.message}</FailedToFetchData>
 )
 
-export const Success = ({ releases }: CellSuccessProps<ReleasesQuery>) => {
+export const Success = ({
+  releasesPerUser: data,
+}: CellSuccessProps<releasesPerUserQuery> & ReleasesCellProps) => {
   return (
-    <ul>
-      {releases.map((item) => {
-        return <li key={item.id}>{JSON.stringify(item)}</li>
-      })}
-    </ul>
+    <>
+      <Table>
+        <Thead>
+          <Tr>
+            <Th>Release title</Th>
+            <Th>Label</Th>
+            <Th>Release date</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {data.map((release) => (
+            <Tr key={release.id}>
+              <Td>{release.songTitle}</Td>
+              <Td>{release.label.name}</Td>
+              <Td>
+                {' '}
+                {new Date(release.createdAt).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'numeric',
+                  year: 'numeric',
+                  hour: 'numeric',
+                  minute: 'numeric',
+                })}
+              </Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+    </>
   )
 }

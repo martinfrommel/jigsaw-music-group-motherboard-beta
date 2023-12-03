@@ -10,8 +10,8 @@ export const schema = gql`
   }
 
   type Query {
-    apiTokens: [ApiToken!]! @requireAuth
-    apiToken(id: Int!): ApiToken @requireAuth
+    apiTokens: [ApiToken!]! @requireAuth(roles: ["admin"])
+    apiToken(id: Int!): ApiToken @requireAuth(roles: ["admin"])
   }
 
   input CreateApiTokenInput {
@@ -29,9 +29,10 @@ export const schema = gql`
   }
 
   type Mutation {
-    createApiToken(input: CreateApiTokenInput!): ApiToken! @requireAuth
+    createApiToken(input: CreateApiTokenInput!): ApiToken!
+      @requireAuth(roles: ["admin"])
     updateApiToken(id: Int!, input: UpdateApiTokenInput!): ApiToken!
-      @requireAuth
-    deleteApiToken(id: Int!): ApiToken! @requireAuth
+      @requireAuth(roles: ["admin"])
+    deleteApiToken(id: Int!): ApiToken! @requireAuth(roles: ["admin"])
   }
 `

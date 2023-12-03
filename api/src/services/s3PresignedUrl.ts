@@ -9,6 +9,14 @@ import { isAuthenticated } from 'src/lib/auth'
 
 // ... Import necessary AWS SDK modules and configurations ...
 
+/**
+ * Generates a presigned URL for uploading a file to an S3 bucket.
+ * @param pregeneratedUrl - The pregenerated URL, if available.
+ * @param fileType - The type of the file being uploaded.
+ * @param fileName - The name of the file being uploaded.
+ * @param user - The user associated with the file upload.
+ * @returns An object containing the presigned URL, form fields, and folder key.
+ */
 export const getPresignedUrl: QueryResolvers['getPresignedUrl'] = async ({
   pregeneratedUrl,
   fileType,
@@ -51,6 +59,12 @@ export const getPresignedUrl: QueryResolvers['getPresignedUrl'] = async ({
 }
 
 // Clear the file upon request
+/**
+ * Clears a file from S3 storage.
+ * @param filePath - The path of the file to be deleted.
+ * @param user - The user making the request.
+ * @returns An object indicating the success or failure of the operation.
+ */
 export const clearFileFromS3: MutationResolvers['clearFileFromS3'] = async ({
   filePath,
   user,

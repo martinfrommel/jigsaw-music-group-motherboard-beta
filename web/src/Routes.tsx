@@ -19,10 +19,10 @@ const Routes = () => {
   return (
     <Router useAuth={useAuth}>
       <Set wrap={isAdmin ? AdminLayout : MainLayout}>
-        <Route path="/" page={HomePage} name="home" />
+        <Route path="/" page={HomePage} name="home" prerender />
         <PrivateSet unauthenticated="login">
           <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
-          <Route path="/user/{id:Int}/releases" page={ReleasesPage} name="releases" />
+          <Route path="/user/releases" page={ReleasesPage} name="releases" />
           <Route path="/user/{id:Int}/change-password" page={ChangePasswordPage} name="changePassword" />
         </PrivateSet>
         <Route path="/login" page={LoginPage} name="login" />

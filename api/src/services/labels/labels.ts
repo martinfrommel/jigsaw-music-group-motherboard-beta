@@ -3,6 +3,11 @@ import { QueryResolvers } from 'types/graphql'
 
 import { db } from 'src/lib/db'
 
+/**
+ * Retrieves a list of labels from the AudioSalad API.
+ * @returns An array of label objects containing the label ID and name.
+ * @throws {SyntaxError} If the API response status code is not 200.
+ */
 export const getLabels: QueryResolvers['getLabels'] = async () => {
   const apiToken = await db.apiToken.findFirst({
     orderBy: { createdAt: 'desc' },

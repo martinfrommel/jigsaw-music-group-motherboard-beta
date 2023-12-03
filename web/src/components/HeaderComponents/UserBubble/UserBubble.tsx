@@ -55,6 +55,9 @@ const UserBubble = () => {
         <MenuItem as={NavLink} to={routes.submitRelease()}>
           Submit a release
         </MenuItem>
+        <MenuItem as={NavLink} to={routes.releases()}>
+          My releases
+        </MenuItem>
         <MenuItem
           as={NavLink}
           to={routes.changePassword({ id: currentUser.id })}
