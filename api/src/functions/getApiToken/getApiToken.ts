@@ -1,3 +1,17 @@
+/**
+ * This file contains the implementation of the `getApiToken` function, which is a serverless function
+ * responsible for refreshing API tokens and storing them in the database.
+ *
+ * The function is triggered by an HTTP request and performs the following steps:
+ * 1. Checks if the request is authorized by comparing the `x-api-key` header with the `WEBSITE_API_KEY` environment variable.
+ * 2. Retrieves the refresh token from the request header, or falls back to the latest token stored in the database or the `AUDIOSALAD_REFRESH_TOKEN` environment variable.
+ * 3. Sends a request to the AudioSalad API to fetch new access and refresh tokens using the provided refresh token.
+ * 4. If the refresh token is expired, sends an email notification to the admin.
+ * 5. Stores the new tokens in the database.
+ * 6. Returns a response indicating the success or failure of the token refresh operation.
+ *
+ */
+
 import { fetch } from '@whatwg-node/fetch'
 import type { APIGatewayEvent, Context } from 'aws-lambda'
 import { addSeconds } from 'date-fns'
@@ -24,7 +38,11 @@ import { logger } from 'src/lib/logger'
  * function, and execution environment.
  */
 
-// Check if the token is expired
+/**
+ * Checks if the token has expired based on the provided expiry date.
+ * @param expiryDate The expiry date of the token.
+ * @returns True if the token has expired, false otherwise.
+ */
 function isTokenExpired(expiryDate: Date): boolean {
   const currentDate = new Date()
   return currentDate > expiryDate
