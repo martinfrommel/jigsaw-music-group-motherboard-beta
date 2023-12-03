@@ -11,6 +11,7 @@ import { db } from 'src/lib/db'
 export const getLabels: QueryResolvers['getLabels'] = async () => {
   const apiToken = await db.apiToken.findFirst({
     orderBy: { createdAt: 'desc' },
+    where: { accessTokenExpired: false },
   })
   const response = await fetch(`${process.env.AUDIOSALAD_API_ENDPOINT}/label`, {
     method: 'GET',

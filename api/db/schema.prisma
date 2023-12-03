@@ -81,5 +81,6 @@ model ApiToken {
   updatedAt        DateTime @updatedAt
   accessTokenExpiresAt       DateTime?
   refreshTokenExpiresAt      DateTime?
-  expired Boolean @default(false)
+  accessTokenExpired Boolean @default(false)
+  refreshTokenExpired Boolean @default(false)
 }

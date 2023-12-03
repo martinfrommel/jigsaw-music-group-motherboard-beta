@@ -26,7 +26,12 @@ export const beforeQuery = (props: ReleasesCellProps) => {
 }
 export const Loading = () => <Spinner />
 
-export const Empty = () => <EmptyCellAlert />
+export const Empty = () => (
+  <EmptyCellAlert
+    title={`There's nothing here yet...`}
+    alert={`Looks like you haven't submitted any releases.`}
+  />
+)
 
 export const Failure = ({ error }: CellFailureProps) => (
   <FailedToFetchData>{error.message}</FailedToFetchData>
