@@ -100,7 +100,7 @@ model Release {
   releaseDate         DateTime? // Optional field
   previouslyReleased  Boolean
   language            String
-  primaryGenre        primaryGenre 
+  primaryGenre        primaryGenre
   secondaryGenre      secondaryGenre?  // Optional field
   explicitLyrics      Boolean
   iscUpcCode         String
@@ -109,6 +109,7 @@ model Release {
   length              Int ?     // Assuming length is stored in seconds as an integer
   label               Label? @relation(fields: [labelId], references: [id])
   labelId             Int?
+
 }
 
 

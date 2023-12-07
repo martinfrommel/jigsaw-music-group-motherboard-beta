@@ -1,22 +1,11 @@
-// import { Release, formatXML } from '@ssh/audiosalad-xml'
-import { S3Client } from '@aws-sdk/client-s3'
-import {
-  GenreType,
-  Participant,
-  ParticipantRole,
-  Release,
-  ReleaseFormat,
-  Track,
-} from '@ssh/audiosalad-xml'
-import type {
-  QueryResolvers,
-  MutationResolvers,
-  CreateReleaseInput,
-} from 'types/graphql'
+import { PutObjectCommand } from '@aws-sdk/client-s3'
+import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
 import { ForbiddenError } from '@redwoodjs/graphql-server'
 
 import { db } from 'src/lib/db'
+import { prepareMetadataForAudioSalad } from 'src/lib/formatters/prepareMetadataForAudioSalad'
+import { initializeS3Client } from 'src/lib/s3Helpers/initializeS3Client'
 
 /**
  * Retrieves a list of releases.
@@ -91,7 +80,6 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
   const {
     metadata: {
       songTitle,
-      productTitle,
       artist,
       featuredArtist,
       previouslyReleased,
@@ -132,7 +120,6 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
       data: {
         ...otherFields,
         songTitle,
-        productTitle,
         artist,
         featuredArtist,
         previouslyReleased,
@@ -156,7 +143,34 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
       },
     })
 
-    return true
+    const payload = await prepareMetadataForAudioSalad(input)
+
+    const parts = input.AWSFolderKey.split('/')
+    const uploadsIndex = parts.indexOf('uploads')
+    let folder = parts.slice(uploadsIndex).join('/')
+
+    // Remove trailing slash if it exists
+    if (folder.endsWith('/')) {
+      folder = folder.slice(0, -1)
+    }
+
+    console.log('Folder: ' + folder)
+    const s3 = await initializeS3Client()
+
+    const params = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: `${folder}/metadata.xml`,
+      Body: payload,
+      ContentType: 'application/xml',
+    }
+
+    const response = await s3.send(new PutObjectCommand(params))
+    console.log(response.$metadata.httpStatusCode)
+
+    if (response.$metadata.httpStatusCode === 200) {
+      return true
+    }
+    return false
   } catch (e) {
     console.log(e)
     throw new Error('Error creating release')
@@ -209,81 +223,6 @@ export const deleteRelease: MutationResolvers['deleteRelease'] = ({
     })
   } catch (e) {
     console.log(e)
-    throw new Error('Error deleting release')
-  }
-}
-
-// Start custom logic related to AudioSalad
-
-export const prepareMetadataForAudioSalad = async (
-  releaseData: CreateReleaseInput
-) => {
-  const s3 = new S3Client({
-    region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-  })
-
-  try {
-    const {
-      metadata: {
-        songTitle,
-        artist,
-        featuredArtist,
-        productTitle,
-        primaryGenre,
-        secondaryGenre,
-        language,
-        explicitLyrics,
-        iscUpcCode,
-        pLine,
-        cLine,
-        label,
-      },
-      ...otherFields
-    } = releaseData
-
-    new Release({
-      metadataLanguage: 'en',
-      title: songTitle,
-      releaseFormat: ReleaseFormat.Single,
-      participants: [
-        new Participant({
-          role: ParticipantRole.MainArtist,
-          name: artist,
-          primary: true,
-        }),
-        ...(featuredArtist
-          ? [
-              new Participant({
-                role: ParticipantRole.FeaturedArtist,
-                name: featuredArtist,
-                primary: false,
-              }),
-            ]
-          : []),
-      ],
-      tracks: [
-        new Track({
-          title: productTitle,
-          genres: [
-            GenreType[primaryGenre],
-            ...(secondaryGenre ? [GenreType[secondaryGenre]] : []),
-          ],
-          audioLanguage: language,
-          advisory: explicitLyrics ? 'explicit' : 'clean',
-          isrc: iscUpcCode ? iscUpcCode : undefined,
-          pInfo: pLine,
-          cInfo: cLine,
-          trackNumber: 1,
-
-        }),
-      ],
-    }).xml()
-  } catch (e) {
-    console.log(e)
-    throw new Error('Error creating release')
+    throw new Error('Error deleting release' + e)
   }
 }

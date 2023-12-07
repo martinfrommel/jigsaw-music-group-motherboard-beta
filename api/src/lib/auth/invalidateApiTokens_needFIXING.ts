@@ -3,7 +3,7 @@ import { ApiToken } from 'types/graphql'
 
 import { db } from 'src/lib/db'
 
-import { sendEmail } from './emails/sendEmail'
+import { sendEmail } from '../emails/sendEmail'
 
 export async function invalidateApiTokens() {
   try {
