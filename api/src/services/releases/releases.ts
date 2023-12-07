@@ -1,5 +1,18 @@
 // import { Release, formatXML } from '@ssh/audiosalad-xml'
-import type { QueryResolvers, MutationResolvers } from 'types/graphql'
+import { S3Client } from '@aws-sdk/client-s3'
+import {
+  GenreType,
+  Participant,
+  ParticipantRole,
+  Release,
+  ReleaseFormat,
+  Track,
+} from '@ssh/audiosalad-xml'
+import type {
+  QueryResolvers,
+  MutationResolvers,
+  CreateReleaseInput,
+} from 'types/graphql'
 
 import { ForbiddenError } from '@redwoodjs/graphql-server'
 
@@ -202,6 +215,75 @@ export const deleteRelease: MutationResolvers['deleteRelease'] = ({
 
 // Start custom logic related to AudioSalad
 
-// export const prepareMetadataForAudioSalad = async (releaseData) => {
+export const prepareMetadataForAudioSalad = async (
+  releaseData: CreateReleaseInput
+) => {
+  const s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  })
 
-// }
+  try {
+    const {
+      metadata: {
+        songTitle,
+        artist,
+        featuredArtist,
+        productTitle,
+        primaryGenre,
+        secondaryGenre,
+        language,
+        explicitLyrics,
+        iscUpcCode,
+        pLine,
+        cLine,
+        label,
+      },
+      ...otherFields
+    } = releaseData
+
+    new Release({
+      metadataLanguage: 'en',
+      title: songTitle,
+      releaseFormat: ReleaseFormat.Single,
+      participants: [
+        new Participant({
+          role: ParticipantRole.MainArtist,
+          name: artist,
+          primary: true,
+        }),
+        ...(featuredArtist
+          ? [
+              new Participant({
+                role: ParticipantRole.FeaturedArtist,
+                name: featuredArtist,
+                primary: false,
+              }),
+            ]
+          : []),
+      ],
+      tracks: [
+        new Track({
+          title: productTitle,
+          genres: [
+            GenreType[primaryGenre],
+            ...(secondaryGenre ? [GenreType[secondaryGenre]] : []),
+          ],
+          audioLanguage: language,
+          advisory: explicitLyrics ? 'explicit' : 'clean',
+          isrc: iscUpcCode ? iscUpcCode : undefined,
+          pInfo: pLine,
+          cInfo: cLine,
+          trackNumber: 1,
+
+        }),
+      ],
+    }).xml()
+  } catch (e) {
+    console.log(e)
+    throw new Error('Error creating release')
+  }
+}

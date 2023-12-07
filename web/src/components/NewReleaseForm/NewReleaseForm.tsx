@@ -21,9 +21,12 @@ import { toast } from '@redwoodjs/web/dist/toast'
 
 import { useAuth } from 'src/auth'
 import GetLabelsCell from 'src/components/GetLabelsCell/'
+import {
+  Genre as PrimaryGenre,
+  SubGenre as SecondaryGenre,
+} from 'src/lib/genres.enum'
 import { LanguageList } from 'src/lib/languageList'
 
-import { PrimaryGenre, SecondaryGenre } from '../../lib/genreList'
 import { ReleaseSchema } from '../../lib/releaseSchema'
 import ArtworkUpload from '../ArtworkUpload/ArtworkUpload'
 import AudioUpload from '../AudioUpload/AudioUpload'
@@ -47,8 +50,8 @@ interface FormValues {
     id: string
     name: string
   }
-  primaryGenre: string
-  secondaryGenre: string | undefined
+  primaryGenre: keyof typeof PrimaryGenre
+  secondaryGenre?: keyof typeof SecondaryGenre
   explicitLyrics: boolean
   iscUpcCode: string
   pLine: string
@@ -360,17 +363,13 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       <Select
                         placeholder="Select a primary genre"
                         name="primaryGenre"
-                        onChange={(e) => {
-                          props.handleChange(e)
-                          // Reset secondary genre when primary changes
-                          props.setFieldValue('secondaryGenre', '')
-                        }}
+                        onChange={props.handleChange}
                         onBlur={props.handleBlur}
                         value={props.values.primaryGenre}
                       >
-                        {PrimaryGenre.map((genre) => (
-                          <option key={genre} value={genre}>
-                            {genre}
+                        {Object.entries(PrimaryGenre).map(([key, value]) => (
+                          <option key={key} value={key}>
+                            {value}
                           </option>
                         ))}
                       </Select>
@@ -385,9 +384,6 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         ml={4}
                         flex={1}
                         isInvalid={!!props.errors?.secondaryGenre}
-                        isDisabled={
-                          !SecondaryGenre[props.values.primaryGenre]?.length
-                        }
                       >
                         <FormLabel>Secondary Genre</FormLabel>
                         <Select
@@ -397,10 +393,10 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                           value={props.values.secondaryGenre}
                           placeholder="Select a secondary genre"
                         >
-                          {SecondaryGenre[props.values.primaryGenre]?.map(
-                            (subGenre) => (
-                              <option key={subGenre} value={subGenre}>
-                                {subGenre}
+                          {Object.entries(SecondaryGenre).map(
+                            ([key, value]) => (
+                              <option key={key} value={key}>
+                                {value}
                               </option>
                             )
                           )}

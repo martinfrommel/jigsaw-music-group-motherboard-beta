@@ -1,4 +1,48 @@
 export const schema = gql`
+  enum PrimaryGenre {
+    Alternative
+    Blues
+    ChildrensMusic
+    Classical
+    Comedy
+    Country
+    Dance
+    Electronic
+    HipHopRap
+    Holiday
+    Jazz
+    Latino
+    NewAge
+    Pop
+    RB
+    Reggae
+    Rock
+    SingerSongwriter
+    Soundtrack
+    World
+  }
+
+  enum SecondaryGenre {
+    AlternativeIndieRock
+    DanceBreakbeat
+    DanceElectroHouse
+    DanceHouse
+    DanceTechno
+    ElectronicAmbient
+    ElectronicElectronica
+    ElectronicExperimental
+    HipHopRapAlternativeRap
+    HolidayChristmas
+    LatinRegionalMexicano
+    LatinSalsa
+    PopAdultContemporary
+    PopKPop
+    PopPopRock
+    PopSoftRock
+    RBSoulFunk
+    RockMetal
+    WorldAfroBeat
+  }
   type Release {
     id: Int!
     userId: Int!
@@ -12,8 +56,8 @@ export const schema = gql`
     releaseDate: DateTime
     previouslyReleased: Boolean!
     language: String!
-    primaryGenre: String!
-    secondaryGenre: String
+    primaryGenre: PrimaryGenre!
+    secondaryGenre: SecondaryGenre
     explicitLyrics: Boolean!
     iscUpcCode: String!
     pLine: String
@@ -35,6 +79,8 @@ export const schema = gql`
     releases: [Release!]! @requireAuth(roles: ["admin", "moderator"])
     release(id: Int!, userId: Int!): Release @requireAuth
     releasesPerUser(userId: Int!): [Release!]! @requireAuth
+    getPrimaryGenres: [PrimaryGenre!]! @requireAuth
+    getSecondaryGenres: [SecondaryGenre!]! @requireAuth
   }
 
   input CreateReleaseInput {
@@ -53,8 +99,8 @@ export const schema = gql`
     releaseDate: DateTime
     previouslyReleased: Boolean!
     language: String!
-    primaryGenre: String!
-    secondaryGenre: String
+    primaryGenre: PrimaryGenre!
+    secondaryGenre: SecondaryGenre
     explicitLyrics: Boolean!
     iscUpcCode: String
     pLine: String
@@ -77,8 +123,8 @@ export const schema = gql`
     releaseDate: DateTime
     previouslyReleased: Boolean
     language: String
-    primaryGenre: String
-    secondaryGenre: String
+    primaryGenre: PrimaryGenre
+    secondaryGenre: SecondaryGenre
     explicitLyrics: Boolean
     iscUpcCode: String
     pLine: String

@@ -17,6 +17,51 @@ enum Role {
   moderator
 }
 
+enum primaryGenre {
+  Alternative
+  Blues
+  ChildrensMusic
+  Classical
+  Comedy
+  Country
+  Dance
+  Electronic
+  HipHopRap
+  Holiday
+  Jazz
+  Latino
+  NewAge
+  Pop
+  RB
+  Reggae
+  Rock
+  SingerSongwriter
+  Soundtrack
+  World
+}
+
+enum secondaryGenre {
+  AlternativeIndieRock
+  DanceBreakbeat
+  DanceElectroHouse
+  DanceHouse
+  DanceTechno
+  ElectronicAmbient
+  ElectronicElectronica
+  ElectronicExperimental
+  HipHopRapAlternativeRap
+  HolidayChristmas
+  LatinRegionalMexicano
+  LatinSalsa
+  PopAdultContemporary
+  PopKPop
+  PopPopRock
+  PopSoftRock
+  RBSoulFunk
+  RockMetal
+  WorldAfroBeat
+}
+
 model User {
   id             Int       @id @default(autoincrement())
   createdAt      DateTime @default(now())
@@ -54,9 +99,9 @@ model Release {
   featuredArtist      String?  // Optional field
   releaseDate         DateTime? // Optional field
   previouslyReleased  Boolean
-  language            String   // Assuming language is stored as a string, you can adjust as needed
-  primaryGenre        String   // Assuming genre is stored as a string, you can adjust as needed
-  secondaryGenre      String?  // Optional field
+  language            String
+  primaryGenre        primaryGenre 
+  secondaryGenre      secondaryGenre?  // Optional field
   explicitLyrics      Boolean
   iscUpcCode         String
   pLine               String?  // Optional field
