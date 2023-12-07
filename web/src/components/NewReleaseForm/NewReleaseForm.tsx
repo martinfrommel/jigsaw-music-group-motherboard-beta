@@ -166,49 +166,6 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
             const { isValid, dirty } = props
             return (
               <>
-                {/* {currentUser.roles.match(/admin/) && (
-                  <Box
-                    bgColor={'red.700'}
-                    position={'fixed'}
-                    w={'full'}
-                    left={0}
-                    top={0}
-                    textAlign={'center'}
-                  >
-                    <Heading>Debug</Heading>
-                    <Table mb={8}>
-                      <thead>
-                        <tr>
-                          <th>Is valid?</th>
-                          <th>Is dirty?</th>
-                          <th>Is submitting?</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>{isValid ? 'Yes' : 'No'}</td>
-                          <td>{dirty ? 'Yes' : 'No'}</td>
-                          <td>{props.isSubmitting ? 'Yes' : 'No'}</td>
-                        </tr>
-                      </tbody>
-                    </Table>
-                    <hr />
-                    <Table mt={8}>
-                      <tbody>
-                        <tr>
-                          <td colSpan={3}>
-                            <pre>{JSON.stringify(props.values, null, 2)}</pre>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </Table>
-                    {props.errors && (
-                      <Box mt={8}>
-                        <pre>{JSON.stringify(props.errors, null, 2)}</pre>
-                      </Box>
-                    )}
-                  </Box>
-                )} */}
                 <form onSubmit={props.handleSubmit}>
                   <FormControl mt={12} isInvalid={!!props.errors?.songTitle}>
                     <FormLabel mt={4}>Song Title</FormLabel>
@@ -567,7 +524,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       isLoading={loading && props.isSubmitting}
                       colorScheme="green"
                       spinnerPlacement="start"
-                      isDisabled={!isValid || !dirty || submitting}
+                      isDisabled={!isValid || submitting}
                     >
                       Submit
                     </Button>
