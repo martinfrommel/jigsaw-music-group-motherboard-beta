@@ -1,8 +1,10 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3'
+import { fetch } from '@whatwg-node/fetch'
 import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
 import { ForbiddenError } from '@redwoodjs/graphql-server'
 
+import { scanForIngestion } from 'src/lib/audioSaladHelpers'
 import { db } from 'src/lib/db'
 import { prepareMetadataForAudioSalad } from 'src/lib/formatters/prepareMetadataForAudioSalad'
 import { initializeS3Client } from 'src/lib/s3Helpers/initializeS3Client'
@@ -164,13 +166,19 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
       ContentType: 'application/xml',
     }
 
-    const response = await s3.send(new PutObjectCommand(params))
-    console.log(response.$metadata.httpStatusCode)
+    const s3Response = await s3.send(new PutObjectCommand(params))
+    console.log(
+      'Response from S3 upload: ' + s3Response.$metadata.httpStatusCode
+    )
 
-    if (response.$metadata.httpStatusCode === 200) {
-      return true
-    }
-    return false
+    const audioSaladScan = scanForIngestion({
+      s3bucket: process.env.AWS_S3_BUCKET_NAME,
+      s3path: folder,
+    })
+    console.log(
+      'Response from AudioSalad scan: ' + (await audioSaladScan).status
+    )
+    return true
   } catch (e) {
     console.log(e)
     throw new Error('Error creating release')

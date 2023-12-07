@@ -64,8 +64,12 @@ cron.schedule('*/30 * * * *', async () => {
   }
 })
 
-// Main function
-
+/**
+ * Retrieves and refreshes the API token.
+ * @param event - The API Gateway event object.
+ * @param _context - The AWS Lambda context object.
+ * @returns The response object containing the status code and message.
+ */
 export const handler = async (event: APIGatewayEvent, _context: Context) => {
   logger.info(`${event.httpMethod} ${event.path}: getApiToken function`)
 
