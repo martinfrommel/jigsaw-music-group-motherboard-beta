@@ -8,13 +8,14 @@ export const schema = gql`
     Country
     Dance
     Electronic
+    Folk
     HipHopRap
     Holiday
     Jazz
-    Latino
+    Latin
     NewAge
     Pop
-    RB
+    RBSoul
     Reggae
     Rock
     SingerSongwriter
@@ -58,7 +59,7 @@ export const schema = gql`
     songArtworkReference: String!
     songTitle: String!
     productTitle: String
-    artist: String!
+    artist: [String!]!
     featuredArtist: String
     releaseDate: DateTime
     previouslyReleased: Boolean!
@@ -66,7 +67,7 @@ export const schema = gql`
     primaryGenre: PrimaryGenre!
     secondaryGenre: SecondaryGenre
     explicitLyrics: Boolean!
-    iscUpcCode: String!
+    isrcCode: String!
     pLine: String
     cLine: String
     length: Int
@@ -102,7 +103,7 @@ export const schema = gql`
   input MetadataInput {
     songTitle: String!
     productTitle: String
-    artist: String!
+    artist: [String!]!
     featuredArtist: String
     releaseDate: DateTime
     previouslyReleased: Boolean!
@@ -110,7 +111,7 @@ export const schema = gql`
     primaryGenre: PrimaryGenre!
     secondaryGenre: SecondaryGenre
     explicitLyrics: Boolean!
-    iscUpcCode: String
+    isrcCode: String
     pLine: String
     cLine: String
     label: LabelInput!
@@ -134,7 +135,7 @@ export const schema = gql`
     primaryGenre: PrimaryGenre
     secondaryGenre: SecondaryGenre
     explicitLyrics: Boolean
-    iscUpcCode: String
+    isrcCode: String
     pLine: String
     cLine: String
     length: Int

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { useMutation } from '@apollo/client'
-import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons'
+import { AddIcon, CheckCircleIcon, InfoIcon, MinusIcon } from '@chakra-ui/icons'
 import {
   Box,
   Flex,
@@ -13,6 +13,7 @@ import {
   FormHelperText,
   Icon,
   ButtonGroup,
+  IconButton,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
 import { Formik } from 'formik'
@@ -27,7 +28,7 @@ import {
 } from 'src/lib/genres.enum'
 import { LanguageList } from 'src/lib/languageList'
 
-import { ReleaseSchema } from '../../lib/releaseSchema'
+import { ReleaseSchema } from '../../lib/validation/releaseSchema'
 import ArtworkUpload from '../ArtworkUpload/ArtworkUpload'
 import AudioUpload from '../AudioUpload/AudioUpload'
 
@@ -41,7 +42,7 @@ interface FormValues {
   AWSFolderKey: string
   songTitle: string
   productTitle: string
-  artist: string
+  artist: string[]
   featuredArtist: string
   // releaseDate: string
   previouslyReleased: boolean
@@ -53,7 +54,7 @@ interface FormValues {
   primaryGenre: keyof typeof PrimaryGenre
   secondaryGenre?: keyof typeof SecondaryGenre
   explicitLyrics: boolean
-  iscUpcCode: string
+  isrcCode: string
   pLine: string
   cLine: string
 }
@@ -66,23 +67,31 @@ const CREATE_RELEASE_MUTATION = gql`
 
 const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
   const [createRelease, { loading }] = useMutation(CREATE_RELEASE_MUTATION)
+
   const [isFeaturedArtistChecked, setIsFeaturedArtistChecked] = useState(false)
   const [uploadedAudio, setUploadedAudio] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const { currentUser } = useAuth()
   const [resetChildren, setResetChildren] = useState(false)
+  const [isValidationClicked, setIsValidationClicked] = useState(false)
 
+  const { currentUser } = useAuth()
+
+  /**
+   * Handles the change event for the audio file input.
+   * @param {File} file - The selected audio file.
+   * @returns {void}
+   */
   const handleAudioChange = (file) => {
     setUploadedAudio(file)
     // setAudioDuration(duration)
   }
 
-  useEffect(() => {
-    if (resetChildren) {
-      setResetChildren(false)
-    }
-  }, [resetChildren])
-
+  /**
+   * Handles the form submission for creating a new release.
+   *
+   * @param data - The form values.
+   * @returns The data of the created release.
+   */
   const onSubmit = async (data: FormValues) => {
     setSubmitting(true)
     try {
@@ -147,7 +156,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
             AWSFolderKey: undefined as unknown as string,
             songTitle: '',
             productTitle: '',
-            artist: '',
+            artist: [''],
             featuredArtist: '',
             // releaseDate: '',
             label: {
@@ -159,7 +168,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
             primaryGenre: undefined as unknown as keyof typeof PrimaryGenre,
             secondaryGenre: undefined as unknown as keyof typeof SecondaryGenre,
             explicitLyrics: false,
-            iscUpcCode: '',
+            isrcCode: '',
             pLine: '',
             cLine: '',
           }}
@@ -168,9 +177,26 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
           validateOnBlur={false}
           validateOnChange={false}
           validateOnMount={false}
+          enableReinitialize={true}
         >
           {(props) => {
-            const { isValid, dirty } = props
+            const handleFieldValidation = (fieldName) => {
+              props.validateField(fieldName)
+            }
+
+            // Function to add an artist
+            const addArtist = () => {
+              const newArtists = [...props.values.artist, '']
+              props.setFieldValue('artist', newArtists)
+            }
+
+            // Function to remove an artist
+            const removeArtist = (index) => {
+              const newArtists = [...props.values.artist]
+              newArtists.splice(index, 1)
+              props.setFieldValue('artist', newArtists)
+            }
+
             return (
               <>
                 <form onSubmit={props.handleSubmit}>
@@ -180,7 +206,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       type="text"
                       name="songTitle"
                       onChange={props.handleChange}
-                      onBlur={props.handleBlur}
+                      onBlur={() => handleFieldValidation('songTitle')}
                       value={props.values.songTitle}
                       placeholder="The title of your song"
                     />
@@ -195,16 +221,39 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                     my={8}
                   >
                     <FormControl flex={1} isInvalid={!!props.errors?.artist}>
-                      <FormLabel>Artist</FormLabel>
-                      <Input
-                        type="text"
-                        name="artist"
-                        onChange={props.handleChange}
-                        onBlur={props.handleBlur}
-                        value={props.values.artist}
-                        isInvalid={!!props.errors?.artist}
-                        placeholder="Your artist name"
-                      />
+                      <FormLabel>Primary artists</FormLabel>
+                      <FormHelperText mb={2}>
+                        <InfoIcon /> The first artist is the main one.
+                      </FormHelperText>
+                      {props.values.artist.map((artist, index) => (
+                        <Flex key={index} gap={2} mt={index !== 0 ? 4 : 0}>
+                          <IconButton
+                            aria-label="Remove artist"
+                            icon={<MinusIcon />}
+                            onClick={() => removeArtist(index)}
+                            key={index}
+                            isDisabled={index === 0}
+                          />
+                          <Input
+                            type="text"
+                            name={`artist[${index}]`}
+                            onChange={props.handleChange}
+                            onBlur={() => handleFieldValidation('artist')}
+                            value={artist}
+                            placeholder="Primary artist name"
+                          />
+                        </Flex>
+                      ))}
+                      <Button
+                        mt={2}
+                        size={'sm'}
+                        w={'100%'}
+                        aria-label="Add an artist"
+                        leftIcon={<AddIcon />}
+                        onClick={addArtist}
+                      >
+                        Add an artist
+                      </Button>
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />
                         {props.errors?.artist}
@@ -239,7 +288,9 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                             type="text"
                             name="featuredArtist"
                             onChange={props.handleChange}
-                            onBlur={props.handleBlur}
+                            onBlur={() =>
+                              handleFieldValidation('featuredArtist')
+                            }
                             value={props.values.featuredArtist}
                             placeholder="Featured artist name"
                           />
@@ -263,7 +314,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         props.setFieldValue('label.id', labelId)
                         props.setFieldValue('label.name', labelName)
                       }}
-                      onBlur={props.handleBlur}
+                      onBlur={() => handleFieldValidation('label')}
                     />
                     <FormErrorMessage>
                       <FormErrorIcon />
@@ -284,7 +335,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         type="date"
                         name="releaseDate"
                         onChange={props.handleChange}
-                        onBlur={props.handleBlur}
+                        onBlur={() => handleFieldValidation('releaseDate')}
                         value={props.values.releaseDate}
                         placeholder="Choose a release date"
                       />
@@ -298,7 +349,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       <Select
                         name="language"
                         onChange={props.handleChange}
-                        onBlur={props.handleBlur}
+                        onBlur={() => handleFieldValidation('language')}
                         value={props.values.language}
                         placeholder="Select a language"
                       >
@@ -328,7 +379,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         placeholder="Select a primary genre"
                         name="primaryGenre"
                         onChange={props.handleChange}
-                        onBlur={props.handleBlur}
+                        onBlur={() => handleFieldValidation('primaryGenre')}
                         value={props.values.primaryGenre}
                       >
                         {Object.entries(PrimaryGenre).map(([key, value]) => (
@@ -353,7 +404,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         <Select
                           name="secondaryGenre"
                           onChange={props.handleChange}
-                          onBlur={props.handleBlur}
+                          onBlur={() => handleFieldValidation('secondaryGenre')}
                           value={props.values.secondaryGenre}
                           placeholder="Select a secondary genre"
                         >
@@ -372,19 +423,18 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       </FormControl>
                     </>
                   </Flex>
-                  <FormControl mt={4} isInvalid={!!props.errors?.iscUpcCode}>
-                    <FormLabel>ISC/UPC Code</FormLabel>
+                  <FormControl mt={4} isInvalid={!!props.errors?.isrcCode}>
+                    <FormLabel>ISRC Code</FormLabel>
                     <Input
                       type="text"
-                      name="iscUpcCode"
+                      name="isrcCode"
                       onChange={props.handleChange}
-                      onBlur={props.handleBlur}
-                      value={props.values.iscUpcCode}
-                      placeholder="Here goes the ISC/UPC code - if you have one..."
+                      value={props.values.isrcCode}
+                      placeholder="Here goes the ISRC code - if you have one..."
                     />
                     <FormErrorMessage minHeight={6}>
                       <FormErrorIcon />
-                      {props.errors?.iscUpcCode}
+                      {props.errors?.isrcCode}
                     </FormErrorMessage>
                   </FormControl>
                   <Flex>
@@ -394,7 +444,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         type="text"
                         name="pLine"
                         onChange={props.handleChange}
-                        onBlur={props.handleBlur}
+                        onBlur={() => handleFieldValidation('pLine')}
                         value={props.values.pLine}
                         placeholder="Add the ℗ Line here"
                       />
@@ -413,7 +463,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         type="text"
                         name="cLine"
                         onChange={props.handleChange}
-                        onBlur={props.handleBlur}
+                        onBlur={() => handleFieldValidation('cLine')}
                         value={props.values.cLine}
                         placeholder="Add the © line here"
                       />
@@ -433,7 +483,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       size={'lg'}
                       name="explicitLyrics"
                       onChange={props.handleChange}
-                      onBlur={props.handleBlur}
+                      onBlur={() => handleFieldValidation('explicitLyrics')}
                     >
                       Explicit lyrics?
                     </Checkbox>
@@ -443,14 +493,16 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       size={'lg'}
                       name="previouslyReleased"
                       onChange={props.handleChange}
-                      onBlur={props.handleBlur}
+                      onBlur={() => handleFieldValidation('previouslyReleased')}
                     >
                       Previously released?
                     </Checkbox>
                   </Flex>
                   <ArtworkUpload
                     shouldReset={resetChildren}
-                    handleBlur={props.handleBlur}
+                    handleBlur={() =>
+                      handleFieldValidation('songArtworkReference')
+                    }
                     handleChange={props.handleChange}
                     error={props.errors?.songArtworkReference}
                     user={currentUser}
@@ -467,7 +519,9 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                     </FormLabel>
                     <AudioUpload
                       shouldReset={resetChildren}
-                      onBlur={props.handleBlur}
+                      onBlur={() =>
+                        handleFieldValidation('songMasterReference')
+                      }
                       value={props.values.songMasterReference}
                       onAudioChange={handleAudioChange}
                       onUploadComplete={async (url, AWSFolderKey) => {
@@ -507,7 +561,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       type="reset"
                       variant="outline"
                       colorScheme="red"
-                      isDisabled={!dirty || submitting}
+                      isDisabled={!props.dirty || submitting}
                       onClick={() => {
                         props.resetForm()
                         props.setErrors({})
@@ -525,8 +579,9 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         props
                           .validateForm()
                           .then(() => console.log('💂 Form Validated!'))
+                          .finally(() => setIsValidationClicked(true))
                       }}
-                      isDisabled={!dirty || submitting}
+                      isDisabled={!props.dirty || submitting}
                     >
                       Validate
                     </Button>
@@ -536,7 +591,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       isLoading={loading && props.isSubmitting}
                       colorScheme="green"
                       spinnerPlacement="start"
-                      isDisabled={!isValid || submitting || !dirty}
+                      isDisabled={!isValidationClicked}
                     >
                       Submit
                     </Button>

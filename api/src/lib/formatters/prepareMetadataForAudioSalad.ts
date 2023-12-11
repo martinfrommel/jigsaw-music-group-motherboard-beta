@@ -42,13 +42,16 @@ export const prepareMetadataForAudioSalad = async (
       metadataLanguage: 'en',
       title: releaseData.metadata.songTitle,
       releaseFormat: ReleaseFormat.Single,
-      displayArtist: releaseData.metadata.artist,
+      displayArtist: releaseData.metadata.artist[0],
       participants: [
-        new Participant({
-          role: ParticipantRole.MainArtist,
-          name: releaseData.metadata.artist,
-          primary: true,
-        }),
+        ...releaseData.metadata.artist.map(
+          (artist, index) =>
+            new Participant({
+              role: ParticipantRole.MainArtist,
+              name: artist,
+              primary: index === 0 ? true : false,
+            })
+        ),
         ...(releaseData.metadata.featuredArtist
           ? [
               new Participant({
@@ -70,8 +73,8 @@ export const prepareMetadataForAudioSalad = async (
           ],
           audioLanguage: releaseData.metadata.language,
           advisory: releaseData.metadata.explicitLyrics ? 'explicit' : 'clean',
-          isrc: releaseData.metadata.iscUpcCode
-            ? releaseData.metadata.iscUpcCode
+          isrc: releaseData.metadata.isrcCode
+            ? releaseData.metadata.isrcCode
             : undefined,
           pInfo: releaseData.metadata.pLine,
           cInfo: releaseData.metadata.cLine,

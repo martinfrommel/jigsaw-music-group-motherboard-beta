@@ -143,7 +143,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
       primaryGenre,
       secondaryGenre,
       explicitLyrics,
-      iscUpcCode,
+      isrcCode,
       pLine,
       cLine,
       label,
@@ -183,7 +183,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
         primaryGenre,
         secondaryGenre,
         explicitLyrics,
-        iscUpcCode,
+        isrcCode,
         pLine,
         cLine,
         label: {

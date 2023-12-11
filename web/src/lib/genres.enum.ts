@@ -4,8 +4,7 @@
 export enum Genre {
   Alternative = 'Alternative',
   Blues = 'Blues',
-  Children = 'Children',
-  ChristianGospel = 'Christian & Gospel',
+  ChildrensMusic = 'Children',
   Classical = 'Classical',
   Country = 'Country',
   Dance = 'Dance',
@@ -22,6 +21,7 @@ export enum Genre {
   Reggae = 'Reggae',
   Rock = 'Rock',
   SingerSongwriter = 'Singer/Songwriter',
+  Soundtrack = 'Soundtrack',
   World = 'World',
 }
 

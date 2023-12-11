@@ -24,6 +24,51 @@ enum ingestionStatus {
   error
 }
 
+  enum PrimaryGenre {
+    Alternative
+    Blues
+    ChildrensMusic
+    Classical
+    Comedy
+    Country
+    Dance
+    Electronic
+    Folk
+    HipHopRap
+    Holiday
+    Jazz
+    Latin
+    NewAge
+    Pop
+    RBSoul
+    Reggae
+    Rock
+    SingerSongwriter
+    Soundtrack
+    World
+  }
+
+  enum SecondaryGenre {
+    AlternativeIndieRock
+    DanceBreakbeat
+    DanceElectroHouse
+    DanceHouse
+    DanceTechno
+    ElectronicAmbient
+    ElectronicElectronica
+    ElectronicExperimental
+    HipHopRapAlternativeRap
+    HolidayChristmas
+    LatinRegionalMexicano
+    LatinSalsa
+    PopAdultContemporary
+    PopKPop
+    PopPopRock
+    PopSoftRock
+    RBSoulFunk
+    RockMetal
+    WorldAfroBeat
+  }
 
 model User {
   id             Int       @id @default(autoincrement())
@@ -58,15 +103,15 @@ model Release {
   updatedAt           DateTime @updatedAt
   songTitle           String
   productTitle        String?  // Optional field
-  artist              String
+  artist              String[]
   featuredArtist      String?  // Optional field
   releaseDate         DateTime? // Optional field
   previouslyReleased  Boolean
   language            String
-  primaryGenre        String
-  secondaryGenre      String?  // Optional field
+  primaryGenre        PrimaryGenre
+  secondaryGenre      SecondaryGenre?  // Optional field
   explicitLyrics      Boolean
-  iscUpcCode         String
+  isrcCode            String
   pLine               String?  // Optional field
   cLine               String?  // Optional field
   length              Int ?     // Assuming length is stored in seconds as an integer
