@@ -22,7 +22,7 @@ export const releases: QueryResolvers['releases'] = () => {
   // If the requested user is not the logged-in user and the logged-in user is not an admin
   if (currentUser.roles !== 'admin') {
     throw new ForbiddenError(
-      'You do not have the privileges to access this data.'
+      '⛔️ You do not have the privileges to access this data.'
     )
   }
   return db.release.findMany({
@@ -47,7 +47,7 @@ export const releasesPerUser: QueryResolvers['releasesPerUser'] = ({
   // If the requested user is not the logged-in user and the logged-in user is not an admin
   if (currentUser.roles !== 'admin') {
     throw new ForbiddenError(
-      'You do not have the privileges to access this data.'
+      '⛔️ You do not have the privileges to access this data.'
     )
   }
   return db.release.findMany({
@@ -64,7 +64,7 @@ export const release: QueryResolvers['release'] = ({ id, userId }) => {
     !context.currentUser.roles.includes('admin') ||
     context.currentUser.id !== userId
   ) {
-    throw new ForbiddenError('You do not have the privileges to do this.')
+    throw new ForbiddenError('⛔️ You do not have the privileges to do this.')
   }
   // Return the release
   return db.release.findUnique({
@@ -170,7 +170,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
 
     const s3Response = await s3.send(new PutObjectCommand(params))
     console.log(
-      'Response from S3 upload: ' + s3Response.$metadata.httpStatusCode
+      '📊 Response from S3 upload: ' + s3Response.$metadata.httpStatusCode
     )
 
     const audioSaladScan = scanForIngestion({
@@ -186,7 +186,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
     // )
 
     if ((await audioSaladScan).status === 200) {
-      console.log('Scan successful, changing ingestion status')
+      console.log('✅ Scan successful, changing ingestion status')
       changeIngestionStatus({
         status: 'processing',
         id: createdRelease.id,
@@ -194,7 +194,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
     }
 
     if ((await audioSaladScan).status !== 200) {
-      console.log('Scan failed, changing ingestion status')
+      console.log('⛔️ Scan failed, changing ingestion status')
       changeIngestionStatus({
         status: 'error',
         id: createdRelease.id,
@@ -204,7 +204,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
     return (await audioSaladScan).status
   } catch (e) {
     console.log(e)
-    throw new Error('Error creating release')
+    throw new Error('⛔️ Error creating release')
   }
 }
 
