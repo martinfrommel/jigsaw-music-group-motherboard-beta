@@ -127,7 +127,7 @@ export const schema = gql`
     songMasterReference: String
     songTitle: String
     productTitle: String
-    artist: String
+    artist: [String]
     featuredArtist: String
     releaseDate: DateTime
     previouslyReleased: Boolean
@@ -139,6 +139,7 @@ export const schema = gql`
     pLine: String
     cLine: String
     length: Int
+    ingestionStatus: IngestionStatus
   }
 
   type Mutation {

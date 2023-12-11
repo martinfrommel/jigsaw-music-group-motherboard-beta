@@ -24,13 +24,7 @@ export const scanForIngestion = async ({
     orderBy: { createdAt: 'desc' },
     where: { accessTokenExpired: false },
   })
-  const parsedData = JSON.stringify({
-    s3bucket,
-    s3path,
-    accessToken,
-    s3id,
-    s3key,
-  })
+
   try {
     const response = await fetch(
       `${process.env.AUDIOSALAD_API_ENDPOINT}/ingest/scan`,
@@ -52,7 +46,6 @@ export const scanForIngestion = async ({
     return {
       status: response.status,
       body: await response.json(),
-      data: parsedData,
     }
   } catch (e) {
     console.log(e)
@@ -140,46 +133,27 @@ export const initiateIngestion = async ({ releaseId }) => {
         }),
       }
     )
+    const responseBody = await response.json()
     console.log('🦆 Got a response for release of id: ' + releaseId)
     console.log('🦆 Response from AudioSalad: ' + response.status)
 
     if (response.status !== 200) {
       console.log('⛔️ Ingestion failed, changing ingestion status')
-      changeIngestionStatus({
-        status: 'error',
-        id: releaseId,
-      })
-      return {
-        status: response.status,
-        body: await response.json(),
-      }
+      await changeIngestionStatus({ status: 'error', id: releaseId })
+      return { status: response.status, body: responseBody }
     }
 
-    const responseBody = await response.json()
     const ingestId = responseBody.ingest_id
-
     console.log('🦆 Ingestion ID received: ' + ingestId)
-    await db.release.update({
-      data: { ingestId: ingestId },
-      where: { id: releaseId },
-    })
+    await db.release.update({ data: { ingestId }, where: { id: releaseId } })
 
     console.log('✅ Ingestion successful, changing ingestion status')
-    changeIngestionStatus({
-      status: 'processing',
-      id: releaseId,
-    })
-    return {
-      status: response.status,
-      body: await response.json(),
-    }
+    await changeIngestionStatus({ status: 'complete', id: releaseId })
+    return { status: response.status, body: responseBody }
   } catch (e) {
-    console.log(e)
-    changeIngestionStatus({
-      status: 'error',
-      id: releaseId,
-    })
-    throw new Error('⛔️ Error ingesting release')
+    console.error(e)
+    await changeIngestionStatus({ status: 'error', id: releaseId })
+    throw new Error('⛔️ Error ingesting release: ' + e.message)
   }
 }
 
@@ -204,10 +178,11 @@ export const getIngestionStatus = async ({ id }) => {
     }
   )
 
+  const responseBody = await response.json()
   console.log('🦆 Got a response for release of id: ' + id)
-  console.log('🦆 Response from AudioSalad: ' + response.status)
+  console.log('🦆 Response from AudioSalad: ' + response.status + response.body)
 
-  if (response.status !== 200) {
+  if (!response.ok) {
     console.log('⛔️ Check failed, changing ingestion status')
     changeIngestionStatus({
       status: 'error',
@@ -216,8 +191,5 @@ export const getIngestionStatus = async ({ id }) => {
     throw new SyntaxError('Error checking ingestion status')
   }
 
-  return {
-    status: response.status,
-    body: await response.json(),
-  }
+  return responseBody.status
 }

@@ -1,11 +1,14 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
-import { ForbiddenError, UserInputError } from '@redwoodjs/graphql-server'
+import {
+  ForbiddenError,
+  UserInputError,
+  ValidationError,
+} from '@redwoodjs/graphql-server'
 
 import {
   changeIngestionStatus,
-  getIngestionStatus,
   initiateIngestion,
   scanForIngestion,
 } from 'src/lib/audioSaladHelpers'
@@ -32,30 +35,35 @@ export const releases: QueryResolvers['releases'] = async () => {
     orderBy: { createdAt: 'desc' },
   })
 
-  // Fetch the latest ingestion status for releases that are being ingested
-  for (const release of releases) {
-    if (release.ingestionStatus === 'processing') {
-      try {
-        const ingestionStatus = await getIngestionStatus({ id: release.id })
+  // // Fetch the latest ingestion status for releases that are being ingested
+  // for (const release of releases) {
+  //   if (release.ingestionStatus === 'processing') {
+  //     try {
+  //       const ingestionStatus = await getIngestionStatus({ id: release.id })
 
-        // Update the ingestion status in the database
-        await db.release.update({
-          where: { id: release.id },
-          data: { ingestionStatus: ingestionStatus.body.status },
-        })
-      } catch (e) {
-        console.error('⛔️ Error fetching ingestion status:', e)
-      }
-    }
-  }
+  //       if (ingestionStatus === 'complete') {
+  //         // Change the ingestion status to 'complete'
+  //         changeIngestionStatus({ status: 'complete', id: release.id })
+  //       }
 
-  // Refresh the releases data
-  const updatedReleases = await db.release.findMany({
-    include: { label: true, user: true },
-    orderBy: { createdAt: 'desc' },
-  })
+  //       if (ingestionStatus === 'error') {
+  //         // Change the ingestion status to 'error'
+  //         changeIngestionStatus({ status: 'error', id: release.id })
+  //       }
 
-  return updatedReleases
+  //       if (ingestionStatus === 'processing') {
+  //         // Change the ingestion status to 'pending'
+  //         changeIngestionStatus({ status: 'processing', id: release.id })
+  //       }
+
+  //       // Update the ingestion status in the database
+  //     } catch (e) {
+  //       console.error('⛔️ Error fetching ingestion status:', e)
+  //     }
+  //   }
+  // }
+
+  return releases
 }
 
 /**
@@ -83,30 +91,7 @@ export const releasesPerUser: QueryResolvers['releasesPerUser'] = async ({
     orderBy: { createdAt: 'desc' },
   })
 
-  // Fetch the latest ingestion status for releases that are being ingested
-  for (const release of releases) {
-    if (release.ingestionStatus === 'processing') {
-      try {
-        const ingestionStatus = await getIngestionStatus({ id: release.id })
-
-        // Update the ingestion status in the database
-        await db.release.update({
-          where: { id: release.id },
-          data: { ingestionStatus: ingestionStatus.body.status },
-        })
-      } catch (e) {
-        console.error('⛔️ Error fetching ingestion status:', e)
-      }
-    }
-  }
-
-  // Refresh the releases data
-  const updatedReleases = await db.release.findMany({
-    include: { label: true, user: true },
-    orderBy: { createdAt: 'desc' },
-  })
-
-  return updatedReleases
+  return releases
 }
 
 export const release: QueryResolvers['release'] = ({ id, userId }) => {
@@ -324,9 +309,11 @@ export const runIngestion: MutationResolvers['runIngestion'] = async ({
   id,
   userId,
 }) => {
-  // Check if the user is an admin or the owner of the release
+  if (!context.currentUser) {
+    throw new ForbiddenError('⛔️ You are not authenticated.')
+  }
+
   if (
-    !context.currentUser ||
     !context.currentUser.roles.includes('admin') ||
     context.currentUser.id !== userId
   ) {
@@ -334,44 +321,32 @@ export const runIngestion: MutationResolvers['runIngestion'] = async ({
   }
 
   try {
-    const release = await db.release.findUnique({
-      where: { id },
-    })
-
+    const release = await db.release.findUnique({ where: { id } })
     if (!release) {
       throw new UserInputError('Release not found')
     }
 
-    const audioSaladScan = scanForIngestion({
+    const audioSaladScanResult = await scanForIngestion({
       s3bucket: `${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`,
       s3path: `/${release.AWSFolderKey}/`,
     })
 
-    if ((await audioSaladScan).status !== 200) {
+    if (audioSaladScanResult.status !== 200) {
       console.log('⛔️ Scan failed, changing ingestion status')
-      changeIngestionStatus({
-        status: 'error',
-        id: release.id,
-      })
-      throw new SyntaxError('Scan failed:' + (await audioSaladScan).body)
+      await changeIngestionStatus({ status: 'error', id: release.id })
+      throw new ValidationError('Scan failed: ' + audioSaladScanResult.body)
     }
 
-    const response = await initiateIngestion({
-      releaseId: release.id,
-    })
-
+    const response = await initiateIngestion({ releaseId: release.id })
     if (response.status !== 200) {
       console.log('⛔️ Ingestion failed, changing ingestion status')
-      changeIngestionStatus({
-        status: 'error',
-        id: release.id,
-      })
-      throw new SyntaxError('Ingestion failed:' + response.body)
+      await changeIngestionStatus({ status: 'error', id: release.id })
+      throw new ValidationError('Ingestion failed: ' + response.body)
     }
 
     return release
   } catch (e) {
-    console.log(e)
-    throw new SyntaxError('Error running release ingestion' + e)
+    console.error(e)
+    throw new ValidationError('Error running release ingestion: ' + e.message)
   }
 }

@@ -44,6 +44,8 @@ export const prepareMetadataForAudioSalad = async (
       releaseFormat: ReleaseFormat.Single,
       displayArtist: releaseData.metadata.artist[0],
       releaseDate: new Date(releaseData.metadata.releaseDate),
+      pInfo: releaseData.metadata.pLine,
+      cInfo: releaseData.metadata.cLine,
       participants: [
         ...releaseData.metadata.artist.map(
           (artist, index) =>
@@ -77,8 +79,7 @@ export const prepareMetadataForAudioSalad = async (
           isrc: releaseData.metadata.isrcCode
             ? releaseData.metadata.isrcCode
             : undefined,
-          pInfo: releaseData.metadata.pLine,
-          cInfo: releaseData.metadata.cLine,
+
           trackNumber: 1,
           assets: [
             new Asset({
@@ -93,14 +94,6 @@ export const prepareMetadataForAudioSalad = async (
               md5Checksum: songMasterDetails.md5Checksum,
               fileName: songMasterDetails.fileName,
             }),
-            new Asset({
-              type: 'image',
-              format: 'jpg',
-              mimeType: songArtworkDetails.mimeType,
-              name: 'Cover Art',
-              md5Checksum: songArtworkDetails.md5Checksum,
-              fileName: songArtworkDetails.fileName,
-            }),
           ],
         }),
       ],
@@ -108,6 +101,16 @@ export const prepareMetadataForAudioSalad = async (
         name: releaseData.metadata.label.name,
         vendorLabelID: releaseData.metadata.label.id,
       }),
+      assets: [
+        new Asset({
+          type: 'image',
+          format: '.' + songArtworkDetails.fileName.split('.').pop(),
+          mimeType: songArtworkDetails.mimeType,
+          name: 'Cover Art',
+          md5Checksum: songArtworkDetails.md5Checksum,
+          fileName: songArtworkDetails.fileName,
+        }),
+      ],
     })
     console.log('✅ Release class instantiated...')
 
