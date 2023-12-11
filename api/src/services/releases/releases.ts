@@ -1,10 +1,9 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { fetch } from '@whatwg-node/fetch'
 import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
 import { ForbiddenError } from '@redwoodjs/graphql-server'
 
-import { scanForIngestion } from 'src/lib/audioSaladHelpers'
+import { changeIngestionStatus, scanForIngestion } from 'src/lib/audioSaladHelpers'
 import { db } from 'src/lib/db'
 import { prepareMetadataForAudioSalad } from 'src/lib/formatters/prepareMetadataForAudioSalad'
 import { initializeS3Client } from 'src/lib/s3Helpers/initializeS3Client'
@@ -117,8 +116,8 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
       labelId = newLabel.id // Use the id of the newly created label
     }
 
-    // Create the release with the appropriate labelId
-    await db.release.create({
+    // Create the release with the appropriate labelId and return its id
+    const createdRelease = await db.release.create({
       data: {
         ...otherFields,
         songTitle,
@@ -172,13 +171,34 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
     )
 
     const audioSaladScan = scanForIngestion({
-      s3bucket: process.env.AWS_S3_BUCKET_NAME,
-      s3path: folder,
+      s3bucket: `${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`,
+      s3path: `/${folder}/`,
     })
-    console.log(
-      'Response from AudioSalad scan: ' + (await audioSaladScan).status
-    )
-    return true
+    // console.log('Tried with data:' + (await audioSaladScan).data)
+    // console.log(
+    //   'Response from AudioSalad scan: ' +
+    //     (await audioSaladScan).status +
+    //     ' ' +
+    //     (await audioSaladScan).body
+    // )
+
+    if ((await audioSaladScan).status === 200) {
+      console.log('Scan successful, changing ingestion status')
+      changeIngestionStatus({
+        status: 'processing',
+        id: createdRelease.id,
+      })
+    }
+
+    if ((await audioSaladScan).status !== 200) {
+      console.log('Scan failed, changing ingestion status')
+      changeIngestionStatus({
+        status: 'error',
+        id: createdRelease.id,
+      })
+    }
+
+    return (await audioSaladScan).status
   } catch (e) {
     console.log(e)
     throw new Error('Error creating release')

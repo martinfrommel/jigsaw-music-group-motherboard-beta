@@ -32,6 +32,7 @@ const RELEASES_QUERY = gql`
         lastName
         id
       }
+      ingestionStatus
     }
   }
 `
@@ -67,6 +68,7 @@ const AdminAllReleasesPage = () => {
                 <Th>Label</Th>
                 <Th>Submitted by</Th>
                 <Th>Submitted at</Th>
+                <Th>Ingestion status</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -95,6 +97,7 @@ const AdminAllReleasesPage = () => {
                       minute: 'numeric',
                     })}
                   </Td>
+                  <Td></Td>
                 </Tr>
               ))}
             </Tbody>

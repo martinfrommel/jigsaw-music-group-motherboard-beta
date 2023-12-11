@@ -43,6 +43,13 @@ export const schema = gql`
     RockMetal
     WorldAfroBeat
   }
+
+  enum IngestionStatus {
+    pending
+    processing
+    complete
+    error
+  }
   type Release {
     id: Int!
     userId: Int!
@@ -68,6 +75,7 @@ export const schema = gql`
     user: User!
     createdAt: DateTime
     updatedAt: DateTime
+    ingestionStatus: IngestionStatus!
   }
 
   type Label {
@@ -133,7 +141,7 @@ export const schema = gql`
   }
 
   type Mutation {
-    createRelease(input: CreateReleaseInput!): Boolean! @requireAuth
+    createRelease(input: CreateReleaseInput!): Int! @requireAuth
     updateRelease(id: Int!, input: UpdateReleaseInput!): Release!
       @requireAuth(roles: ["admin"])
     deleteRelease(id: Int!, userId: Int!): Release!

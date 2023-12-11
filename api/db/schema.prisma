@@ -17,50 +17,13 @@ enum Role {
   moderator
 }
 
-enum primaryGenre {
-  Alternative
-  Blues
-  ChildrensMusic
-  Classical
-  Comedy
-  Country
-  Dance
-  Electronic
-  HipHopRap
-  Holiday
-  Jazz
-  Latino
-  NewAge
-  Pop
-  RB
-  Reggae
-  Rock
-  SingerSongwriter
-  Soundtrack
-  World
+enum ingestionStatus {
+  pending
+  processing
+  complete
+  error
 }
 
-enum secondaryGenre {
-  AlternativeIndieRock
-  DanceBreakbeat
-  DanceElectroHouse
-  DanceHouse
-  DanceTechno
-  ElectronicAmbient
-  ElectronicElectronica
-  ElectronicExperimental
-  HipHopRapAlternativeRap
-  HolidayChristmas
-  LatinRegionalMexicano
-  LatinSalsa
-  PopAdultContemporary
-  PopKPop
-  PopPopRock
-  PopSoftRock
-  RBSoulFunk
-  RockMetal
-  WorldAfroBeat
-}
 
 model User {
   id             Int       @id @default(autoincrement())
@@ -100,8 +63,8 @@ model Release {
   releaseDate         DateTime? // Optional field
   previouslyReleased  Boolean
   language            String
-  primaryGenre        primaryGenre
-  secondaryGenre      secondaryGenre?  // Optional field
+  primaryGenre        String
+  secondaryGenre      String?  // Optional field
   explicitLyrics      Boolean
   iscUpcCode         String
   pLine               String?  // Optional field
@@ -109,7 +72,7 @@ model Release {
   length              Int ?     // Assuming length is stored in seconds as an integer
   label               Label? @relation(fields: [labelId], references: [id])
   labelId             Int?
-
+  ingestionStatus ingestionStatus  @default(pending)
 }
 
 

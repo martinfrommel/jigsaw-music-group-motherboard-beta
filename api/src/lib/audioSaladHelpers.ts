@@ -1,3 +1,5 @@
+import { IngestionStatus } from 'types/graphql'
+
 import { db } from './db'
 
 interface scanForIngestionInput {
@@ -15,6 +17,7 @@ export const scanForIngestion = async ({
     orderBy: { createdAt: 'desc' },
     where: { accessTokenExpired: false },
   })
+  const parsedData = JSON.stringify({ s3bucket, s3path, accessToken, id, key })
   try {
     const response = await fetch(
       `${process.env.AUDIOSALAD_API_ENDPOINT}/ingest/scan`,
@@ -33,9 +36,31 @@ export const scanForIngestion = async ({
         }),
       }
     )
-    return { status: response.status, body: await response.json() }
+    return {
+      status: response.status,
+      body: await response.json(),
+      data: parsedData,
+    }
   } catch (e) {
     console.log(e)
     throw new Error('Error uploading to AudioSalad')
+  }
+}
+
+export const changeIngestionStatus = async ({
+  status,
+  id,
+}: {
+  status: IngestionStatus
+  id: number
+}) => {
+  try {
+    db.release.update({
+      data: { ingestionStatus: status },
+      where: { id: id },
+    })
+  } catch (e) {
+    console.log('Error changing ingestion status:' + e)
+    return e
   }
 }
