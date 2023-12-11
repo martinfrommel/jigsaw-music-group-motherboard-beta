@@ -33,7 +33,6 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           as="main"
           className="main-content"
           p={6}
-          maxW={'100vw'}
           minH={'100vh'}
           bgColor={useColorModeValue('purple.50', 'purple.900')}
           bgImage={bgPattern}

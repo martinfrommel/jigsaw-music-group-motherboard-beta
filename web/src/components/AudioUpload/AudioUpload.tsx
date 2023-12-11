@@ -9,7 +9,7 @@ import {
   Highlight,
   Flex,
   Button,
-  Progress,
+  Spinner,
 } from '@chakra-ui/react'
 import { FormikHandlers } from 'formik'
 import { useDropzone } from 'react-dropzone'
@@ -364,14 +364,13 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
       </Text>
       {filename && <Text fontWeight={'light'}>Accepted file: {filename}</Text>}
       {isUploading && (
-        <Progress
-          w={'90%'}
-          h={4}
-          rounded={4}
-          isIndeterminate={isUploading}
-          hasStripe
-          position={'relative'}
+        <Spinner
+          size={'lg'}
+          thickness={'8px'}
+          position={'absolute'}
           top={10}
+          color={'green.500'}
+          zIndex={100}
         />
       )}
     </Box>

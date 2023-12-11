@@ -137,7 +137,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
       <Box
         {...rest}
         minWidth={96}
-        width={'50vw'}
+        width={'100%'}
         transition={'all 1s ease-in-out'}
       >
         <Formik<FormValues>

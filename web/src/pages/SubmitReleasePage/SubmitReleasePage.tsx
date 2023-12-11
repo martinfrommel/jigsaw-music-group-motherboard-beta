@@ -1,5 +1,3 @@
-import { Card, CardBody, CardHeader, Divider } from '@chakra-ui/react'
-
 import { MetaTags } from '@redwoodjs/web'
 
 import JigsawCard from 'src/components/JigsawCard/JigsawCard'
