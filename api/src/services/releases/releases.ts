@@ -3,7 +3,10 @@ import type { QueryResolvers, MutationResolvers } from 'types/graphql'
 
 import { ForbiddenError } from '@redwoodjs/graphql-server'
 
-import { changeIngestionStatus, scanForIngestion } from 'src/lib/audioSaladHelpers'
+import {
+  changeIngestionStatus,
+  scanForIngestion,
+} from 'src/lib/audioSaladHelpers'
 import { db } from 'src/lib/db'
 import { prepareMetadataForAudioSalad } from 'src/lib/formatters/prepareMetadataForAudioSalad'
 import { initializeS3Client } from 'src/lib/s3Helpers/initializeS3Client'

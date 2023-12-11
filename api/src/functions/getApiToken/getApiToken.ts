@@ -109,7 +109,7 @@ export const handler = async (event: APIGatewayEvent, _context: Context) => {
 
   try {
     console.log(
-      'Fetching new tokens from AudioSalad at address:' +
+      '🦆 Fetching new tokens from AudioSalad at address:' +
         process.env.AUDIOSALAD_API_ENDPOINT +
         '/access-token'
     )
@@ -126,7 +126,7 @@ export const handler = async (event: APIGatewayEvent, _context: Context) => {
     )
 
     if (response.ok) {
-      console.log('New tokens received from AudioSalad API')
+      console.log('🪄 New tokens received from AudioSalad API')
       const data = await response.json()
 
       const accessTokenExpiresAt = addSeconds(
@@ -152,7 +152,7 @@ export const handler = async (event: APIGatewayEvent, _context: Context) => {
         })
       }
       // Store the new tokens in the database
-      await db.apiToken.create({
+      const newToken = await db.apiToken.create({
         data: {
           accessToken: data.access_token,
           refreshToken: data.refresh_token,
@@ -160,20 +160,31 @@ export const handler = async (event: APIGatewayEvent, _context: Context) => {
           refreshTokenExpiresAt: refreshTokenExpiresAt,
         },
       })
-      console.log('Tokens refreshed successfully')
+
+      console.log('🛑 Deleting old tokens from database...')
+      // Delete all tokens except the latest one
+      await db.apiToken.deleteMany({
+        where: {
+          id: {
+            not: newToken.id,
+          },
+        },
+      })
+
+      console.log('✅ Tokens refreshed successfully')
       return {
         statusCode: 200,
         body: JSON.stringify({ message: 'Tokens refreshed successfully' }),
       }
     } else {
-      console.error('Failed to refresh tokens:', response.status)
+      console.error('⛔️ Failed to refresh tokens:', response.status)
       return {
         statusCode: response.status,
         body: JSON.stringify({ message: 'Failed to refresh tokens' }),
       }
     }
   } catch (error) {
-    console.error('Error refreshing tokens:', error)
+    console.error('⛔️ Error refreshing tokens:', error)
     return {
       statusCode: 500,
       body: JSON.stringify({ message: 'Internal Server Error' }),

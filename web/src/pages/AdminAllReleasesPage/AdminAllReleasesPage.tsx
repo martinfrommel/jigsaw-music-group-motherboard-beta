@@ -1,4 +1,5 @@
 import {
+  Badge,
   Button,
   Heading,
   Spinner,
@@ -97,7 +98,17 @@ const AdminAllReleasesPage = () => {
                       minute: 'numeric',
                     })}
                   </Td>
-                  <Td></Td>
+                  <Td textAlign={'center'}>
+                    {release.ingestionStatus === 'PENDING' ? (
+                      <Badge colorScheme="yellow">Pending</Badge>
+                    ) : release.ingestionStatus === 'error' ? (
+                      <Badge colorScheme="red">Failed</Badge>
+                    ) : release.ingestionStatus === 'complete' ? (
+                      <Badge colorScheme="green">Success</Badge>
+                    ) : (
+                      <Badge colorScheme="gray">Unknown</Badge>
+                    )}
+                  </Td>
                 </Tr>
               ))}
             </Tbody>
