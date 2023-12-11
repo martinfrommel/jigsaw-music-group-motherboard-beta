@@ -10,10 +10,13 @@ import {
   Thead,
   Tr,
 } from '@chakra-ui/react'
+import { Release } from 'types/graphql'
 
 import { Link as RwLink, routes } from '@redwoodjs/router'
-import { MetaTags, useQuery } from '@redwoodjs/web'
+import { MetaTags, useMutation, useQuery } from '@redwoodjs/web'
+import { toast } from '@redwoodjs/web/dist/toast'
 
+import { useAuth } from 'src/auth'
 import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import JigsawCard from 'src/components/JigsawCard/JigsawCard'
 
@@ -38,15 +41,49 @@ const RELEASES_QUERY = gql`
   }
 `
 
-const AdminAllReleasesPage = () => {
-  const { data, error, loading } = useQuery(RELEASES_QUERY)
+const RUN_INGESTION_MUTATION = gql`
+  mutation RunIngestion($releaseId: Int!, $userId: Int!) {
+    runIngestion(id: $releaseId, userId: $userId) {
+      ingestionStatus
+    }
+  }
+`
 
-  if (loading) {
+const AdminAllReleasesPage = () => {
+  const {
+    data: releaseData,
+    error: releaseDataError,
+    loading: releaseDataLoading,
+    refetch: refetchReleases,
+  } = useQuery(RELEASES_QUERY)
+
+  // const [releases, setReleases] = useState(releaseData.releases)
+
+  const [runIngestion, { loading: runIngestionLoading }] = useMutation(
+    RUN_INGESTION_MUTATION,
+    {
+      onCompleted: (data) => {
+        // Handle the data
+        console.log(data)
+        toast.success('Ingestion started')
+        refetchReleases()
+      },
+      onError: (error) => {
+        // Handle the error
+        toast.error(error.message)
+        console.error(error)
+      },
+    }
+  )
+
+  const { currentUser } = useAuth()
+
+  if (releaseDataLoading) {
     return <Spinner />
   }
 
-  if (error) {
-    return <FailedToFetchData>{error.message}</FailedToFetchData>
+  if (releaseDataError) {
+    return <FailedToFetchData>{releaseDataError.message}</FailedToFetchData>
   }
 
   return (
@@ -73,7 +110,7 @@ const AdminAllReleasesPage = () => {
               </Tr>
             </Thead>
             <Tbody>
-              {data.releases.map((release) => (
+              {releaseData.releases.map((release: Release) => (
                 <Tr key={release.id}>
                   <Td>{release.artist}</Td>
                   <Td>{release.songTitle}</Td>
@@ -99,8 +136,10 @@ const AdminAllReleasesPage = () => {
                     })}
                   </Td>
                   <Td textAlign={'center'}>
-                    {release.ingestionStatus === 'PENDING' ? (
-                      <Badge colorScheme="yellow">Pending</Badge>
+                    {release.ingestionStatus === 'pending' ? (
+                      <Badge colorScheme="blue">Pending</Badge>
+                    ) : release.ingestionStatus === 'processing' ? (
+                      <Badge colorScheme="yellow">Processing</Badge>
                     ) : release.ingestionStatus === 'error' ? (
                       <Badge colorScheme="red">Failed</Badge>
                     ) : release.ingestionStatus === 'complete' ? (
@@ -108,6 +147,28 @@ const AdminAllReleasesPage = () => {
                     ) : (
                       <Badge colorScheme="gray">Unknown</Badge>
                     )}
+                    <Button
+                      colorScheme={'green'}
+                      ml={4}
+                      size={'sm'}
+                      isLoading={runIngestionLoading}
+                      onClick={(event) => {
+                        event.preventDefault()
+                        runIngestion({
+                          variables: {
+                            releaseId: release.id,
+                            userId: currentUser.id,
+                          },
+                        })
+                      }}
+                      isDisabled={
+                        release.ingestionStatus === 'complete' ||
+                        release.ingestionStatus === 'processing' ||
+                        release.ingestionStatus === 'error'
+                      }
+                    >
+                      {`🚀`}
+                    </Button>
                   </Td>
                 </Tr>
               ))}

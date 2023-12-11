@@ -73,6 +73,7 @@ model Release {
   label               Label? @relation(fields: [labelId], references: [id])
   labelId             Int?
   ingestionStatus ingestionStatus  @default(pending)
+  ingestId Int? // This is the ID returned from AudioSalad API
 }
 
 

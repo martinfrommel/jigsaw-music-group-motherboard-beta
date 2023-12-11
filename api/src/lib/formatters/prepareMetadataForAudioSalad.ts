@@ -25,7 +25,7 @@ export const prepareMetadataForAudioSalad = async (
 ) => {
   const s3 = await initializeS3Client()
 
-  console.log('S3 client initialized...')
+  console.log('✅ S3 client initialized...')
 
   const songMasterDetails = await getAssetDetail(
     releaseData.songMasterReference,
@@ -35,11 +35,6 @@ export const prepareMetadataForAudioSalad = async (
     releaseData.songArtworkReference,
     s3
   )
-
-  console.log('Song master details: ' + JSON.stringify(songMasterDetails))
-  console.log('Song artwork details: ' + JSON.stringify(songArtworkDetails))
-
-  console.log(releaseData)
 
   try {
     const createReleaseObject = new Release({
@@ -106,13 +101,13 @@ export const prepareMetadataForAudioSalad = async (
         }),
       ],
     })
-    console.log('Release class instantiated...')
+    console.log('✅ Release class instantiated...')
 
     const xml = createReleaseObject.xml()
 
     return xml
   } catch (e) {
     console.log(e)
-    throw new Error('Error creating release' + e)
+    throw new Error('⛔️ Error creating release' + e)
   }
 }

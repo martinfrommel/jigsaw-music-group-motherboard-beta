@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useMutation } from '@apollo/client'
 import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons'
@@ -70,11 +70,18 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
   const [uploadedAudio, setUploadedAudio] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const { currentUser } = useAuth()
+  const [resetChildren, setResetChildren] = useState(false)
 
   const handleAudioChange = (file) => {
     setUploadedAudio(file)
     // setAudioDuration(duration)
   }
+
+  useEffect(() => {
+    if (resetChildren) {
+      setResetChildren(false)
+    }
+  }, [resetChildren])
 
   const onSubmit = async (data: FormValues) => {
     setSubmitting(true)
@@ -442,6 +449,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                     </Checkbox>
                   </Flex>
                   <ArtworkUpload
+                    shouldReset={resetChildren}
                     handleBlur={props.handleBlur}
                     handleChange={props.handleChange}
                     error={props.errors?.songArtworkReference}
@@ -458,6 +466,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       Upload audio master file
                     </FormLabel>
                     <AudioUpload
+                      shouldReset={resetChildren}
                       onBlur={props.handleBlur}
                       value={props.values.songMasterReference}
                       onAudioChange={handleAudioChange}
@@ -498,12 +507,13 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       type="reset"
                       variant="outline"
                       colorScheme="red"
+                      isDisabled={!dirty || submitting}
                       onClick={() => {
                         props.resetForm()
                         props.setErrors({})
                         props.setTouched({})
+                        setResetChildren(true)
                       }}
-                      isDisabled={!dirty || submitting}
                     >
                       Reset
                     </Button>
@@ -512,7 +522,9 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       variant="outline"
                       colorScheme="yellow"
                       onClick={() => {
-                        props.validateForm().then(() => console.log('done'))
+                        props
+                          .validateForm()
+                          .then(() => console.log('💂 Form Validated!'))
                       }}
                       isDisabled={!dirty || submitting}
                     >
@@ -524,7 +536,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       isLoading={loading && props.isSubmitting}
                       colorScheme="green"
                       spinnerPlacement="start"
-                      isDisabled={!isValid || submitting}
+                      isDisabled={!isValid || submitting || !dirty}
                     >
                       Submit
                     </Button>

@@ -1,4 +1,4 @@
-import { IngestionStatus, Release } from 'types/graphql'
+import { IngestionStatus } from 'types/graphql'
 
 import { db } from './db'
 
@@ -56,7 +56,7 @@ export const scanForIngestion = async ({
     }
   } catch (e) {
     console.log(e)
-    throw new Error('Error uploading to AudioSalad')
+    throw new Error('Error scanning for ingestion')
   }
 }
 
@@ -76,13 +76,16 @@ export const changeIngestionStatus = async ({
   id: number
 }) => {
   try {
-    db.release.update({
+    console.log('🦆 Changing ingestion status of: ' + id)
+    console.log('🦆 New status: ' + status)
+    await db.release.update({
       data: { ingestionStatus: status },
       where: { id: id },
     })
+    console.log('✅ Ingestion status changed successfully')
+    return true
   } catch (e) {
-    console.log('Error changing ingestion status:' + e)
-    return e
+    throw new SyntaxError('⛔️ Error changing ingestion status')
   }
 }
 
@@ -95,23 +98,29 @@ export const changeIngestionStatus = async ({
  * @throws {Error} - If there is an error uploading to AudioSalad.
  */
 export const initiateIngestion = async ({ releaseId }) => {
-  const release = (await db.release.findFirst({
+  const release = await db.release.findFirst({
     where: { id: releaseId },
-  })) as Release
+  })
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { AWSFolderKey, ingestionStatus, labelId } = release
   const accessToken = await db.apiToken.findFirst({
     orderBy: { createdAt: 'desc' },
     where: { accessTokenExpired: false },
   })
-  if (ingestionStatus === 'error') {
-    console.log('🦆 There is a problem with this release, review it manually!')
-    return {
-      status: 200,
-      body: 'There is a problem with this release, review it manually!',
-    }
-  }
+  // if (ingestionStatus === 'error') {
+  //   console.log('🦆 There is a problem with this release, review it manually!')
+  //   throw new SyntaxError(
+  //     'There is a problem with this release, review it manually!'
+  //   )
+  // }
+
   try {
+    const parts = AWSFolderKey.split('/')
+    const uploadsIndex = parts.indexOf('uploads')
+    const folder = parts.slice(uploadsIndex).join('/')
+
+    console.log('🦆 Trying to ingest to: ' + AWSFolderKey)
     const response = await fetch(
       `${process.env.AUDIOSALAD_API_ENDPOINT}/ingest/run`,
       {
@@ -127,10 +136,35 @@ export const initiateIngestion = async ({ releaseId }) => {
           s3_bucket: `${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com`,
           s3_id: s3id,
           s3_key: s3key,
-          s3_path: AWSFolderKey,
+          s3_path: folder,
         }),
       }
     )
+    console.log('🦆 Got a response for release of id: ' + releaseId)
+    console.log('🦆 Response from AudioSalad: ' + response.status)
+
+    if (response.status !== 200) {
+      console.log('⛔️ Ingestion failed, changing ingestion status')
+      changeIngestionStatus({
+        status: 'error',
+        id: releaseId,
+      })
+      return {
+        status: response.status,
+        body: await response.json(),
+      }
+    }
+
+    const responseBody = await response.json()
+    const ingestId = responseBody.ingest_id
+
+    console.log('🦆 Ingestion ID received: ' + ingestId)
+    await db.release.update({
+      data: { ingestId: ingestId },
+      where: { id: releaseId },
+    })
+
+    console.log('✅ Ingestion successful, changing ingestion status')
     changeIngestionStatus({
       status: 'processing',
       id: releaseId,
@@ -145,6 +179,45 @@ export const initiateIngestion = async ({ releaseId }) => {
       status: 'error',
       id: releaseId,
     })
-    throw new Error('Error uploading to AudioSalad')
+    throw new Error('⛔️ Error ingesting release')
+  }
+}
+
+export const getIngestionStatus = async ({ id }) => {
+  const release = await db.release.findFirst({
+    where: { id },
+  })
+
+  const accessToken = await db.apiToken.findFirst({
+    where: { accessTokenExpired: false },
+  })
+  console.log('🦆 Checking ingestion status of: ' + id)
+  const response = await fetch(
+    `${process.env.AUDIOSALAD_API_ENDPOINT}/ingest/status?${release.ingestId}}`,
+    {
+      method: 'GET',
+      headers: {
+        'X-Access-Id': process.env.AUDIOSALAD_ACCESS_ID,
+        Authorization: `Bearer ${accessToken.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+
+  console.log('🦆 Got a response for release of id: ' + id)
+  console.log('🦆 Response from AudioSalad: ' + response.status)
+
+  if (response.status !== 200) {
+    console.log('⛔️ Check failed, changing ingestion status')
+    changeIngestionStatus({
+      status: 'error',
+      id: id,
+    })
+    throw new SyntaxError('Error checking ingestion status')
+  }
+
+  return {
+    status: response.status,
+    body: await response.json(),
   }
 }

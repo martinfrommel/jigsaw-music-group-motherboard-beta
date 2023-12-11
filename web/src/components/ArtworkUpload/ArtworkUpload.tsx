@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useLazyQuery } from '@apollo/client'
 import { CheckCircleIcon, InfoIcon } from '@chakra-ui/icons'
@@ -44,6 +44,7 @@ interface ArtworkUploadProps {
     firstName: string
     lastName: string
   }
+  shouldReset?: boolean
 }
 
 export const GET_PRESIGNED_URL_QUERY = gql`
@@ -66,7 +67,7 @@ export const GET_PRESIGNED_URL_QUERY = gql`
   }
 `
 
-export const CLEAR_FILE_FROM_S3_MUTATION = gql`
+const CLEAR_FILE_FROM_S3_MUTATION = gql`
   mutation clearFileFromS3($filePath: String!, $user: UserInput!) {
     clearFileFromS3(filePath: $filePath, user: $user) {
       ok
@@ -75,7 +76,8 @@ export const CLEAR_FILE_FROM_S3_MUTATION = gql`
   }
 `
 
-const ArtworkUpload = ({
+export const ArtworkUpload = ({
+  shouldReset,
   handleBlur,
   error: formError,
   onUploadComplete,
@@ -124,7 +126,7 @@ const ArtworkUpload = ({
     }
   }
 
-  const handleFileClear = async () => {
+  const handleFileClear = useCallback(async () => {
     if (!inputRef.current.files) return
     if (isFilePicked && !isFileUploaded) {
       setIsFilePicked(false)
@@ -161,9 +163,22 @@ const ArtworkUpload = ({
         toast.error(`Failed to delete file from S3: ${error.message}`)
       }
     }
+  }, [
+    clearFileFromS3,
+    isFilePicked,
+    isFileUploaded,
+    isUploading,
+    user.id,
+    user.firstName,
+    user.lastName,
+    onUploadComplete,
+  ])
+  useEffect(() => {
+    if (shouldReset) {
+      handleFileClear() // Replace with your actual clear file logic
+    }
+  }, [shouldReset, handleFileClear])
 
-    // TODO: Clear file from S3
-  }
   const handleUpload = (
     file: File,
     { url, fields, folderKey }: PresignedUrlResponse

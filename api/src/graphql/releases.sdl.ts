@@ -146,5 +146,7 @@ export const schema = gql`
       @requireAuth(roles: ["admin"])
     deleteRelease(id: Int!, userId: Int!): Release!
       @requireAuth(roles: ["admin"])
+    runIngestion(id: Int!, userId: Int!): Release!
+      @requireAuth(roles: ["admin", "moderator"])
   }
 `

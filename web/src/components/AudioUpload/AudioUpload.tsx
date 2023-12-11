@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useLazyQuery } from '@apollo/client'
 import {
@@ -19,7 +19,6 @@ import { toast } from '@redwoodjs/web/dist/toast'
 
 import { useAuth } from 'src/auth'
 
-import FailedToFetchData from '../DataFetching/FailedToFetchData/FailedToFetchData'
 interface AudioUploadProps extends BoxProps {
   onAudioChange: (file: File, duration: number) => void
   onBlur: FormikHandlers['handleBlur']
@@ -30,6 +29,7 @@ interface AudioUploadProps extends BoxProps {
     lastName: string
   }
   value: string
+  shouldReset: boolean
 }
 interface PresignedUrlResponse {
   url: string
@@ -79,6 +79,7 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   errors,
   onUploadComplete,
   onBlur: handleBlur,
+  shouldReset,
   ...rest
 }) => {
   const { colorMode } = useColorMode()
@@ -89,14 +90,11 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
   const [filePath, setFilePath] = useState<string | null>(null)
   const [isUploaded, setIsUploaded] = useState(false)
   const { currentUser } = useAuth()
-  const [
-    getPresignedUrl,
-    { loading: getPresignedUrlLoading, error: getPresignedUrlError },
-  ] = useLazyQuery(GET_PRESIGNED_URL_QUERY)
+  const [getPresignedUrl, ,] = useLazyQuery(GET_PRESIGNED_URL_QUERY)
   const [clearFileFromS3] = useMutation(CLEAR_FILE_FROM_S3_MUTATION)
   const folderKey = sessionStorage.getItem('folderKey')
 
-  const clearFile = async () => {
+  const clearFile = useCallback(async () => {
     if (!filePath) {
       toast.error('No file selected')
       return
@@ -132,87 +130,81 @@ export const AudioUpload: React.FC<AudioUploadProps> = ({
     acceptedFilesRef.current = []
     setFilePath(null)
     onAudioChange(null, 0)
+  }, [
+    clearFileFromS3,
+    currentUser.firstName,
+    currentUser.id,
+    currentUser.lastName,
+    filePath,
+    onAudioChange,
+    onUploadComplete,
+  ])
+
+  useEffect(() => {
+    if (shouldReset) {
+      clearFile() // Replace with your actual clear file logic
+    }
+  }, [clearFile, shouldReset])
+
+  // Function to get the presigned URL
+  const fetchPresignedUrl = async (file) => {
+    const { data } = await getPresignedUrl({
+      variables: {
+        fileType: file.type,
+        fileName: file.name,
+        pregeneratedUrl: folderKey ? folderKey : null,
+        user: {
+          id: currentUser.id,
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+        },
+      },
+    })
+    return data.getPresignedUrl as PresignedUrlResponse
   }
 
-  const handleUpload = async (file: File) => {
-    // Generate the file path
-    setFilePath(filePath)
+  // Function to upload the file
+  const uploadFile = async (file, url, fields) => {
+    const formData = new FormData()
+    formData.append('Content-Type', file.type)
+    Object.entries(fields).forEach(([key, value]) => {
+      formData.append(key, String(value))
+    })
+    formData.append('file', file)
 
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    return response.headers.get('Location')
+  }
+
+  const handleUpload = async (file) => {
     try {
-      const { data } = (await getPresignedUrl({
-        variables: {
-          fileType: file.type,
-          fileName: file.name,
-          pregeneratedUrl: folderKey ? folderKey : null,
-          user: {
-            id: currentUser.id,
-            firstName: currentUser.firstName,
-            lastName: currentUser.lastName,
-          },
-        },
-      })) as { data: { getPresignedUrl: PresignedUrlResponse } }
+      setIsUploading(true)
+      console.log('Fetching presigned URL...')
+      const { url, fields, folderKey } = await fetchPresignedUrl(file)
 
-      if (getPresignedUrlLoading) {
-        console.log('Fetching presigned URL...')
-        return // Optionally, you can show a loading indicator or return early
-      }
+      console.log('Uploading file...')
+      const location = await uploadFile(file, url, fields)
+      const uploadedFileUrl = decodeURIComponent(location)
 
-      // Handle query error
-      if (getPresignedUrlError) {
-        console.error('Error fetching presigned URL:', getPresignedUrlError)
-        toast.error(
-          `Error fetching presigned URL: ${getPresignedUrlError.message}`
-        )
-        return (
-          <FailedToFetchData>
-            <p>Failed to fetch data</p>
-          </FailedToFetchData>
-        )
-      }
-      if (data) {
-        const { url, fields, folderKey } = data.getPresignedUrl
-
-        if (
-          !sessionStorage.getItem('folderKey') ||
-          folderKey != sessionStorage.getItem('folderKey')
-        ) {
-          sessionStorage.setItem('folderKey', folderKey)
-        }
-
-        const formData = new FormData()
-        formData.append('Content-Type', file.type)
-        Object.entries(fields).forEach(([key, value]) => {
-          formData.append(key, String(value))
-        })
-        formData.append('file', file)
-
-        setIsUploading(true)
-        console.log('Uploading file...')
-        const response = await fetch(url, {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const location = response.headers.get('Location')
-        const uploadedFileUrl = decodeURIComponent(location)
-        setFilePath(data.getPresignedUrl.fields.key)
-        setIsUploading(false)
-        onUploadComplete(
-          `${data.getPresignedUrl.url}${data.getPresignedUrl.fields.key}`,
-          `${data.getPresignedUrl.url}${data.getPresignedUrl.folderKey}`
-        )
-        setIsUploaded(true)
-        toast.success('File successfully uploaded')
-        console.log('Uploaded File URL:', uploadedFileUrl)
-      }
-    } catch (uploadError) {
-      setIsUploading(false)
-      toast.error(`Upload failed: ${uploadError.message}`)
+      toast.success('File successfully uploaded')
+      setFilePath(fields.key)
+      console.log('Uploaded File URL:', uploadedFileUrl)
+      onUploadComplete(`${url}${fields.key}`, `${url}${folderKey}`)
+      setIsUploaded(true)
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error(`Upload failed: ${error.message}`)
       clearFile()
+    } finally {
+      setIsUploading(false)
     }
   }
 
