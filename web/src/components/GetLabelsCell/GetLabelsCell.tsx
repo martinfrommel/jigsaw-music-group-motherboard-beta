@@ -27,7 +27,11 @@ export const QUERY = gql`
 `
 
 export const beforeQuery = (props: GetLabelsCellProps) => {
-  return { variables: props, fetchPolicy: 'cache-and-network' }
+  return {
+    variables: props,
+    fetchPolicy: 'cache-first',
+    nextFetchPolicy: 'cache-first',
+  }
 }
 
 export const Loading = () => <Spinner />

@@ -43,6 +43,7 @@ export const prepareMetadataForAudioSalad = async (
       title: releaseData.metadata.songTitle,
       releaseFormat: ReleaseFormat.Single,
       displayArtist: releaseData.metadata.artist[0],
+      releaseDate: new Date(releaseData.metadata.releaseDate),
       participants: [
         ...releaseData.metadata.artist.map(
           (artist, index) =>

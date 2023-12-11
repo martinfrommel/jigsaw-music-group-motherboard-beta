@@ -105,7 +105,7 @@ model Release {
   productTitle        String?  // Optional field
   artist              String[]
   featuredArtist      String?  // Optional field
-  releaseDate         DateTime? // Optional field
+  releaseDate         DateTime // Optional field
   previouslyReleased  Boolean
   language            String
   primaryGenre        PrimaryGenre

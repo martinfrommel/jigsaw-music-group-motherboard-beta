@@ -103,6 +103,9 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
         ...metadata
       } = data
 
+      const date = new Date(metadata.releaseDate)
+      const dateTimeString = date.toISOString()
+
       const input = {
         userId: currentUser.id,
         songMasterReference: songMasterReference,
@@ -110,6 +113,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
         AWSFolderKey: AWSFolderKey,
         metadata: {
           ...metadata,
+          releaseDate: dateTimeString,
           label: {
             id: label.id,
             name: label.name,
@@ -131,7 +135,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
         sessionStorage.removeItem('folderKey')
         toast.remove()
         setSubmitting(false)
-      }, 5000)
+      }, 3000)
       return createReleaseData
     } catch (error) {
       toast.remove()
@@ -254,7 +258,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                           props.setFieldValue('label.id', labelId)
                           props.setFieldValue('label.name', labelName)
                         }}
-                        onBlur={() => handleFieldValidation('label')}
+                        onBlur={props.handleBlur}
                       />
                       <FormErrorMessage minHeight={6}>
                         <FormErrorIcon />

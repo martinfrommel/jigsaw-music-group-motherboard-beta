@@ -61,7 +61,7 @@ export const schema = gql`
     productTitle: String
     artist: [String!]!
     featuredArtist: String
-    releaseDate: DateTime
+    releaseDate: DateTime!
     previouslyReleased: Boolean!
     language: String!
     primaryGenre: PrimaryGenre!

@@ -94,11 +94,7 @@ export const ArtworkUpload = ({
   const [clearFileFromS3] = useMutation(CLEAR_FILE_FROM_S3_MUTATION)
   const [getPresignedUrl] = useLazyQuery(GET_PRESIGNED_URL_QUERY)
 
-  // Handlers
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const fetchPresignedUrl = async (file) => {
     try {
       const { data } = (await getPresignedUrl({
         variables: {
@@ -122,8 +118,30 @@ export const ArtworkUpload = ({
       return { url, fields, folderKey }
     } catch (error) {
       console.log(error.message)
-      toast.error('Error uploading file:' + error.message)
+      toast.error('Error fetching presigned URL:' + error.message)
     }
+  }
+
+  // Modified handleFileChange function
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (e) => {
+      const img = new Image()
+      img.onload = async () => {
+        if (img.width === img.height) {
+          // If the aspect ratio is 1:1, fetch presigned URL
+          await fetchPresignedUrl(file)
+        } else {
+          toast.error('Please upload an image with a 1:1 aspect ratio.')
+          if (inputRef.current) inputRef.current.value = '' // Clear the input
+        }
+      }
+      img.src = e.target.result as string
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleFileClear = useCallback(async () => {
@@ -219,11 +237,15 @@ export const ArtworkUpload = ({
   return (
     <FormControl my={8} isInvalid={!!formError}>
       <FormLabel>Upload release artwork</FormLabel>
+      <FormHelperText fontSize={'xs'} mb={2}>
+        <InfoIcon mr={2} /> Please upload a square image with a 1:1 aspect
+        ratio.
+      </FormHelperText>
       <Input
         hidden
         type="file"
         ref={inputRef}
-        accept="image/jpeg"
+        accept="image/png, image/jpeg, image/jpg"
         onChange={handleFileChange}
       />
       <ButtonGroup
@@ -269,7 +291,11 @@ export const ArtworkUpload = ({
         <FormErrorIcon />
         {formError}
       </FormErrorMessage>
+
       <Flex gap={2} mt={2} flexDir={'column'}>
+        <FormHelperText fontSize={'xs'}>
+          File name: {inputRef.current?.files?.[0]?.name ?? 'No file selected'}
+        </FormHelperText>
         {uploadedArtwork ? (
           <FormHelperText>
             <Icon as={CheckCircleIcon} color="green.500" mr={2} />
@@ -281,9 +307,6 @@ export const ArtworkUpload = ({
             The artwork file is not present on server.
           </FormHelperText>
         )}
-        <FormHelperText fontSize={'xs'}>
-          File name: {inputRef.current?.files?.[0]?.name ?? 'No file selected'}
-        </FormHelperText>
       </Flex>
     </FormControl>
   )
