@@ -54,6 +54,7 @@ export const Success = ({
         onChange={handleChange}
         placeholder="Select a label"
         onBlur={onBlur}
+        flex={0}
       >
         {getLabels.map((label) => {
           return (

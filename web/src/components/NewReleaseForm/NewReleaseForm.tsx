@@ -16,7 +16,7 @@ import {
   IconButton,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
-import { Formik } from 'formik'
+import { Field, Formik } from 'formik'
 
 import { toast } from '@redwoodjs/web/dist/toast'
 
@@ -25,8 +25,8 @@ import GetLabelsCell from 'src/components/GetLabelsCell/'
 import {
   Genre as PrimaryGenre,
   SubGenre as SecondaryGenre,
-} from 'src/lib/genres.enum'
-import { LanguageList } from 'src/lib/languageList'
+} from 'src/lib/validation/genres.enum'
+import { LanguageList } from 'src/lib/validation/languageList'
 
 import { ReleaseSchema } from '../../lib/validation/releaseSchema'
 import ArtworkUpload from '../ArtworkUpload/ArtworkUpload'
@@ -44,7 +44,7 @@ interface FormValues {
   productTitle: string
   artist: string[]
   featuredArtist: string
-  // releaseDate: string
+  releaseDate: Date
   previouslyReleased: boolean
   language: string
   label: {
@@ -151,22 +151,22 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
       >
         <Formik<FormValues>
           initialValues={{
-            songMasterReference: undefined as unknown as string,
-            songArtworkReference: undefined as unknown as string,
-            AWSFolderKey: undefined as unknown as string,
+            songMasterReference: '' as unknown as string,
+            songArtworkReference: '' as unknown as string,
+            AWSFolderKey: '' as unknown as string,
             songTitle: '',
             productTitle: '',
             artist: [''],
             featuredArtist: '',
-            // releaseDate: '',
+            releaseDate: '' as unknown as Date,
             label: {
               id: '',
               name: '',
             },
             previouslyReleased: false,
             language: '',
-            primaryGenre: undefined as unknown as keyof typeof PrimaryGenre,
-            secondaryGenre: undefined as unknown as keyof typeof SecondaryGenre,
+            primaryGenre: '' as unknown as keyof typeof PrimaryGenre,
+            secondaryGenre: '' as unknown as keyof typeof SecondaryGenre,
             explicitLyrics: false,
             isrcCode: '',
             pLine: '',
@@ -216,6 +216,53 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                     </FormErrorMessage>
                   </FormControl>
                   <Flex
+                    justifyContent={'space-around'}
+                    alignItems={'center'}
+                    my={8}
+                    gap={4}
+                    id="releaseDateAndLabel"
+                  >
+                    <FormControl
+                      flex={1}
+                      isInvalid={!!props.errors?.releaseDate}
+                    >
+                      <FormLabel>Release Date</FormLabel>
+                      <Field
+                        as={Input}
+                        type="date"
+                        name="releaseDate"
+                        onChange={props.handleChange}
+                        onBlur={() => handleFieldValidation('releaseDate')}
+                        value={props.values.releaseDate}
+                        placeholder="Choose a release date"
+                      />
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors?.releaseDate &&
+                          (props.errors.releaseDate as Date).toString()}
+                      </FormErrorMessage>
+                    </FormControl>
+                    <FormControl isInvalid={!!props.errors?.label} flex={1}>
+                      <FormLabel>Label</FormLabel>
+                      <GetLabelsCell
+                        name="label"
+                        value={{
+                          id: props.values.label.id,
+                          name: props.values.label.name,
+                        }}
+                        onSelect={(labelId, labelName) => {
+                          props.setFieldValue('label.id', labelId)
+                          props.setFieldValue('label.name', labelName)
+                        }}
+                        onBlur={() => handleFieldValidation('label')}
+                      />
+                      <FormErrorMessage minHeight={6}>
+                        <FormErrorIcon />
+                        {props.errors?.label?.name}
+                      </FormErrorMessage>
+                    </FormControl>
+                  </Flex>
+                  <Flex
                     justifyContent={'space-between'}
                     alignItems={'center'}
                     my={8}
@@ -240,7 +287,11 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                             onChange={props.handleChange}
                             onBlur={() => handleFieldValidation('artist')}
                             value={artist}
-                            placeholder="Primary artist name"
+                            placeholder={
+                              index === 0
+                                ? 'Primary artist'
+                                : 'Additional main artist'
+                            }
                           />
                         </Flex>
                       ))}
@@ -302,69 +353,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       </ScaleFade>
                     </>
                   )}
-                  <FormControl isInvalid={!!props.errors?.label}>
-                    <FormLabel mt={4}>Label</FormLabel>
-                    <GetLabelsCell
-                      name="label"
-                      value={{
-                        id: props.values.label.id,
-                        name: props.values.label.name,
-                      }}
-                      onSelect={(labelId, labelName) => {
-                        props.setFieldValue('label.id', labelId)
-                        props.setFieldValue('label.name', labelName)
-                      }}
-                      onBlur={() => handleFieldValidation('label')}
-                    />
-                    <FormErrorMessage>
-                      <FormErrorIcon />
-                      {props.errors?.label?.name}
-                    </FormErrorMessage>
-                  </FormControl>
-                  <Flex
-                    justifyContent={'space-around'}
-                    alignItems={'center'}
-                    my={8}
-                  >
-                    {/* <FormControl
-                      flex={1}
-                      isInvalid={!!props.errors?.releaseDate}
-                    >
-                      <FormLabel>Release Date</FormLabel>
-                      <Input
-                        type="date"
-                        name="releaseDate"
-                        onChange={props.handleChange}
-                        onBlur={() => handleFieldValidation('releaseDate')}
-                        value={props.values.releaseDate}
-                        placeholder="Choose a release date"
-                      />
-                      <FormErrorMessage minHeight={6}>
-                        <FormErrorIcon />
-                        {props.errors?.releaseDate}
-                      </FormErrorMessage>
-                    </FormControl> */}
-                    <FormControl flex={1} isInvalid={!!props.errors?.language}>
-                      <FormLabel>Language</FormLabel>
-                      <Select
-                        name="language"
-                        onChange={props.handleChange}
-                        onBlur={() => handleFieldValidation('language')}
-                        value={props.values.language}
-                        placeholder="Select a language"
-                      >
-                        {LanguageList.map((language) => (
-                          <option key={language} value={language}>
-                            {language}
-                          </option>
-                        ))}
-                      </Select>
-                      <FormErrorMessage minHeight={6}>
-                        <FormErrorIcon />
-                        {props.errors?.language}
-                      </FormErrorMessage>
-                    </FormControl>
-                  </Flex>
+
                   <Flex
                     justifyContent={'space-around'}
                     alignItems={'flex-start'}
@@ -423,6 +412,26 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       </FormControl>
                     </>
                   </Flex>
+                  <FormControl flex={1} isInvalid={!!props.errors?.language}>
+                    <FormLabel>Language</FormLabel>
+                    <Select
+                      name="language"
+                      onChange={props.handleChange}
+                      onBlur={() => handleFieldValidation('language')}
+                      value={props.values.language}
+                      placeholder="Select a language"
+                    >
+                      {LanguageList.map((language) => (
+                        <option key={language} value={language}>
+                          {language}
+                        </option>
+                      ))}
+                    </Select>
+                    <FormErrorMessage minHeight={6}>
+                      <FormErrorIcon />
+                      {props.errors?.language}
+                    </FormErrorMessage>
+                  </FormControl>
                   <FormControl mt={4} isInvalid={!!props.errors?.isrcCode}>
                     <FormLabel>ISRC Code</FormLabel>
                     <Input
@@ -591,7 +600,9 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                       isLoading={loading && props.isSubmitting}
                       colorScheme="green"
                       spinnerPlacement="start"
-                      isDisabled={!isValidationClicked}
+                      isDisabled={
+                        !isValidationClicked || !props.isValid || !uploadedAudio
+                      }
                     >
                       Submit
                     </Button>

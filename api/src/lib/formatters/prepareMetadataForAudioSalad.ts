@@ -79,30 +79,34 @@ export const prepareMetadataForAudioSalad = async (
           pInfo: releaseData.metadata.pLine,
           cInfo: releaseData.metadata.cLine,
           trackNumber: 1,
+          assets: [
+            new Asset({
+              type: 'audio',
+              subtype: 'wav',
+              format: '.wav',
+              mimeType:
+                songMasterDetails.mimeType === 'audio/x-wav'
+                  ? 'audio/wav'
+                  : songMasterDetails.mimeType,
+              name: 'Master Audio',
+              md5Checksum: songMasterDetails.md5Checksum,
+              fileName: songMasterDetails.fileName,
+            }),
+            new Asset({
+              type: 'image',
+              format: 'jpg',
+              mimeType: songArtworkDetails.mimeType,
+              name: 'Cover Art',
+              md5Checksum: songArtworkDetails.md5Checksum,
+              fileName: songArtworkDetails.fileName,
+            }),
+          ],
         }),
       ],
       label: new Label({
         name: releaseData.metadata.label.name,
         vendorLabelID: releaseData.metadata.label.id,
       }),
-      assets: [
-        new Asset({
-          type: 'audio',
-          format: 'wav',
-          mimeType: songMasterDetails.mimeType,
-          name: 'Master Audio',
-          md5Checksum: songMasterDetails.md5Checksum,
-          fileName: songMasterDetails.fileName,
-        }),
-        new Asset({
-          type: 'image',
-          format: 'jpg',
-          mimeType: songArtworkDetails.mimeType,
-          name: 'Cover Art',
-          md5Checksum: songArtworkDetails.md5Checksum,
-          fileName: songArtworkDetails.fileName,
-        }),
-      ],
     })
     console.log('✅ Release class instantiated...')
 

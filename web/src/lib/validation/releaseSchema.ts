@@ -1,6 +1,6 @@
 import * as Yup from 'yup'
 
-import { Genre, SubGenre } from '../genres.enum'
+import { Genre, SubGenre } from './genres.enum'
 
 export const ReleaseSchema = Yup.object().shape({
   songMasterReference: Yup.string().required(
@@ -21,7 +21,7 @@ export const ReleaseSchema = Yup.object().shape({
     id: Yup.string().required('Label ID is required'),
     name: Yup.string().required('Label name is required'),
   }),
-  // releaseDate: Yup.date().required('Release date is required'),
+  releaseDate: Yup.date().required('Release date is required').nullable(),
   previouslyReleased: Yup.boolean(),
   language: Yup.string().required('Language is required'),
   primaryGenre: Yup.string()
