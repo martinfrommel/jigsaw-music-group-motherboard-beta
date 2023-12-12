@@ -100,7 +100,7 @@ export const prepareMetadataForAudioSalad = async (
                 songMasterDetails.mimeType === 'audio/x-wav'
                   ? 'audio/wav'
                   : songMasterDetails.mimeType,
-              name: 'Master Audio',
+              name: releaseData.metadata.songTitle,
               md5Checksum: songMasterDetails.md5Checksum,
               fileName: songMasterDetails.fileName,
             }),
