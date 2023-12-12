@@ -272,9 +272,9 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                     my={8}
                   >
                     <FormControl flex={1} isInvalid={!!props.errors?.artist}>
-                      <FormLabel>Primary artists</FormLabel>
+                      <FormLabel>Release artists</FormLabel>
                       <FormHelperText mb={2}>
-                        <InfoIcon /> The first artist is the main one.
+                        <InfoIcon /> The first artist is the primary artist.
                       </FormHelperText>
                       {props.values.artist.map((artist, index) => (
                         <Flex key={index} gap={2} mt={index !== 0 ? 4 : 0}>

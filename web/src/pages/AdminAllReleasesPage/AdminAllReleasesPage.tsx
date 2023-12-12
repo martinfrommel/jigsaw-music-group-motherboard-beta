@@ -6,6 +6,7 @@ import {
   Table,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
@@ -112,7 +113,13 @@ const AdminAllReleasesPage = () => {
             <Tbody>
               {releaseData.releases.map((release: Release) => (
                 <Tr key={release.id}>
-                  <Td>{release.artist}</Td>
+                  <Td>
+                    {release.artist.map((artist: string, index: number) => (
+                      <Text key={index} fontSize={'sm'}>
+                        {artist}
+                      </Text>
+                    ))}
+                  </Td>
                   <Td>{release.songTitle}</Td>
                   <Td>{release.label.name}</Td>
                   <Td>
