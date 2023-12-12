@@ -12,11 +12,11 @@ import {
   ValidationError,
 } from '@redwoodjs/graphql-server'
 
+import { generateSignUpToken } from 'src/lib/auth/generateToken'
+import { generateRandomPassword } from 'src/lib/auth/passwordUtils'
 import { db } from 'src/lib/db'
 import { genericEmailTemplate } from 'src/lib/emails/emailTemplates/genericEmailTemplate'
 import { sendEmail } from 'src/lib/emails/sendEmail'
-import { generateSignUpToken } from 'src/lib/auth/generateToken'
-import { generateRandomPassword } from 'src/lib/auth/passwordUtils'
 
 /**
  * Retrieves a list of users.
@@ -179,7 +179,6 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
     })
   } catch (error) {
     throw new SyntaxError(`Failed to send email: ${error.message}`)
-    return SyntaxError(`Failed to send email: ${error.message}`)
   }
 
   return user
