@@ -1,6 +1,7 @@
 import * as Yup from 'yup'
 
 import { Genre, SubGenre } from './genres.enum'
+import { ParticipantRole } from './participantRoles.enum'
 
 export const ReleaseSchema = Yup.object().shape({
   songMasterReference: Yup.string().required(
@@ -16,6 +17,14 @@ export const ReleaseSchema = Yup.object().shape({
     .of(Yup.string().required('Artist name is required'))
     .min(1, 'At least one artist is required')
     .required('Artist name is required'),
+  otherParticipants: Yup.array().of(
+    Yup.object().shape({
+      name: Yup.string().required('Name is required'),
+      role: Yup.string()
+        .oneOf(Object.keys(ParticipantRole))
+        .required('Role is required'),
+    })
+  ),
   featuredArtist: Yup.string(),
   label: Yup.object().shape({
     id: Yup.string().required('Label ID is required'),

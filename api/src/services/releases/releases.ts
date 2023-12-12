@@ -124,6 +124,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
       artist,
       featuredArtist,
       previouslyReleased,
+      releaseDate,
       language,
       primaryGenre,
       secondaryGenre,
@@ -132,6 +133,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
       pLine,
       cLine,
       label,
+      otherParticipants,
     },
     userId,
     ...otherFields
@@ -164,6 +166,7 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
         artist,
         featuredArtist,
         previouslyReleased,
+        releaseDate,
         language,
         primaryGenre,
         secondaryGenre,
@@ -180,6 +183,20 @@ export const createRelease: MutationResolvers['createRelease'] = async ({
           connect: {
             id: userId,
           },
+        },
+        otherParticipants: {
+          connectOrCreate: otherParticipants.map((participant) => ({
+            where: {
+              name_role: {
+                name: participant.name,
+                role: participant.role,
+              },
+            },
+            create: {
+              name: participant.name,
+              role: participant.role,
+            },
+          })),
         },
       },
     })

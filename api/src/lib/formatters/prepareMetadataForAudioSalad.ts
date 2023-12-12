@@ -64,6 +64,16 @@ export const prepareMetadataForAudioSalad = async (
               }),
             ]
           : []),
+        ...(releaseData.metadata.otherParticipants &&
+        releaseData.metadata.otherParticipants.length > 0
+          ? releaseData.metadata.otherParticipants.map((participant) => {
+              return new Participant({
+                role: participant.role as ParticipantRole,
+                name: participant.name,
+                primary: false,
+              })
+            })
+          : []),
       ],
       tracks: [
         new Track({

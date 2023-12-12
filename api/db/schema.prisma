@@ -104,6 +104,7 @@ model Release {
   songTitle           String
   productTitle        String?  // Optional field
   artist              String[]
+  otherParticipants   OtherParticipant[] // Optional field
   featuredArtist      String?  // Optional field
   releaseDate         DateTime // Optional field
   previouslyReleased  Boolean
@@ -121,6 +122,15 @@ model Release {
   ingestId Int? // This is the ID returned from AudioSalad API
 }
 
+model OtherParticipant {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String
+  releaseId Int
+  release   Release  @relation(fields: [releaseId], references: [id])
+
+  @@unique([name, role])
+}
 
 model Label {
   id Int @id

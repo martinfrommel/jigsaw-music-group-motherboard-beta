@@ -51,6 +51,27 @@ export const schema = gql`
     complete
     error
   }
+
+  enum ParticipantRole {
+    Vocalist
+    Producer
+    Remixer
+    Mixer
+    Composer
+    Conductor
+    Soloist
+    Performer
+    Arranger
+    SongWriter
+    Engineer
+    MasteringEngineer
+    Choir
+    Orchestra
+    Ensemble
+    Lyricist
+    Publicist
+    Other
+  }
   type Release {
     id: Int!
     userId: Int!
@@ -60,6 +81,7 @@ export const schema = gql`
     songTitle: String!
     productTitle: String
     artist: [String!]!
+    otherParticipants: [otherParticipants!]
     featuredArtist: String
     releaseDate: DateTime!
     previouslyReleased: Boolean!
@@ -77,6 +99,11 @@ export const schema = gql`
     createdAt: DateTime
     updatedAt: DateTime
     ingestionStatus: IngestionStatus!
+  }
+
+  type otherParticipants {
+    name: String!
+    role: ParticipantRole!
   }
 
   type Label {
@@ -104,6 +131,7 @@ export const schema = gql`
     songTitle: String!
     productTitle: String
     artist: [String!]!
+    otherParticipants: [otherParticipantsInput!]
     featuredArtist: String
     releaseDate: DateTime
     previouslyReleased: Boolean!
@@ -117,13 +145,17 @@ export const schema = gql`
     label: LabelInput!
   }
 
+  input otherParticipantsInput {
+    name: String!
+    role: ParticipantRole!
+  }
+
   input LabelInput {
     name: String!
     id: String!
   }
 
   input UpdateReleaseInput {
-    userId: Int
     songMasterReference: String
     songTitle: String
     productTitle: String

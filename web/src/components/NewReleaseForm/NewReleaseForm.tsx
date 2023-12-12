@@ -14,6 +14,8 @@ import {
   Icon,
   ButtonGroup,
   IconButton,
+  useBreakpointValue,
+  FlexboxProps,
 } from '@chakra-ui/react'
 import { FormControl, FormLabel, Input, Button } from '@chakra-ui/react'
 import { Field, Formik } from 'formik'
@@ -27,6 +29,7 @@ import {
   SubGenre as SecondaryGenre,
 } from 'src/lib/validation/genres.enum'
 import { LanguageList } from 'src/lib/validation/languageList'
+import { ParticipantRole } from 'src/lib/validation/participantRoles.enum'
 
 import { ReleaseSchema } from '../../lib/validation/releaseSchema'
 import ArtworkUpload from '../ArtworkUpload/ArtworkUpload'
@@ -43,6 +46,12 @@ interface FormValues {
   songTitle: string
   productTitle: string
   artist: string[]
+  otherParticipants: [
+    {
+      role: ParticipantRole
+      name: string
+    }
+  ]
   featuredArtist: string
   releaseDate: Date
   previouslyReleased: boolean
@@ -75,6 +84,17 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
   const [isValidationClicked, setIsValidationClicked] = useState(false)
 
   const { currentUser } = useAuth()
+
+  const flexDirValue = useBreakpointValue(
+    {
+      base: 'column',
+      md: 'row',
+    },
+    {
+      fallback: 'row',
+      ssr: false,
+    }
+  )
 
   /**
    * Handles the change event for the audio file input.
@@ -167,6 +187,12 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
               id: '',
               name: '',
             },
+            otherParticipants: [
+              {
+                role: '' as unknown as ParticipantRole,
+                name: '',
+              },
+            ],
             previouslyReleased: false,
             language: '',
             primaryGenre: '' as unknown as keyof typeof PrimaryGenre,
@@ -201,6 +227,23 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
               props.setFieldValue('artist', newArtists)
             }
 
+            const addParticipant = () => {
+              const newParticipants = [
+                ...props.values.otherParticipants,
+                {
+                  role: '',
+                  name: '',
+                },
+              ]
+              props.setFieldValue('otherParticipants', newParticipants)
+            }
+
+            const removeParticipant = (index) => {
+              const newParticipants = [...props.values.otherParticipants]
+              newParticipants.splice(index, 1)
+              props.setFieldValue('otherParticipants', newParticipants)
+            }
+
             return (
               <>
                 <form onSubmit={props.handleSubmit}>
@@ -221,7 +264,7 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                   </FormControl>
                   <Flex
                     justifyContent={'space-around'}
-                    alignItems={'center'}
+                    alignItems={'flex-start'}
                     my={8}
                     gap={4}
                     id="releaseDateAndLabel"
@@ -267,9 +310,12 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                     </FormControl>
                   </Flex>
                   <Flex
+                    id="artistAndParticipants"
+                    flexDir={flexDirValue as FlexboxProps['flexDir']}
                     justifyContent={'space-between'}
-                    alignItems={'center'}
+                    alignItems={'flex-start'}
                     my={8}
+                    gap={4}
                   >
                     <FormControl flex={1} isInvalid={!!props.errors?.artist}>
                       <FormLabel>Release artists</FormLabel>
@@ -314,22 +360,76 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
                         {props.errors?.artist}
                       </FormErrorMessage>
                     </FormControl>
-                    <Flex
-                      flex={1}
-                      alignItems={'center'}
-                      justifyContent={'center'}
-                    >
-                      <Checkbox
-                        ml={4}
-                        size={'lg'}
-                        isChecked={isFeaturedArtistChecked}
-                        onChange={(e) =>
-                          setIsFeaturedArtistChecked(e.target.checked)
-                        }
+                    <FormControl flex={1} onChange={props.handleChange}>
+                      <FormLabel>Additional participants</FormLabel>
+                      <FormHelperText mb={2}>
+                        <InfoIcon /> Optionally add other participants
+                      </FormHelperText>
+                      {props.values.otherParticipants.map(
+                        (participant, index) => (
+                          <Flex key={index} gap={2} mt={index !== 0 ? 4 : 0}>
+                            <IconButton
+                              aria-label="Remove a participant"
+                              icon={<MinusIcon />}
+                              onClick={() => removeParticipant(index)}
+                            />
+                            <Input
+                              type="text"
+                              name={`otherParticipants[${index}].name`}
+                              isInvalid={
+                                !!props.errors?.otherParticipants?.[index]
+                              }
+                              value={participant.name}
+                              placeholder="Participant name"
+                            />
+                            <Select
+                              name={`otherParticipants[${index}].role`}
+                              onChange={props.handleChange}
+                              isInvalid={
+                                !!props.errors?.otherParticipants?.[index]
+                              }
+                              value={participant.role}
+                              placeholder="Select a role"
+                            >
+                              {Object.entries(ParticipantRole).map(
+                                ([key, value]) => (
+                                  <option key={key} value={key}>
+                                    {value}
+                                  </option>
+                                )
+                              )}
+                            </Select>
+                          </Flex>
+                        )
+                      )}
+                      <Button
+                        mt={2}
+                        size="sm"
+                        w="100%"
+                        aria-label="Add a participant"
+                        leftIcon={<AddIcon />}
+                        onClick={addParticipant}
                       >
-                        Featured artist?
-                      </Checkbox>
-                    </Flex>
+                        Add a participant
+                      </Button>
+                    </FormControl>
+                  </Flex>
+
+                  <Flex
+                    flex={1}
+                    alignItems={'center'}
+                    justifyContent={'center'}
+                  >
+                    <Checkbox
+                      ml={4}
+                      size={'lg'}
+                      isChecked={isFeaturedArtistChecked}
+                      onChange={(e) =>
+                        setIsFeaturedArtistChecked(e.target.checked)
+                      }
+                    >
+                      Is there a featured artist on this release?
+                    </Checkbox>
                   </Flex>
                   {isFeaturedArtistChecked && (
                     <>
@@ -360,8 +460,10 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
 
                   <Flex
                     justifyContent={'space-around'}
+                    flexDir={flexDirValue as FlexboxProps['flexDir']}
                     alignItems={'flex-start'}
                     my={8}
+                    gap={4}
                   >
                     <FormControl
                       isInvalid={!!props.errors?.primaryGenre}
@@ -389,7 +491,6 @@ const NewReleaseForm: React.FC<NewReleaseFormProps> = ({ ...rest }) => {
 
                     <>
                       <FormControl
-                        ml={4}
                         flex={1}
                         isInvalid={!!props.errors?.secondaryGenre}
                       >
