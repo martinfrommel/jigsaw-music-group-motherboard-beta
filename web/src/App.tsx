@@ -1,5 +1,4 @@
 import { ChakraProvider, ColorModeScript, extendTheme } from '@chakra-ui/react'
-import * as theme from 'config/chakra.config'
 
 import { FatalErrorBoundary, RedwoodProvider } from '@redwoodjs/web'
 import { RedwoodApolloProvider } from '@redwoodjs/web/apollo'
@@ -12,13 +11,16 @@ import { AuthProvider, useAuth } from './auth'
 
 import './index.css'
 
-const extendedTheme = extendTheme(theme)
+const extendedTheme = extendTheme({
+  initialColorMode: 'dark',
+  useSystemColorMode: false,
+})
 
 const App = () => (
   <FatalErrorBoundary page={FatalErrorPage}>
     <RedwoodProvider titleTemplate="%PageTitle | %AppTitle">
       <AuthProvider>
-        <ColorModeScript />
+        <ColorModeScript initialColorMode={extendedTheme.initialColorMode} />
         <ChakraProvider theme={extendedTheme}>
           <RedwoodApolloProvider useAuth={useAuth}>
             <Routes />

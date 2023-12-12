@@ -45,7 +45,7 @@ const Header: React.FC<{
   divider?: boolean
   children?: React.ReactNode
   [key: string]: any
-}> = ({ children, divider = true, ...rest }) => {
+}> = ({ children, divider = false, ...rest }) => {
   const fontSize = useBreakpointValue({ base: '3xl', md: '5xl' })
 
   return (
@@ -53,6 +53,7 @@ const Header: React.FC<{
       <ChakraCardHeader
         fontSize={fontSize}
         fontWeight={'bold'}
+        color={useColorModeValue('blackAlpha.700', 'whiteAlpha.700')}
         textTransform={'capitalize'}
         flex={1}
         textAlign={'center'}

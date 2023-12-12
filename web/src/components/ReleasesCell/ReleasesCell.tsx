@@ -1,4 +1,13 @@
-import { Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import {
+  Badge,
+  Spinner,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+} from '@chakra-ui/react'
 import type { releasesPerUserQuery } from 'types/graphql'
 
 import type { CellSuccessProps, CellFailureProps } from '@redwoodjs/web'
@@ -15,6 +24,7 @@ export const QUERY = gql`
       id
       songTitle
       createdAt
+      ingestionStatus
       label {
         name
       }
@@ -47,7 +57,8 @@ export const Success = ({
           <Tr>
             <Th>Release title</Th>
             <Th>Label</Th>
-            <Th>Release date</Th>
+            <Th>Submission date</Th>
+            <Th>Ingestion Status</Th>
           </Tr>
         </Thead>
         <Tbody>
@@ -56,7 +67,6 @@ export const Success = ({
               <Td>{release.songTitle}</Td>
               <Td>{release.label.name}</Td>
               <Td>
-                {' '}
                 {new Date(release.createdAt).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'numeric',
@@ -64,6 +74,13 @@ export const Success = ({
                   hour: 'numeric',
                   minute: 'numeric',
                 })}
+              </Td>
+              <Td>
+                {release.ingestionStatus === 'complete' ? (
+                  <Badge colorScheme="green">Complete</Badge>
+                ) : (
+                  <Badge colorScheme="red">Incomplete</Badge>
+                )}
               </Td>
             </Tr>
           ))}
