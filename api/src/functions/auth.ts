@@ -1,8 +1,12 @@
 import type { APIGatewayProxyEvent, Context } from 'aws-lambda'
+import { Role } from 'types/graphql'
 
 import { DbAuthHandler, DbAuthHandlerOptions } from '@redwoodjs/auth-dbauth-api'
+import { UserInputError } from '@redwoodjs/graphql-server'
 
 import { db } from 'src/lib/db'
+import { genericEmailTemplate } from 'src/lib/emails/emailTemplates/genericEmailTemplate'
+import { sendEmail } from 'src/lib/emails/sendEmail'
 
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -21,19 +25,40 @@ export const handler = async (
     // You could use this return value to, for example, show the email
     // address in a toast message so the user will know it worked and where
     // to look for the email.
-    handler: (user) => {
-      return user
+    handler: async (user) => {
+      if (!user) {
+        throw new UserInputError(user.usernameNotFound)
+      }
+
+      let baseUrl = process.env.WEBSITE_URL
+      if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = 'http://' + baseUrl
+      }
+      const resetUrl = `${baseUrl}/reset-password?resetToken=${user.resetToken}`
+      // Construct the email HTML using the generic template function
+      const resetEmailHTML = genericEmailTemplate({
+        title: 'Reset Your Password',
+        heading: 'Password Reset Request',
+        paragraph: `Dear ${user.firstName}, if you requested to reset your password, please click on the button below.`,
+        link: resetUrl,
+        linkText: 'Reset Password',
+        disclaimer:
+          'If you did not request a password reset, please ignore this email or reply to contact support.',
+      })
+
+      // Send the email with the constructed HTML content
+      sendEmail({
+        to: user.email,
+        subject: 'Reset Your Password',
+        text: `Click the link to reset your password: ${resetUrl}`,
+        html: resetEmailHTML,
+      })
+      console.log('A reset password email was sent to: ' + user.email)
+      return { success: true, user }
     },
-
-    // How long the resetToken is valid for, in seconds (default is 24 hours)
     expires: 60 * 60 * 24,
-
     errors: {
-      // for security reasons you may want to be vague here rather than expose
-      // the fact that the email address wasn't found (prevents fishing for
-      // valid email addresses)
       usernameNotFound: 'Username not found',
-      // if the user somehow gets around client validation
       usernameRequired: 'Username is required',
     },
   }
@@ -51,16 +76,17 @@ export const handler = async (
     // by the `logIn()` function from `useAuth()` in the form of:
     // `{ message: 'Error message' }`
     handler: (user) => {
+      // send a jwt to integrate with supabase storage
       return user
     },
 
     errors: {
       usernameOrPasswordMissing: 'Both username and password are required',
-      usernameNotFound: 'Username ${username} not found',
+      usernameNotFound: 'Incorrect password or username',
       // For security reasons you may want to make this the same as the
       // usernameNotFound error so that a malicious user can't use the error
       // to narrow down if it's the username or password that's incorrect
-      incorrectPassword: 'Incorrect password for ${username}',
+      incorrectPassword: 'Incorrect password or username',
     },
 
     // How long a user will remain logged in, in seconds
@@ -113,6 +139,10 @@ export const handler = async (
           email: username,
           hashedPassword: hashedPassword,
           salt: salt,
+          firstName: userAttributes.firstName,
+          lastName: userAttributes.lastName,
+          roles: userAttributes.roles as Role,
+          picture: userAttributes.picture,
           // name: userAttributes.name
         },
       })
@@ -136,13 +166,15 @@ export const handler = async (
     // Provide prisma db client
     db: db,
 
+    signup: signupOptions,
+
     // The name of the property you'd call on `db` to access your user table.
     // ie. if your Prisma model is named `User` this value would be `user`, as in `db.user`
     authModelAccessor: 'user',
 
     // The name of the property you'd call on `db` to access your user credentials table.
     // ie. if your Prisma model is named `UserCredential` this value would be `userCredential`, as in `db.userCredential`
-    credentialModelAccessor: 'userCredential',
+    // credentialModelAccessor: 'userCredential',
 
     // A map of what dbAuth calls a field to what your database calls it.
     // `id` is whatever column you use to uniquely identify a user (probably
@@ -154,7 +186,6 @@ export const handler = async (
       salt: 'salt',
       resetToken: 'resetToken',
       resetTokenExpiresAt: 'resetTokenExpiresAt',
-      challenge: 'webAuthnChallenge',
     },
 
     // Specifies attributes on the cookie that dbAuth sets in order to remember
@@ -173,35 +204,6 @@ export const handler = async (
     forgotPassword: forgotPasswordOptions,
     login: loginOptions,
     resetPassword: resetPasswordOptions,
-    signup: signupOptions,
-
-    // See https://redwoodjs.com/docs/authentication/dbauth#webauthn for options
-    webAuthn: {
-      enabled: true,
-      // How long to allow re-auth via WebAuthn in seconds (default is 10 years).
-      // The `login.expires` time denotes how many seconds before a user will be
-      // logged out, and this value is how long they'll be to continue to use a
-      // fingerprint/face scan to log in again. When this one expires they
-      // *must* re-enter username and password to authenticate (WebAuthn will
-      // then be re-enabled for this amount of time).
-      expires: 60 * 60 * 24 * 365 * 10,
-      name: 'Redwood Application',
-      domain:
-        process.env.NODE_ENV === 'development' ? 'localhost' : 'server.com',
-      origin:
-        process.env.NODE_ENV === 'development'
-          ? 'http://localhost:8910'
-          : 'https://server.com',
-      type: 'platform',
-      timeout: 60000,
-      credentialFields: {
-        id: 'id',
-        userId: 'userId',
-        publicKey: 'publicKey',
-        transports: 'transports',
-        counter: 'counter',
-      },
-    },
   })
 
   return await authHandler.invoke()

@@ -1,0 +1,50 @@
+/**
+ * START --- SETUP TAILWINDCSS EDIT
+ *
+ * `yarn rw setup ui tailwindcss` placed these directives here
+ * to inject Tailwind's styles into your CSS.
+ * For more information, see: https://tailwindcss.com/docs/installation
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/**
+ * END --- SETUP TAILWINDCSS EDIT
+ */
+:root {
+  transition: all 1s;
+}
+
+html {
+  @apply min-w-full min-h-screen max-w-['100vw'] overflow-x-hidden
+
+}
+body {
+ @apply min-w-full min-h-screen max-w-['100vw'] overflow-x-hidden
+}
+
+#redwood-app {
+  @apply min-w-full min-h-screen max-w-['100vw']
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.logo-link:hover {
+  text-decoration: none;
+}
+ .nav-link-active, .nav-link:hover {
+  text-decoration: underline;
+
+  transition: all 0.1s ease-out;
+}
+
+.menu-item {
+  margin: 0 1rem 0 1rem;
+  transition: all 0.1s ease-out;
+  font-size: large;
+  font-weight: 500;
+
+
+}

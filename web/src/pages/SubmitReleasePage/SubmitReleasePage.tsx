@@ -1,20 +1,21 @@
-import { Link, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
+
+import JigsawCard from 'src/components/JigsawCard/JigsawCard'
+import NewReleaseForm from 'src/components/NewReleaseForm/NewReleaseForm'
 
 const SubmitReleasePage = () => {
   return (
     <>
-      <MetaTags title="SubmitRelease" description="SubmitRelease page" />
-
-      <h1>SubmitReleasePage</h1>
-      <p>
-        Find me in{' '}
-        <code>./web/src/pages/SubmitReleasePage/SubmitReleasePage.tsx</code>
-      </p>
-      <p>
-        My default route is named <code>submitRelease</code>, link to me with `
-        <Link to={routes.submitRelease()}>SubmitRelease</Link>`
-      </p>
+      <MetaTags
+        title="Submit a release"
+        description="Here you can upload a new release for review"
+      />
+      <JigsawCard>
+        <JigsawCard.Header>Submit a new release</JigsawCard.Header>
+        <JigsawCard.Body>
+          <NewReleaseForm />
+        </JigsawCard.Body>
+      </JigsawCard>
     </>
   )
 }

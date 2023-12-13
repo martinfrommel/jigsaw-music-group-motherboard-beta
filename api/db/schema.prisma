@@ -1,6 +1,7 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl =  env("DATABASE_DIRECT_URL")
 }
 
 generator client {
@@ -8,11 +9,143 @@ generator client {
   binaryTargets = "native"
 }
 
-// Define your own datamodels here and run `yarn redwood prisma migrate dev`
-// to create migrations for them and apply to your dev DB.
-// TODO: Please remove the following example:
-model UserExample {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+// Defined User Model
+
+enum Role {
+  user
+  admin
+  moderator
+}
+
+enum ingestionStatus {
+  pending
+  processing
+  complete
+  error
+}
+
+  enum PrimaryGenre {
+    Alternative
+    Blues
+    ChildrensMusic
+    Classical
+    Comedy
+    Country
+    Dance
+    Electronic
+    Folk
+    HipHopRap
+    Holiday
+    Jazz
+    Latin
+    NewAge
+    Pop
+    RBSoul
+    Reggae
+    Rock
+    SingerSongwriter
+    Soundtrack
+    World
+  }
+
+  enum SecondaryGenre {
+    AlternativeIndieRock
+    DanceBreakbeat
+    DanceElectroHouse
+    DanceHouse
+    DanceTechno
+    ElectronicAmbient
+    ElectronicElectronica
+    ElectronicExperimental
+    HipHopRapAlternativeRap
+    HolidayChristmas
+    LatinRegionalMexicano
+    LatinSalsa
+    PopAdultContemporary
+    PopKPop
+    PopPopRock
+    PopSoftRock
+    RBSoulFunk
+    RockMetal
+    WorldAfroBeat
+  }
+
+model User {
+  id             Int       @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  updatedAt     DateTime @default(now())
+  firstName      String
+  lastName       String?
+  email          String    @unique
+  picture        String?
+  hashedPassword String
+  salt           String
+  resetToken     String?
+  resetTokenExpiresAt DateTime?
+  signUpToken String? @unique
+  signUpTokenExpiresAt DateTime?
+  roles Role  @default(user)
+  releases       Release[] // This establishes a one-to-many relationship with Release
+
+
+}
+
+
+
+model Release {
+  id                  Int      @id @default(autoincrement())
+  userId              Int      // Foreign key to establish relationship with User
+  user                User     @relation(fields: [userId], references: [id]) // This establishes the relationship with User
+  songMasterReference String   // Link/reference to the uploaded file on S3
+  songArtworkReference String
+  AWSFolderKey        String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  songTitle           String
+  productTitle        String?  // Optional field
+  artist              String[]
+  otherParticipants   OtherParticipant[] // Optional field
+  featuredArtist      String?  // Optional field
+  releaseDate         DateTime // Optional field
+  previouslyReleased  Boolean
+  language            String
+  primaryGenre        PrimaryGenre
+  secondaryGenre      SecondaryGenre?  // Optional field
+  explicitLyrics      Boolean
+  isrcCode            String
+  pLine               String?  // Optional field
+  cLine               String?  // Optional field
+  length              Int ?     // Assuming length is stored in seconds as an integer
+  label               Label? @relation(fields: [labelId], references: [id])
+  labelId             Int?
+  ingestionStatus ingestionStatus  @default(pending)
+  ingestId Int? // This is the ID returned from AudioSalad API
+}
+
+model OtherParticipant {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      String
+  releaseId Int
+  release   Release  @relation(fields: [releaseId], references: [id])
+
+  @@unique([name, role])
+}
+
+model Label {
+  id Int @id
+  name String
+  releases Release[]
+}
+// AudioSalad API Token Model
+model ApiToken {
+  id               Int      @id @default(autoincrement())
+  accessToken      String
+  refreshToken     String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  accessTokenExpiresAt       DateTime?
+  refreshTokenExpiresAt      DateTime?
+  accessTokenExpired Boolean @default(false)
+  refreshTokenExpired Boolean @default(false)
 }

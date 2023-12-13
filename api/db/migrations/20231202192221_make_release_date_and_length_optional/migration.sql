@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Release" ALTER COLUMN "length" DROP NOT NULL,
+ALTER COLUMN "releaseDate" DROP NOT NULL;

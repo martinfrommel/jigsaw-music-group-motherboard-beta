@@ -7,19 +7,37 @@
 // 'src/pages/HomePage/HomePage.js'         -> HomePage
 // 'src/pages/Admin/BooksPage/BooksPage.js' -> AdminBooksPage
 
-import { Router, Route, Set } from '@redwoodjs/router'
-import MainLayout from './layouts/MainLayout/MainLayout'
+import { Router, Route, Set, PrivateSet } from '@redwoodjs/router'
 
 import { useAuth } from './auth'
+import AdminLayout from './layouts/AdminLayout/AdminLayout'
+import MainLayout from './layouts/MainLayout/MainLayout'
+import { useIsAdmin } from './lib/isAdmin'
 
 const Routes = () => {
+  const isAdmin = useIsAdmin()
   return (
     <Router useAuth={useAuth}>
-      <Set wrap={MainLayout}>
-        <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
-        <Route path="/" page={HomePage} name="home" />
+      <Set wrap={isAdmin ? AdminLayout : MainLayout}>
+        <Route path="/" page={HomePage} name="home" prerender />
+        <PrivateSet unauthenticated="login">
+          <Route path="/submit-release" page={SubmitReleasePage} name="submitRelease" />
+          <Route path="/user/releases" page={ReleasesPage} name="releases" />
+          <Route path="/user/{id:Int}/change-password" page={ChangePasswordPage} name="changePassword" />
+        </PrivateSet>
+        <Route path="/login" page={LoginPage} name="login" />
+        <Route path="/signup" page={SignupPage} name="signup" />
+        <Route path="/forgot-password" page={ForgotPasswordPage} name="forgotPassword" />
+        <Route path="/reset-password" page={ResetPasswordPage} name="resetPassword" />
+        <Route path="/set-password" page={SetPasswordPage} name="setPassword" />
+        <Route notfound page={NotFoundPage} />
       </Set>
-      <Route notfound page={NotFoundPage} />
+
+      <PrivateSet roles="admin" unauthenticated="login" wrap={AdminLayout}>
+        <Route path="/admin" page={AdminPage} name="admin" />
+        <Route path="/admin/create-a-user" page={CreateNewUserPage} name="createNewUser" />
+        <Route path="/admin/releases" page={AdminAllReleasesPage} name="adminAllReleases" />
+      </PrivateSet>
     </Router>
   )
 }
