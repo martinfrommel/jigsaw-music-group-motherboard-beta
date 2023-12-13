@@ -64,6 +64,7 @@ const ForgotPasswordPage = () => {
       <MetaTags
         title="Forgot Password"
         description="A place where we all go, but no one likes it... "
+        robots={['noindex', 'nofollow']}
       />
       <JigsawCard px={20} py={14} variant={'elevated'}>
         <JigsawCard.Header>Forgot Password?</JigsawCard.Header>

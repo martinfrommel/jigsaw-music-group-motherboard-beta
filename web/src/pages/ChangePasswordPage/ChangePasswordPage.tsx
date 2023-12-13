@@ -11,6 +11,7 @@ const ChangePasswordPage = () => {
       <MetaTags
         title="Change your password"
         description="You can change your password here..."
+        robots={['noindex', 'nofollow']}
       />
       <JigsawCard>
         <JigsawCard.Header>Change your password</JigsawCard.Header>

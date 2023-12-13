@@ -34,6 +34,7 @@ const JigsawCard: React.FC<JigsawCardProps> & {
       flexDirection={'column'}
       justifyContent={'space-between'}
       alignItems={'center'}
+      overflowX={'auto'}
     >
       {children}
     </Flex>

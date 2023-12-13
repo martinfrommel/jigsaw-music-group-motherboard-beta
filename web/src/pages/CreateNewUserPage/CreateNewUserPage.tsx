@@ -11,6 +11,7 @@ const CreateNewUserPage = () => {
       <MetaTags
         title="Create a user"
         description="Here you can create a new user..."
+        robots={['noindex', 'nofollow']}
       />
       <Alert status="warning" flex={0} maxW={'2xl'} mb={12}>
         <AlertIcon />

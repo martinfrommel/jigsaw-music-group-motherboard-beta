@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
 import {
-  Heading,
   Box,
   FormControl,
   FormLabel,
@@ -74,6 +73,7 @@ const ResetPasswordPage = ({ resetToken }: { resetToken: string }) => {
       <MetaTags
         title="Reset Password"
         description="Reset your account password."
+        robots={['noindex', 'nofollow']}
       />
 
       <JigsawCard>

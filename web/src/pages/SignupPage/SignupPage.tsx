@@ -1,17 +1,8 @@
 import { useRef } from 'react'
 import { useEffect } from 'react'
 
-import {
-  Form,
-  Label,
-  TextField,
-  PasswordField,
-  FieldError,
-  Submit,
-} from '@redwoodjs/forms'
-import { Link, navigate, routes } from '@redwoodjs/router'
+import { navigate, routes } from '@redwoodjs/router'
 import { MetaTags } from '@redwoodjs/web'
-import { toast, Toaster } from '@redwoodjs/web/toast'
 
 import { useAuth } from 'src/auth'
 import CreateUserForm from 'src/components/CreateNewUserComponents/CreateUserForm/CreateUserForm'
@@ -33,6 +24,11 @@ const SignupPage = () => {
 
   return (
     <>
+      <MetaTags
+        title="Create a new user"
+        description=""
+        robots={['noindex', 'nofollow']}
+      />
       <CreateUserForm showRoleSelection={false} />
     </>
   )

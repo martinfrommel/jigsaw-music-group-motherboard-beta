@@ -100,6 +100,7 @@ const SetPasswordPage: React.FC<SetPasswordFormProps> = () => {
       <MetaTags
         title="Set Password"
         description="Set your password when your account was created."
+        robots={['noindex', 'nofollow']}
       />
 
       <JigsawCard>

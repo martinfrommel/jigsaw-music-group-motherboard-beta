@@ -1,11 +1,17 @@
 import { Button, ButtonGroup, Flex, Heading, Text } from '@chakra-ui/react'
 
 import { Link, routes } from '@redwoodjs/router'
+import { MetaTags } from '@redwoodjs/web'
 
 import MainLayout from 'src/layouts/MainLayout/MainLayout'
 
 export default () => (
   <MainLayout>
+    <MetaTags
+      title={'404 - Page not found'}
+      description={'Looks like we could not find this resource...'}
+      robots={['noindex', 'nofollow']}
+    />
     <Flex
       flexDirection={'column'}
       justifyContent={'center'}

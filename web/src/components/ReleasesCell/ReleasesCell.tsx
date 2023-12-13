@@ -1,12 +1,18 @@
 import {
   Badge,
+  Box,
+  Grid,
+  GridItem,
   Spinner,
   Table,
+  TableContainer,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import type { releasesPerUserQuery } from 'types/graphql'
 
@@ -50,23 +56,78 @@ export const Failure = ({ error }: CellFailureProps) => (
 export const Success = ({
   releasesPerUser: data,
 }: CellSuccessProps<releasesPerUserQuery> & ReleasesCellProps) => {
+  const isMobile = useBreakpointValue({ base: true, md: false })
+
+  return isMobile ? (
+    <MobileView releases={data} />
+  ) : (
+    <DesktopView releases={data} />
+  )
+}
+
+export const DesktopView = ({ releases: data }) => {
   return (
     <>
-      <Table>
-        <Thead>
-          <Tr>
-            <Th>Release title</Th>
-            <Th>Label</Th>
-            <Th>Submission date</Th>
-            <Th>Ingestion Status</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {data.map((release) => (
-            <Tr key={release.id}>
-              <Td>{release.songTitle}</Td>
-              <Td>{release.label.name}</Td>
-              <Td>
+      <TableContainer>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>Release title</Th>
+              <Th>Label</Th>
+              <Th>Submission date</Th>
+              <Th>Ingestion Status</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {data.map((release) => (
+              <Tr key={release.id}>
+                <Td>{release.songTitle}</Td>
+                <Td>{release.label.name}</Td>
+                <Td>
+                  {new Date(release.createdAt).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                  })}
+                </Td>
+                <Td>
+                  {release.ingestionStatus === 'complete' ? (
+                    <Badge colorScheme="green">Complete</Badge>
+                  ) : (
+                    <Badge colorScheme="blue">Pending</Badge>
+                  )}
+                </Td>
+              </Tr>
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+    </>
+  )
+}
+
+const MobileView = ({ releases }) => {
+  return (
+    <>
+      {releases.map((release) => (
+        <Box
+          w={'75vw'}
+          key={release.id}
+          borderWidth="2px"
+          borderRadius="lg"
+          overflow="hidden"
+          my={6}
+          p={4}
+        >
+          <Grid templateColumns="1fr" gap={4} textAlign={'center'}>
+            <GridItem>
+              <Text fontWeight="bold" fontSize="xl">
+                {release.songTitle}
+              </Text>
+              <Text>{release.label.name}</Text>
+              <Text>
                 {new Date(release.createdAt).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'numeric',
@@ -74,18 +135,21 @@ export const Success = ({
                   hour: 'numeric',
                   minute: 'numeric',
                 })}
-              </Td>
-              <Td>
-                {release.ingestionStatus === 'complete' ? (
-                  <Badge colorScheme="green">Complete</Badge>
-                ) : (
-                  <Badge colorScheme="red">Incomplete</Badge>
-                )}
-              </Td>
-            </Tr>
-          ))}
-        </Tbody>
-      </Table>
+              </Text>
+              <Badge
+                colorScheme={
+                  release.ingestionStatus === 'complete' ? 'green' : 'blue'
+                }
+                variant={'solid'}
+              >
+                {release.ingestionStatus === 'complete'
+                  ? 'Complete'
+                  : 'Pending'}
+              </Badge>
+            </GridItem>
+          </Grid>
+        </Box>
+      ))}
     </>
   )
 }

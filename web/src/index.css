@@ -16,15 +16,15 @@
 }
 
 html {
-  @apply min-w-full min-h-screen
+  @apply min-w-full min-h-screen max-w-['100vw'] overflow-x-hidden
 
 }
 body {
- @apply min-w-full min-h-screen
+ @apply min-w-full min-h-screen max-w-['100vw'] overflow-x-hidden
 }
 
 #redwood-app {
-  @apply min-w-full min-h-screen
+  @apply min-w-full min-h-screen max-w-['100vw']
 }
 
 a:hover {
