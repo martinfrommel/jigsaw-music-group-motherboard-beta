@@ -1,7 +1,7 @@
 .idea
 .DS_Store
 .env
-.env.staging
+.env.preview
 .env.production
 .vscode
 .netlify
