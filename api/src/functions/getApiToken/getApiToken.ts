@@ -15,7 +15,6 @@
 import { fetch } from '@whatwg-node/fetch'
 import type { APIGatewayEvent, Context } from 'aws-lambda'
 import { addSeconds } from 'date-fns'
-import cron from 'node-cron'
 
 import { db } from 'src/lib/db'
 import { sendEmail } from 'src/lib/emails/sendEmail'
@@ -48,21 +47,21 @@ function isTokenExpired(expiryDate: Date): boolean {
   return currentDate > expiryDate
 }
 
-// local development: run every 30 minutes
-cron.schedule('*/30 * * * *', async () => {
-  console.log('Refreshing tokens internally...')
+// // local development: run every 30 minutes
+// cron.schedule('*/30 * * * *', async () => {
+//   console.log('Refreshing tokens internally...')
 
-  try {
-    fetch('http://localhost:8911/getApiToken', {
-      method: 'GET',
-      headers: {
-        'x-api-key': process.env.WEBSITE_API_KEY,
-      },
-    })
-  } catch (error) {
-    console.error('Error refreshing tokens:', error)
-  }
-})
+//   try {
+//     fetch('http://localhost:8911/getApiToken', {
+//       method: 'GET',
+//       headers: {
+//         'x-api-key': process.env.WEBSITE_API_KEY,
+//       },
+//     })
+//   } catch (error) {
+//     console.error('Error refreshing tokens:', error)
+//   }
+// })
 
 /**
  * Retrieves and refreshes the API token.

@@ -8,31 +8,20 @@ import {
   Box,
   Select,
   FormErrorMessage,
-  Spinner,
   BoxProps,
   FormErrorIcon,
   Flex,
 } from '@chakra-ui/react'
 import { Formik } from 'formik'
 
-import { useMutation, useQuery } from '@redwoodjs/web'
+import { useMutation } from '@redwoodjs/web'
 import { toast } from '@redwoodjs/web/toast'
 
-import FailedToFetchData from 'src/components/DataFetching/FailedToFetchData/FailedToFetchData'
 import { capitalizeFirstLetter } from 'src/lib/capitalizeFirstLetter'
 import { useIsAdmin } from 'src/lib/isAdmin'
 import { setRandomAvatar } from 'src/lib/setRandomAvatar'
 import { AdminCreateUserSchema } from 'src/lib/validation/adminCreateUserSchema'
 
-const GET_ROLES = gql`
-  query getRoles {
-    __type(name: "Role") {
-      enumValues {
-        name
-      }
-    }
-  }
-`
 const CREATE_ADMIN_USER_MUTATION = gql`
   mutation AdminCreateUser($input: AdminCreateUserInput!) {
     adminCreateUser(input: $input) {
@@ -52,11 +41,7 @@ const CreateUserForm = ({
   showRoleSelection = false,
   ...rest
 }: createUserFormProps) => {
-  const {
-    data: rolesData,
-    loading: loadingRoles,
-    error: getRolesError,
-  } = useQuery(GET_ROLES)
+  const rolesData = ['user', 'admin', 'moderator']
   const [adminCreateUser, { error: createUserError }] = useMutation(
     CREATE_ADMIN_USER_MUTATION
   )
@@ -188,16 +173,9 @@ const CreateUserForm = ({
                       onBlur={props.handleBlur}
                     >
                       <FormLabel>Role</FormLabel>
-                      {/* If loading, show a spinner */}
-                      {loadingRoles && <Spinner />}
-                      {/* If there's an error, show the FailedToFetchData component */}
-                      {getRolesError && (
-                        <FailedToFetchData>
-                          {getRolesError.message}
-                        </FailedToFetchData>
-                      )}
+
                       {/* If data is available, show the Select component */}
-                      {!loadingRoles && !getRolesError && (
+                      {rolesData && (
                         <>
                           <Select
                             name="role"
@@ -205,9 +183,9 @@ const CreateUserForm = ({
                             onChange={props.handleChange}
                             isInvalid={props.errors.role && props.touched.role}
                           >
-                            {rolesData?.__type.enumValues.map((role) => (
-                              <option key={role.name} value={role.name}>
-                                {capitalizeFirstLetter(role.name)}
+                            {rolesData.map((role) => (
+                              <option key={role} value={role}>
+                                {capitalizeFirstLetter(role)}
                               </option>
                             ))}
                           </Select>

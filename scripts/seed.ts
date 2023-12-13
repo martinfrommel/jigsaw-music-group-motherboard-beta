@@ -20,7 +20,7 @@ export default async () => {
         firstName: 'Martin',
         lastName: 'Frommel',
         email: 'martin@mixdock.co.uk',
-        role: Role.admin,
+        roles: Role.admin,
         picture: setRandomAvatar(),
       },
       // {

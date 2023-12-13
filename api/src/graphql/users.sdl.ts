@@ -26,7 +26,7 @@ export const schema = gql`
     users: [User!]! @requireAuth(roles: ["admin", "moderator"])
     user(id: Int!): User @requireAuth
     userByName(firstName: String!, lastName: String!): User @requireAuth
-    getRoles(roles: Role): User @requireAuth
+    getRoles: [Role!]! @requireAuth(roles: ["admin", "moderator"])
     validateSignUpToken(signUpToken: String!): Boolean! @skipAuth
   }
 

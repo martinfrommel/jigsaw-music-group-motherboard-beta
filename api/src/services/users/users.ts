@@ -18,6 +18,10 @@ import { db } from 'src/lib/db'
 import { genericEmailTemplate } from 'src/lib/emails/emailTemplates/genericEmailTemplate'
 import { sendEmail } from 'src/lib/emails/sendEmail'
 
+export const getRoles: QueryResolvers['getRoles'] = () => {
+  return ['user', 'admin', 'moderator']
+}
+
 /**
  * Retrieves a list of users.
  *
@@ -156,7 +160,6 @@ export const adminCreateUser: MutationResolvers['adminCreateUser'] = async ({
       // Log the error or handle other types of errors as needed
       console.error('Error creating user:', error)
       throw new SyntaxError('Failed to create user due to an unexpected error.')
-      return SyntaxError('Failed to create user due to an unexpected error.')
     }
   }
   try {
