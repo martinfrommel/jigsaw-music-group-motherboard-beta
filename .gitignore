@@ -1,7 +1,9 @@
 .idea
 .DS_Store
 .env
-.env.*
+.env.staging
+.env.production
+.vscode
 .netlify
 .redwood/*
 !.redwood/README.md
