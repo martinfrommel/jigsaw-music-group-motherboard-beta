@@ -23,28 +23,12 @@ export default async () => {
         roles: Role.admin,
         picture: setRandomAvatar(),
       },
+      // Add more test users here
       // {
       //   firstName: 'Admin',
       //   email: 'admin@jigsawmusicgroup.com',
       //   Role: Role.admin,
       //   picture: setRandomAvatar(),
-
-      // },
-      // {
-      //   firstName: 'Chris',
-      //   lastName: 'Priest',
-      //   email: 'chris@jigsawmusicgroup.com',
-      //   Role: Role.admin,
-      //   picture: setRandomAvatar(),
-
-      // },
-      // {
-      //   firstName: 'Connor',
-      //   lastName: 'Hunnisett',
-      //   email: 'connor@jigsawmusicgroup.com',
-      //   Role: Role.admin,
-      //   picture: setRandomAvatar(),
-      // },
     ]
 
     for (const user of users) {

@@ -56,7 +56,7 @@ const AdminAllReleasesPage = () => {
     error: releaseDataError,
     loading: releaseDataLoading,
     refetch: refetchReleases,
-  } = useQuery(RELEASES_QUERY)
+  } = useQuery(RELEASES_QUERY, { fetchPolicy: 'cache-first' })
 
   // const [releases, setReleases] = useState(releaseData.releases)
 

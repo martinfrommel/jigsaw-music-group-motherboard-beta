@@ -80,7 +80,19 @@ export const Success = ({ users }: CellSuccessProps<UsersQuery>) => {
 
   const isMobile = useBreakpointValue({ base: true, md: false })
   const [removeUser, { loading: deleteLoading, error: deleteError }] =
-    useMutation(DELETE_USER_MUTATION)
+    useMutation(DELETE_USER_MUTATION, {
+      update: (cache, { data: { deleteUser } }) => {
+        cache.modify({
+          fields: {
+            users(existingUsers = [], { readField }) {
+              return existingUsers.filter(
+                (userRef) => deleteUser.id !== readField('id', userRef)
+              )
+            },
+          },
+        })
+      },
+    })
 
   const { forgotPassword, currentUser } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
