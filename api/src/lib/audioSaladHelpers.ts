@@ -7,8 +7,8 @@ interface scanForIngestionInput {
   s3path: string
 }
 
-const s3key = '7Iev9O4OGJuZyMtZb85xDxZ69r+V0io63iSQXyjv'
-const s3id = 'AKIAVK6UBHV4INHIKP5O'
+const s3key = process.env.AWS_SECRET_ACCESS_KEY
+const s3id = process.env.AWS_ACCESS_KEY_ID
 
 /**
  * Scans for ingestion of audio files in AudioSalad.
