@@ -5,9 +5,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.458.0",
     "@aws-sdk/s3-presigned-post": "^3.458.0",
-    "@redwoodjs/api": "6.5.1",
-    "@redwoodjs/auth-dbauth-api": "6.5.1",
-    "@redwoodjs/graphql-server": "6.5.1",
+    "@redwoodjs/api": "7.0.5",
+    "@redwoodjs/auth-dbauth-api": "7.0.5",
+    "@redwoodjs/graphql-server": "7.0.5",
     "@simplewebauthn/server": "^7",
     "@ssh/audiosalad-xml": "^0.1.5",
     "@whatwg-node/fetch": "^0.9.14",
